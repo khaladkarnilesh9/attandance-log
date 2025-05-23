@@ -152,8 +152,8 @@ st.markdown(html_css, unsafe_allow_html=True)
 
 # --- Credentials ---
 USERS = {
-    "employee1": {"password": "emp123", "role": "employee"},
-    "employee2": {"password": "emp456", "role": "employee"},
+    "Geetali": {"password": "emp123", "role": "employee"},
+    "Nilesh": {"password": "emp456", "role": "employee"},
     "admin": {"password": "admin123", "role": "admin"}
 }
 
