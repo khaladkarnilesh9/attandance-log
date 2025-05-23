@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime, timezone
 import os
 import pytz
+from streamlit_geolocation import streamlit_geolocation # IMPORTED
 
 # --- CSS ---
 html_css = """
@@ -239,6 +240,7 @@ div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
     color: #333; /* Dark gray */
     margin-top: 15px;
     margin-bottom: 5px;
+    font-weight: 600; /* Made it slightly bolder */
 }
 
 /* Add to your html_css string */
@@ -249,30 +251,6 @@ div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
     margin-bottom: 8px;
     font-weight: 550;
 }
-
-
-        .employee-section-header {
-        color: #2070c0; /* Accent blue */
-        margin-top: 30px;
-        border-bottom: 1px solid #e0e0e0;
-        padding-bottom: 5px;
-        font-size: 1.3em; /* Adjust as needed */
-    }
-    .record-type-header {
-        font-size: 1.1em;
-        color: #333; /* Dark gray */
-        margin-top: 15px;
-        margin-bottom: 5px;
-        font-weight: 600; /* Made it slightly bolder */
-    }
-    .allowance-summary-header { /* NEW CLASS */
-        font-size: 1.0em;
-        color: #495057;   /* Muted color */
-        margin-top: 15px; /* Space above this header */
-        margin-bottom: 8px; /* Space between header and table/metric */
-        font-weight: 550; /* Semi-bold */
-    }
-
 </style>
 """
 st.markdown(html_css, unsafe_allow_html=True)
@@ -307,21 +285,29 @@ def load_data(path, columns):
         try:
             if os.path.getsize(path) > 0:
                 df = pd.read_csv(path)
+                # Ensure all expected columns exist, add them with pd.NA if not
                 for col in columns:
                     if col not in df.columns:
-                        df[col] = pd.NA 
+                        df[col] = pd.NA
                 return df
-            else: 
+            else:
                 return pd.DataFrame(columns=columns)
-        except pd.errors.EmptyDataError: 
+        except pd.errors.EmptyDataError:
             return pd.DataFrame(columns=columns)
         except Exception as e:
             st.error(f"Error loading data from {path}: {e}. Returning empty DataFrame.")
             return pd.DataFrame(columns=columns)
-    else: 
-        return pd.DataFrame(columns=columns)
+    else:
+        # Create new file with headers if it doesn't exist
+        df = pd.DataFrame(columns=columns)
+        try:
+            df.to_csv(path, index=False)
+        except Exception as e:
+            st.warning(f"Could not create file {path}: {e}")
+        return df
 
-ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp"]
+
+ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude"] # ADDED Latitude, Longitude
 ALLOWANCE_COLUMNS = ["Username", "Type", "Amount", "Reason", "Date"]
 
 attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS)
@@ -369,51 +355,91 @@ with st.sidebar:
 if nav == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3 class='page-subheader'>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
+
+    # --- Get Geolocation ---
+    location_data = streamlit_geolocation(key="attendance_page_location") # Unique key
+    lat, lon = None, None
+    if location_data and 'latitude' in location_data and 'longitude' in location_data:
+        lat = location_data['latitude']
+        lon = location_data['longitude']
+        accuracy = location_data.get('accuracy')
+        accuracy_str = f"(Accuracy: {accuracy:.0f}m)" if accuracy else ""
+        st.caption(f"📍 Current Location: Lat {lat:.4f}, Lon {lon:.4f} {accuracy_str}")
+        st.markdown(f"[View on Google Maps](https://www.google.com/maps?q={lat},{lon})", unsafe_allow_html=True)
+    else:
+        st.warning("📍 Location access denied or unavailable. Please allow location access in your browser for accurate check-in/out.")
+    st.markdown("---") # Separator
+
     st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         if st.button("✅ Check In", key="check_in_btn", use_container_width=True):
             now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
-            new_entry_att = pd.DataFrame([{"Username": current_user["username"], "Type": "Check-In", "Timestamp": now_str}])
+            new_entry_data = {
+                "Username": current_user["username"],
+                "Type": "Check-In",
+                "Timestamp": now_str,
+                "Latitude": lat if lat is not None else pd.NA,
+                "Longitude": lon if lon is not None else pd.NA
+            }
+            # Ensure all columns from ATTENDANCE_COLUMNS are present
+            for col_name in ATTENDANCE_COLUMNS:
+                if col_name not in new_entry_data:
+                    new_entry_data[col_name] = pd.NA
+
+            new_entry_att = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
             attendance_df = pd.concat([attendance_df, new_entry_att], ignore_index=True)
             try:
                 attendance_df.to_csv(ATTENDANCE_FILE, index=False)
-                st.success(f"Checked in at {now_str} ({TARGET_TIMEZONE}).")
+                location_msg = f"at Lat: {lat:.4f}, Lon: {lon:.4f}" if lat and lon else "(location not recorded)"
+                st.success(f"Checked in at {now_str} ({TARGET_TIMEZONE}) {location_msg}.")
             except Exception as e:
                 st.error(f"Error saving attendance data: {e}")
     with col2:
         if st.button("🚪 Check Out", key="check_out_btn", use_container_width=True):
             now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
-            new_entry_att = pd.DataFrame([{"Username": current_user["username"], "Type": "Check-Out", "Timestamp": now_str}])
+            new_entry_data = {
+                "Username": current_user["username"],
+                "Type": "Check-Out",
+                "Timestamp": now_str,
+                "Latitude": lat if lat is not None else pd.NA,
+                "Longitude": lon if lon is not None else pd.NA
+            }
+            for col_name in ATTENDANCE_COLUMNS:
+                if col_name not in new_entry_data:
+                    new_entry_data[col_name] = pd.NA
+
+            new_entry_att = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
             attendance_df = pd.concat([attendance_df, new_entry_att], ignore_index=True)
             try:
                 attendance_df.to_csv(ATTENDANCE_FILE, index=False)
-                st.success(f"Checked out at {now_str} ({TARGET_TIMEZONE}).")
+                location_msg = f"at Lat: {lat:.4f}, Lon: {lon:.4f}" if lat and lon else "(location not recorded)"
+                st.success(f"Checked out at {now_str} ({TARGET_TIMEZONE}) {location_msg}.")
             except Exception as e:
                 st.error(f"Error saving attendance data: {e}")
-    st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True) # end button-column-container
+    st.markdown('</div>', unsafe_allow_html=True) # end card
 
 
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3 class='page-subheader'>💼 Claim Allowance</h3>", unsafe_allow_html=True)
 
-    st.markdown("<h6>Select Allowance Type:</h6>", unsafe_allow_html=True) 
-    allowance_types = ["Travel", "Dinner", "Medical", "Internet", "Other"] 
+    st.markdown("<h6>Select Allowance Type:</h6>", unsafe_allow_html=True)
+    allowance_types = ["Travel", "Dinner", "Medical", "Internet", "Other"]
     a_type = st.radio(
-        "", 
+        "",
         options=allowance_types,
         key="allowance_type_radio",
         horizontal=True,
-        label_visibility='collapsed' 
+        label_visibility='collapsed'
     )
-    
+
     amount = st.number_input("Enter Amount (INR):", min_value=0.0, step=10.0, format="%.2f", key="allowance_amount")
     reason = st.text_area("Reason for Allowance:", key="allowance_reason", placeholder="Please provide a clear justification...")
 
-    if st.button("Submit Allowance Request", key="submit_allowance_btn", use_container_width=True): 
-        if a_type and amount > 0 and reason.strip(): 
+    if st.button("Submit Allowance Request", key="submit_allowance_btn", use_container_width=True):
+        if a_type and amount > 0 and reason.strip():
             date_str = get_current_time_in_tz().strftime("%Y-%m-%d")
             new_entry_data = {
                 "Username": current_user["username"],
@@ -422,12 +448,17 @@ elif nav == "🧾 Allowance":
                 "Reason": reason,
                 "Date": date_str
             }
-            new_entry_df = pd.DataFrame([new_entry_data])
-            temp_allowance_df = pd.concat([allowance_df, new_entry_df], ignore_index=True)
-            
+            # Ensure all columns from ALLOWANCE_COLUMNS are present
+            for col_name in ALLOWANCE_COLUMNS:
+                if col_name not in new_entry_data:
+                    new_entry_data[col_name] = pd.NA
+
+            new_entry_df = pd.DataFrame([new_entry_data], columns=ALLOWANCE_COLUMNS)
+            # It's safer to concat with the globally loaded allowance_df then assign back
+            allowance_df = pd.concat([allowance_df, new_entry_df], ignore_index=True)
+
             try:
-                temp_allowance_df.to_csv(ALLOWANCE_FILE, index=False)
-                allowance_df = temp_allowance_df 
+                allowance_df.to_csv(ALLOWANCE_FILE, index=False)
                 st.success(f"Your {a_type} allowance request for {amount:.2f} INR on {date_str} ({TARGET_TIMEZONE}) has been submitted successfully.")
             except Exception as e:
                 st.error(f"Error saving allowance data: {e}")
@@ -441,11 +472,9 @@ elif nav == "🧾 Allowance":
                  st.warning("Please provide a reason for the allowance.")
             else:
                  st.warning("Please complete all fields for the allowance request.")
-                 
-    st.markdown('</div>', unsafe_allow_html=True) 
 
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# ... (Keep all your existing code before the "📊 View Logs" section) ...
 
 elif nav == "📊 View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -463,29 +492,43 @@ elif nav == "📊 View Logs":
 
                 # --- Attendance for this employee ---
                 st.markdown("<h5 class='record-type-header'>🕒 Attendance Records:</h5>", unsafe_allow_html=True)
-                emp_attendance = attendance_df[attendance_df["Username"] == emp_name]
+                emp_attendance = attendance_df[attendance_df["Username"] == emp_name].copy() # Use .copy()
                 if not emp_attendance.empty:
-                    st.dataframe(emp_attendance.drop(columns=['Username'], errors='ignore'), use_container_width=True)
+                    display_cols_att = [col for col in ATTENDANCE_COLUMNS if col not in ['Username']] # Keep lat/lon for admin
+                    st.dataframe(emp_attendance[display_cols_att], use_container_width=True)
+
+                    # --- Map for this employee's attendance ---
+                    st.markdown("<h6 class='allowance-summary-header' style='margin-top: 10px;'>🗺️ Attendance Locations Map:</h6>", unsafe_allow_html=True)
+                    map_data = emp_attendance.copy()
+                    if 'Latitude' in map_data.columns and 'Longitude' in map_data.columns:
+                        map_data['Latitude'] = pd.to_numeric(map_data['Latitude'], errors='coerce')
+                        map_data['Longitude'] = pd.to_numeric(map_data['Longitude'], errors='coerce')
+                        map_data.dropna(subset=['Latitude', 'Longitude'], inplace=True)
+
+                        if not map_data.empty:
+                            # st.map expects lowercase 'latitude' and 'longitude'
+                            map_data_for_st_map = map_data.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'})
+                            st.map(map_data_for_st_map[['latitude', 'longitude']])
+                        else:
+                            st.caption(f"No valid location data to display on map for {emp_name}.")
+                    else:
+                        st.caption(f"Latitude/Longitude columns not found for map display for {emp_name}.")
                 else:
                     st.caption(f"No attendance records found for {emp_name}.")
 
+
                 # --- Allowances for this employee ---
-                st.markdown("<h5 class='record-type-header' style='margin-top: 25px;'>💰 Allowance Section:</h5>", unsafe_allow_html=True) # Main header for allowance
-                emp_allowances = allowance_df[allowance_df["Username"] == emp_name].copy() # Use .copy()
+                st.markdown("<h5 class='record-type-header' style='margin-top: 25px;'>💰 Allowance Section:</h5>", unsafe_allow_html=True)
+                emp_allowances = allowance_df[allowance_df["Username"] == emp_name].copy()
 
                 if not emp_allowances.empty:
-                    # --- Calculate Grand Total Allowance ---
-                    grand_total_allowance = emp_allowances['Amount'].sum()
+                    grand_total_allowance = pd.to_numeric(emp_allowances['Amount'], errors='coerce').sum()
                     st.metric(label=f"Grand Total Allowance for {emp_name}", value=f"{grand_total_allowance:,.2f} INR")
 
-                    # --- Calculate Monthly Allowance Summary ---
                     st.markdown("<h6 class='allowance-summary-header'>📅 Monthly Allowance Summary:</h6>", unsafe_allow_html=True)
                     try:
-                        # Ensure 'Date' is datetime and 'Amount' is numeric
                         emp_allowances['Date'] = pd.to_datetime(emp_allowances['Date'], errors='coerce')
                         emp_allowances['Amount'] = pd.to_numeric(emp_allowances['Amount'], errors='coerce')
-                        
-                        # Drop rows where date or amount conversion failed
                         emp_allowances.dropna(subset=['Date', 'Amount'], inplace=True)
 
                         if not emp_allowances.empty:
@@ -493,36 +536,52 @@ elif nav == "📊 View Logs":
                             monthly_summary = emp_allowances.groupby('YearMonth')['Amount'].sum().reset_index()
                             monthly_summary = monthly_summary.sort_values('YearMonth', ascending=False)
                             monthly_summary.rename(columns={'Amount': 'Total Amount (INR)', 'YearMonth': 'Month'}, inplace=True)
-                            
                             st.dataframe(monthly_summary, use_container_width=True, hide_index=True)
                         else:
                             st.caption("No valid allowance data to summarize by month.")
-                            
                     except Exception as e:
                         st.error(f"Error processing allowance summary: {e}")
                         st.caption("Could not generate monthly allowance summary.")
 
-                    # --- Detailed Allowance Requests ---
                     st.markdown("<h6 class='allowance-summary-header' style='margin-top: 20px;'>📋 Detailed Allowance Requests:</h6>", unsafe_allow_html=True)
-                    st.dataframe(emp_allowances.drop(columns=['Username', 'YearMonth'], errors='ignore'), use_container_width=True) # Drop YearMonth if it exists
+                    display_cols_allow = [col for col in ALLOWANCE_COLUMNS if col not in ['Username', 'YearMonth']]
+                    st.dataframe(emp_allowances[display_cols_allow], use_container_width=True)
                 else:
                     st.caption(f"No allowance requests found for {emp_name}.")
 
-                if emp_name != employee_names[-1]: # Add horizontal rule unless it's the last employee
+                if emp_name != employee_names[-1]:
                     st.markdown("---")
 
     else:  # Employee's own view
         st.markdown("<h3 class='page-subheader'>📅 My Attendance History</h3>", unsafe_allow_html=True)
-        my_attendance = attendance_df[attendance_df["Username"] == current_user["username"]]
+        my_attendance = attendance_df[attendance_df["Username"] == current_user["username"]].copy()
         if not my_attendance.empty:
-            st.dataframe(my_attendance, use_container_width=True)
+            display_cols_my_att = [col for col in ATTENDANCE_COLUMNS if col != 'Username']
+            st.dataframe(my_attendance[display_cols_my_att], use_container_width=True)
+
+            # --- Map for employee's own attendance ---
+            st.markdown("<h6 class='allowance-summary-header' style='margin-top: 10px;'>🗺️ My Attendance Locations Map:</h6>", unsafe_allow_html=True)
+            my_map_data = my_attendance.copy()
+            if 'Latitude' in my_map_data.columns and 'Longitude' in my_map_data.columns:
+                my_map_data['Latitude'] = pd.to_numeric(my_map_data['Latitude'], errors='coerce')
+                my_map_data['Longitude'] = pd.to_numeric(my_map_data['Longitude'], errors='coerce')
+                my_map_data.dropna(subset=['Latitude', 'Longitude'], inplace=True)
+
+                if not my_map_data.empty:
+                    my_map_data_for_st_map = my_map_data.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'})
+                    st.map(my_map_data_for_st_map[['latitude', 'longitude']])
+                else:
+                    st.info("No valid location data to display on the map for your attendance records.")
+            else:
+                 st.info("Latitude/Longitude columns not found for map display.")
         else:
             st.info("You have no attendance records yet. Use the 'Attendance' page to check in/out.")
 
         st.markdown("<h3 class='page-subheader' style='margin-top: 30px;'>🧾 My Allowance Request History</h3>", unsafe_allow_html=True)
         my_allowances = allowance_df[allowance_df["Username"] == current_user["username"]]
         if not my_allowances.empty:
-            st.dataframe(my_allowances, use_container_width=True)
+            display_cols_my_allow = [col for col in ALLOWANCE_COLUMNS if col != 'Username']
+            st.dataframe(my_allowances[display_cols_my_allow], use_container_width=True)
         else:
             st.info("You have not submitted any allowance requests yet.")
 
