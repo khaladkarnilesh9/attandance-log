@@ -2,90 +2,147 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
+import hashlib
 
-# ---- CONFIG ----
-USER_CREDENTIALS = {
-    "admin": "admin123",
-    "john": "pass123",
-    "maya": "mypwd"
+# ---------------------------
+# CONFIGURATION
+# ---------------------------
+
+# Hashing function
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# Users with hashed passwords
+USERS = {
+    "employee1": {"password": hash_password("emp123"), "role": "employee"},
+    "employee2": {"password": hash_password("emp456"), "role": "employee"},
+    "admin": {"password": hash_password("admin123"), "role": "admin"},
 }
 
-FILE_PATH = "attendance_log.csv"
+# File paths
+ATTENDANCE_FILE = "attendance.csv"
+ALLOWANCE_FILE = "allowances.csv"
 
-# ---- CSS Styling ----
-st.markdown("""
-    <style>
-        .login-container {
-            max-width: 400px;
-            margin: auto;
-            padding: 2rem;
-            background-color: #f0f2f6;
-            border-radius: 15px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .stButton button {
-            width: 100%;
-        }
-    </style>
-""", unsafe_allow_html=True)
+# Load or initialize DataFrames
+def load_data(path, columns):
+    return pd.read_csv(path) if os.path.exists(path) else pd.DataFrame(columns=columns)
 
-# ---- LOGIN FORM ----
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
+attendance_df = load_data(ATTENDANCE_FILE, ["Username", "Type", "Timestamp"])
+allowance_df = load_data(ALLOWANCE_FILE, ["Username", "Type", "Amount", "Reason", "Date"])
 
-if not st.session_state.authenticated:
-    with st.container():
-        st.markdown("<div class='login-container'>", unsafe_allow_html=True)
-        st.subheader("🔐 Login to Attendance Log")
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        login_button = st.button("Login")
+# ---------------------------
+# LOGIN
+# ---------------------------
 
-        if login_button:
-            if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
-                st.success("✅ Login successful!")
-                st.session_state.authenticated = True
-                st.rerun()
-            else:
-                st.error("❌ Invalid username or password.")
-        st.markdown("</div>", unsafe_allow_html=True)
-else:
-    # ---- Attendance App ----
-    st.title("📋 Attendance Log App")
+st.set_page_config(page_title="HR Dashboard", layout="centered")
+st.title("👨‍💼 HR Dashboard")
 
-    name = st.text_input("Enter your name:")
+if "auth" not in st.session_state:
+    st.session_state.auth = {"logged_in": False, "username": None, "role": None}
 
-    # Load existing data
-    if os.path.exists(FILE_PATH):
-        df = pd.read_csv(FILE_PATH)
-    else:
-        df = pd.DataFrame(columns=["Name", "Status", "Timestamp"])
+if not st.session_state.auth["logged_in"]:
+    st.subheader("🔐 Login")
+    uname = st.text_input("Username")
+    pwd = st.text_input("Password", type="password")
+    if st.button("Login"):
+        user = USERS.get(uname)
+        if user and user["password"] == hash_password(pwd):
+            st.session_state.auth = {"logged_in": True, "username": uname, "role": user["role"]}
+            st.success("Login successful.")
+            st.rerun()
+        else:
+            st.error("Invalid username or password.")
+    st.stop()
 
+# ---------------------------
+# SIDEBAR
+# ---------------------------
+
+user = st.session_state.auth
+st.sidebar.title(f"👋 Welcome, {user['username']}")
+nav = st.sidebar.radio("Menu", ["📆 Attendance", "🧾 Allowance", "📊 View Logs", "🔒 Logout"])
+
+# ---------------------------
+# LOGOUT
+# ---------------------------
+
+if nav == "🔒 Logout":
+    st.session_state.auth = {"logged_in": False, "username": None, "role": None}
+    st.rerun()
+
+# ---------------------------
+# ATTENDANCE
+# ---------------------------
+
+if nav == "📆 Attendance":
+    st.header("🕒 Digital Attendance")
     col1, col2 = st.columns(2)
-    with col1:
-        if st.button("✅ Check In"):
-            if name:
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                df = df._append({"Name": name, "Status": "Check-In", "Timestamp": timestamp}, ignore_index=True)
-                df.to_csv(FILE_PATH, index=False)
-                st.success(f"{name} checked in at {timestamp}")
-            else:
-                st.error("Please enter your name.")
 
-    with col2:
-        if st.button("🚪 Check Out"):
-            if name:
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                df = df._append({"Name": name, "Status": "Check-Out", "Timestamp": timestamp}, ignore_index=True)
-                df.to_csv(FILE_PATH, index=False)
-                st.success(f"{name} checked out at {timestamp}")
-            else:
-                st.error("Please enter your name.")
+    if col1.button("✅ Check In"):
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        attendance_df = attendance_df._append({"Username": user["username"], "Type": "Check-In", "Timestamp": now}, ignore_index=True)
+        attendance_df.to_csv(ATTENDANCE_FILE, index=False)
+        st.success("Checked in successfully.")
 
-    st.markdown("---")
-    st.subheader("📊 Attendance Log")
-    st.dataframe(df)
+    if col2.button("🚪 Check Out"):
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        attendance_df = attendance_df._append({"Username": user["username"], "Type": "Check-Out", "Timestamp": now}, ignore_index=True)
+        attendance_df.to_csv(ATTENDANCE_FILE, index=False)
+        st.success("Checked out successfully.")
 
-    if st.button("🔒 Log Out"):
-        st.session_state.authenticated = False
-        st.rerun()
+# ---------------------------
+# ALLOWANCE
+# ---------------------------
+
+elif nav == "🧾 Allowance":
+    st.header("💼 Travel & 🍽️ Dinner Allowance")
+    a_type = st.selectbox("Select Allowance Type", ["Travel", "Dinner"])
+    amount = st.number_input("Amount", min_value=0.0, step=10.0)
+    reason = st.text_area("Reason")
+
+    if st.button("Submit Allowance"):
+        date = datetime.now().strftime("%Y-%m-%d")
+        allowance_df = allowance_df._append({
+            "Username": user["username"],
+            "Type": a_type,
+            "Amount": amount,
+            "Reason": reason,
+            "Date": date
+        }, ignore_index=True)
+        allowance_df.to_csv(ALLOWANCE_FILE, index=False)
+        st.success(f"{a_type} allowance submitted.")
+
+# ---------------------------
+# VIEW LOGS
+# ---------------------------
+
+elif nav == "📊 View Logs":
+    st.header("📋 View Logs")
+    if user["role"] == "admin":
+        # Admin sees everything
+        st.subheader("🕒 All Attendance Records")
+        full_attendance = pd.read_csv(ATTENDANCE_FILE)
+        st.dataframe(full_attendance)
+
+        st.download_button("📤 Download Attendance (Excel)",
+                           full_attendance.to_excel(index=False, engine='openpyxl'),
+                           file_name="attendance_log.xlsx",
+                           mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+        st.subheader("💼 All Allowance Records")
+        full_allowance = pd.read_csv(ALLOWANCE_FILE)
+        st.dataframe(full_allowance)
+
+        st.download_button("📤 Download Allowances (Excel)",
+                           full_allowance.to_excel(index=False, engine='openpyxl'),
+                           file_name="allowance_log.xlsx",
+                           mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    else:
+        # Employee sees their own data
+        st.subheader("🕒 My Attendance")
+        my_attendance = attendance_df[attendance_df["Username"] == user["username"]]
+        st.dataframe(my_attendance)
+
+        st.subheader("💼 My Allowances")
+        my_allowances = allowance_df[allowance_df["Username"] == user["username"]]
+        st.dataframe(my_allowances)
