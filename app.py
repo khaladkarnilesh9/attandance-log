@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import os
 import pytz
 
-# --- CSS (Keep your existing html_css string here) ---
+# --- CSS ---
 html_css = """
 <style>
     /* --- General --- */
@@ -124,12 +124,55 @@ html_css = """
         border-bottom: 1px solid #70a1d7;
         padding-bottom: 15px;
     }
-    /* --- Dataframe --- */
+
+    /* --- Dataframe Styling (NEW/UPDATED) --- */
     .stDataFrame {
-        width: 100%;
-        border: 1px solid #dee2e6;
-        border-radius: 5px;
+        width: 100%; /* Ensures the container takes full width if use_container_width is not set on st.dataframe */
+        border: 1px solid #d1d9e1;      /* Light border, slightly more defined */
+        border-radius: 8px;             /* Consistent rounded corners */
+        overflow: hidden;               /* Crucial for border-radius on child table */
+        box-shadow: 0 2px 4px rgba(0,0,0,0.06); /* Subtle shadow for depth */
+        margin-bottom: 20px;            /* Space below the table */
     }
+
+    /* Target the actual table element for specific table properties */
+    .stDataFrame table {
+        width: 100%;                    /* Ensure table takes full width of .stDataFrame */
+        border-collapse: collapse;      /* Cleaner borders */
+    }
+
+    /* Table Header Cells (th) */
+    .stDataFrame table thead th {
+        background-color: #f0f2f5;      /* Light gray background, matches page bg or slightly distinct */
+        color: #1c4e80;                 /* Dark blue text, consistent with other headers */
+        font-weight: 600;               /* Bolder text for headers */
+        text-align: left;               /* Standard alignment for table headers */
+        padding: 12px 15px;             /* Comfortable padding */
+        border-bottom: 2px solid #c5cdd5;/* Clear separator for header */
+        font-size: 0.9em;               /* Slightly smaller header font */
+    }
+
+    /* Table Body Cells (td) */
+    .stDataFrame table tbody td {
+        padding: 10px 15px;             /* Padding for data cells */
+        border-bottom: 1px solid #e7eaf0;/* Light line between rows */
+        vertical-align: middle;         /* Align cell content vertically */
+        color: #333;                    /* Standard text color */
+        font-size: 0.875em;             /* Slightly smaller font for data */
+    }
+
+    /* Remove bottom border from the last row's cells */
+    .stDataFrame table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Hover effect for table rows in the body */
+    .stDataFrame table tbody tr:hover {
+        background-color: #e9ecef;      /* Light hover effect */
+    }
+    /* End of New Dataframe Styling */
+
+
     /* --- Columns for buttons (more direct) --- */
     .button-column-container > div[data-testid="stHorizontalBlock"] { /* Target Streamlit's column block */
         gap: 15px; /* Space between columns */
@@ -145,8 +188,6 @@ html_css = """
         padding-bottom: 10px;
         border-bottom: 1px solid #e0e0e0;
     }
-
-    /* ... (your existing CSS) ... */
 
 /* Styling for Horizontal Radio Buttons */
 div[role="radiogroup"] { /* Targets the container for radio buttons */
@@ -171,10 +212,6 @@ div[role="radiogroup"] > label:hover {
     border-color: #adb5bd;
 }
 
-/* Styling for the selected radio button's label */
-/* This selector is tricky because Streamlit doesn't add a simple 'checked' class to the label itself */
-/* We target the div that Streamlit marks as 'aria-checked="true"' and then style its SIBLING label */
-/* This might need adjustment based on exact Streamlit version / HTML structure */
 div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
     background-color: #2070c0 !important; /* Primary blue for selected */
     color: white !important;
@@ -190,7 +227,6 @@ div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
     font-weight: 500;
 }
 
-/* Add to your html_css string */
 .employee-section-header {
     color: #2070c0; /* Accent blue */
     margin-top: 30px;
@@ -204,10 +240,6 @@ div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
     margin-top: 15px;
     margin-bottom: 5px;
 }
-
-/* ... (rest of your CSS) ... */
-
-
     
 </style>
 """
@@ -245,22 +277,21 @@ def load_data(path, columns):
                 df = pd.read_csv(path)
                 for col in columns:
                     if col not in df.columns:
-                        df[col] = pd.NA # Use pandas' NA for missing values
+                        df[col] = pd.NA 
                 return df
-            else: # File exists but is empty
+            else: 
                 return pd.DataFrame(columns=columns)
-        except pd.errors.EmptyDataError: # read_csv on an empty file (or only headers)
+        except pd.errors.EmptyDataError: 
             return pd.DataFrame(columns=columns)
         except Exception as e:
             st.error(f"Error loading data from {path}: {e}. Returning empty DataFrame.")
             return pd.DataFrame(columns=columns)
-    else: # File does not exist
+    else: 
         return pd.DataFrame(columns=columns)
 
 ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp"]
 ALLOWANCE_COLUMNS = ["Username", "Type", "Amount", "Reason", "Date"]
 
-# Load dataframes at the start. These are global.
 attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS)
 allowance_df = load_data(ALLOWANCE_FILE, ALLOWANCE_COLUMNS)
 
@@ -331,30 +362,26 @@ if nav == "📆 Attendance":
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ... (Keep all your existing code before the "🧾 Allowance" section) ...
 
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3 class='page-subheader'>💼 Claim Allowance</h3>", unsafe_allow_html=True) # Renamed for clarity
+    st.markdown("<h3 class='page-subheader'>💼 Claim Allowance</h3>", unsafe_allow_html=True)
 
-    # --- Allowance Type with Radio Buttons ---
-    st.markdown("<h6>Select Allowance Type:</h6>", unsafe_allow_html=True) # Custom small header for the radio
-    allowance_types = ["Travel", "Dinner", "Medical", "Internet", "Other"] # Add more types if needed
-    # Use st.radio with horizontal=True
+    st.markdown("<h6>Select Allowance Type:</h6>", unsafe_allow_html=True) 
+    allowance_types = ["Travel", "Dinner", "Medical", "Internet", "Other"] 
     a_type = st.radio(
-        "", # Remove label here, use markdown above
+        "", 
         options=allowance_types,
         key="allowance_type_radio",
         horizontal=True,
-        label_visibility='collapsed' # Hides the default label from st.radio
+        label_visibility='collapsed' 
     )
-    # st.write(f"Selected type: {a_type}") # For debugging
-
+    
     amount = st.number_input("Enter Amount (INR):", min_value=0.0, step=10.0, format="%.2f", key="allowance_amount")
     reason = st.text_area("Reason for Allowance:", key="allowance_reason", placeholder="Please provide a clear justification...")
 
-    if st.button("Submit Allowance Request", key="submit_allowance_btn", use_container_width=True): # Made button full width
-        if a_type and amount > 0 and reason.strip(): # Ensure a_type is selected
+    if st.button("Submit Allowance Request", key="submit_allowance_btn", use_container_width=True): 
+        if a_type and amount > 0 and reason.strip(): 
             date_str = get_current_time_in_tz().strftime("%Y-%m-%d")
             new_entry_data = {
                 "Username": current_user["username"],
@@ -368,12 +395,8 @@ elif nav == "🧾 Allowance":
             
             try:
                 temp_allowance_df.to_csv(ALLOWANCE_FILE, index=False)
-                allowance_df = temp_allowance_df # Update global df only on success
+                allowance_df = temp_allowance_df 
                 st.success(f"Your {a_type} allowance request for {amount:.2f} INR on {date_str} ({TARGET_TIMEZONE}) has been submitted successfully.")
-                # Optionally clear inputs after successful submission
-                # st.session_state.allowance_amount = 0.0
-                # st.session_state.allowance_reason = ""
-                # st.rerun() # To see the cleared inputs, but might be disruptive
             except Exception as e:
                 st.error(f"Error saving allowance data: {e}")
                 st.warning("Your allowance request was not saved due to an error. Please try again.")
@@ -387,62 +410,43 @@ elif nav == "🧾 Allowance":
             else:
                  st.warning("Please complete all fields for the allowance request.")
                  
-    st.markdown('</div>', unsafe_allow_html=True) # End card
+    st.markdown('</div>', unsafe_allow_html=True) 
 
-# ... (Keep all your existing code after the "🧾 Allowance" section) ...
-
-# ... (Keep all your existing code before the "📊 View Logs" section) ...
 
 elif nav == "📊 View Logs":
-    st.markdown('<div class="card">', unsafe_allow_html=True) # Wrap entire log section in a card
+    st.markdown('<div class="card">', unsafe_allow_html=True) 
 
     if current_user["role"] == "admin":
         st.markdown("<h3 class='page-subheader'>📊 Employee Data Logs</h3>", unsafe_allow_html=True)
-
-        # Get unique employee names who have records
-        # Consider all users in USERS dictionary who are employees,
-        # or derive from data if you only want to show users with actual logs.
         
-        # Option 1: Iterate through USERS with 'employee' role
         employee_names = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
         
-        # Option 2: Iterate through unique names present in the dataframes
-        # This will only show employees who have actually logged attendance or requested allowance.
-        # all_usernames_in_data = pd.concat([
-        #     attendance_df["Username"], 
-        #     allowance_df["Username"]
-        # ]).unique()
-        # employee_names_from_data = [name for name in all_usernames_in_data if USERS.get(name, {}).get("role") == "employee"]
-        # If you use this, make sure all_usernames_in_data doesn't contain None or unexpected values.
-        # For simplicity, let's stick with Option 1 for now, assuming USERS is the source of truth for employees.
-
         if not employee_names:
             st.info("No employees found in the system or no employee data to display.")
         else:
             for emp_name in employee_names:
-                st.markdown(f"<h4 style='color: #2070c0; margin-top: 30px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;'>👤 Records for: {emp_name}</h4>", unsafe_allow_html=True)
+                # Use defined CSS classes for headers
+                st.markdown(f"<h4 class='employee-section-header'>👤 Records for: {emp_name}</h4>", unsafe_allow_html=True)
 
-                # --- Attendance for this employee ---
-                st.markdown("<h5>🕒 Attendance Records:</h5>", unsafe_allow_html=True)
+                st.markdown("<h5 class='record-type-header'>🕒 Attendance Records:</h5>", unsafe_allow_html=True)
                 emp_attendance = attendance_df[attendance_df["Username"] == emp_name]
                 if not emp_attendance.empty:
-                    # Optionally drop the 'Username' column as it's redundant under the employee's section
                     st.dataframe(emp_attendance.drop(columns=['Username'], errors='ignore'), use_container_width=True)
                 else:
                     st.caption(f"No attendance records found for {emp_name}.")
 
-                # --- Allowances for this employee ---
-                st.markdown("<h5 style='margin-top: 20px;'>💰 Allowance Requests:</h5>", unsafe_allow_html=True)
+                # Add a specific style for the allowance header if needed, or adjust margin via class
+                st.markdown("<h5 class='record-type-header' style='margin-top: 25px;'>💰 Allowance Requests:</h5>", unsafe_allow_html=True)
                 emp_allowances = allowance_df[allowance_df["Username"] == emp_name]
                 if not emp_allowances.empty:
-                    # Optionally drop the 'Username' column
                     st.dataframe(emp_allowances.drop(columns=['Username'], errors='ignore'), use_container_width=True)
                 else:
                     st.caption(f"No allowance requests found for {emp_name}.")
                 
-                st.markdown("---") # Add a horizontal rule between employees for better separation
+                if emp_name != employee_names[-1]: # Add horizontal rule unless it's the last employee
+                    st.markdown("---") 
 
-    else: # Employee's own view (remains the same)
+    else: 
         st.markdown("<h3 class='page-subheader'>📅 My Attendance History</h3>", unsafe_allow_html=True)
         my_attendance = attendance_df[attendance_df["Username"] == current_user["username"]]
         if not my_attendance.empty:
@@ -457,9 +461,4 @@ elif nav == "📊 View Logs":
         else:
             st.info("You have not submitted any allowance requests yet.")
 
-    st.markdown('</div>', unsafe_allow_html=True) # End card
-
-# ... (Keep all your existing code after the "📊 View Logs" section) ...
-
-st.markdown(f"<h4 class='employee-section-header'>👤 Records for: {emp_name}</h4>", unsafe_allow_html=True)
-st.markdown("<h5 class='record-type-header'>🕒 Attendance Records:</h5>", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
