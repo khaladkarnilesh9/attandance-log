@@ -145,6 +145,55 @@ html_css = """
         padding-bottom: 10px;
         border-bottom: 1px solid #e0e0e0;
     }
+
+    /* ... (your existing CSS) ... */
+
+/* Styling for Horizontal Radio Buttons */
+div[role="radiogroup"] { /* Targets the container for radio buttons */
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping if too many options */
+    gap: 15px;      /* Space between radio items */
+    margin-bottom: 20px; /* Space below the radio group */
+}
+
+div[role="radiogroup"] > label { /* Targets individual radio button labels */
+    background-color: #e9ecef; /* Light background for each option */
+    padding: 8px 15px;
+    border-radius: 20px; /* Pill shape */
+    border: 1px solid #ced4da;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    font-size: 0.95em;
+}
+
+div[role="radiogroup"] > label:hover {
+    background-color: #dde2e6;
+    border-color: #adb5bd;
+}
+
+/* Styling for the selected radio button's label */
+/* This selector is tricky because Streamlit doesn't add a simple 'checked' class to the label itself */
+/* We target the div that Streamlit marks as 'aria-checked="true"' and then style its SIBLING label */
+/* This might need adjustment based on exact Streamlit version / HTML structure */
+div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
+    background-color: #2070c0 !important; /* Primary blue for selected */
+    color: white !important;
+    border-color: #1c4e80 !important;
+    font-weight: 500;
+}
+
+/* Small header for radio group */
+.card h6 {
+    font-size: 0.9em;
+    color: #495057; /* Slightly muted color */
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+/* ... (rest of your CSS) ... */
+
+
+    
 </style>
 """
 st.markdown(html_css, unsafe_allow_html=True)
@@ -267,16 +316,30 @@ if nav == "📆 Attendance":
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
+# ... (Keep all your existing code before the "🧾 Allowance" section) ...
+
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3 class='page-subheader'>💼 Travel & 🍽️ Dinner Allowance</h3>", unsafe_allow_html=True)
-    a_type = st.selectbox("Select Allowance Type", ["Travel", "Dinner"], key="allowance_type")
-    amount = st.number_input("Enter amount", min_value=0.0, step=10.0, format="%.2f", key="allowance_amount")
-    reason = st.text_area("Reason for allowance", key="allowance_reason")
+    st.markdown("<h3 class='page-subheader'>💼 Claim Allowance</h3>", unsafe_allow_html=True) # Renamed for clarity
 
-    if st.button("Submit Allowance", key="submit_allowance_btn"):
-        # st.write(f"Current allowance_df (before submit): {len(allowance_df)} rows") # Uncomment for debugging
-        if amount > 0 and reason.strip():
+    # --- Allowance Type with Radio Buttons ---
+    st.markdown("<h6>Select Allowance Type:</h6>", unsafe_allow_html=True) # Custom small header for the radio
+    allowance_types = ["Travel", "Dinner", "Medical", "Internet", "Other"] # Add more types if needed
+    # Use st.radio with horizontal=True
+    a_type = st.radio(
+        "", # Remove label here, use markdown above
+        options=allowance_types,
+        key="allowance_type_radio",
+        horizontal=True,
+        label_visibility='collapsed' # Hides the default label from st.radio
+    )
+    # st.write(f"Selected type: {a_type}") # For debugging
+
+    amount = st.number_input("Enter Amount (INR):", min_value=0.0, step=10.0, format="%.2f", key="allowance_amount")
+    reason = st.text_area("Reason for Allowance:", key="allowance_reason", placeholder="Please provide a clear justification...")
+
+    if st.button("Submit Allowance Request", key="submit_allowance_btn", use_container_width=True): # Made button full width
+        if a_type and amount > 0 and reason.strip(): # Ensure a_type is selected
             date_str = get_current_time_in_tz().strftime("%Y-%m-%d")
             new_entry_data = {
                 "Username": current_user["username"],
@@ -286,25 +349,35 @@ elif nav == "🧾 Allowance":
                 "Date": date_str
             }
             new_entry_df = pd.DataFrame([new_entry_data])
-
-            # The global allowance_df is updated here
             temp_allowance_df = pd.concat([allowance_df, new_entry_df], ignore_index=True)
             
-            # st.write(f"Temp allowance_df (after concat): {len(temp_allowance_df)} rows") # Uncomment for debugging
-            # st.dataframe(temp_allowance_df.tail()) # Uncomment for debugging
-
             try:
                 temp_allowance_df.to_csv(ALLOWANCE_FILE, index=False)
-                # IMPORTANT: Only update the global allowance_df if save was successful
-                allowance_df = temp_allowance_df
-                st.success(f"{a_type} allowance submitted for {amount:.2f} on {date_str} ({TARGET_TIMEZONE}).")
-                # st.write(f"Global allowance_df (after successful save): {len(allowance_df)} rows") # Uncomment for debugging
+                allowance_df = temp_allowance_df # Update global df only on success
+                st.success(f"Your {a_type} allowance request for {amount:.2f} INR on {date_str} ({TARGET_TIMEZONE}) has been submitted successfully.")
+                # Optionally clear inputs after successful submission
+                # st.session_state.allowance_amount = 0.0
+                # st.session_state.allowance_reason = ""
+                # st.rerun() # To see the cleared inputs, but might be disruptive
             except Exception as e:
                 st.error(f"Error saving allowance data: {e}")
                 st.warning("Your allowance request was not saved due to an error. Please try again.")
         else:
-            st.warning("Please provide a valid amount and reason.")
-    st.markdown('</div>', unsafe_allow_html=True)
+            if not a_type:
+                 st.warning("Please select an allowance type.")
+            elif not (amount > 0):
+                 st.warning("Please enter a valid positive amount.")
+            elif not reason.strip():
+                 st.warning("Please provide a reason for the allowance.")
+            else:
+                 st.warning("Please complete all fields for the allowance request.")
+                 
+    st.markdown('</div>', unsafe_allow_html=True) # End card
+
+# ... (Keep all your existing code after the "🧾 Allowance" section) ...
+
+
+
 
 elif nav == "📊 View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
