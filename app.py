@@ -4,6 +4,7 @@ from datetime import datetime, timezone # Added timezone
 import os
 import pytz # Import pytz
 
+
 # --- Credentials (In real app, store securely or hash) ---
 USERS = {
     "employee1": {"password": "emp123", "role": "employee"},
@@ -15,18 +16,16 @@ USERS = {
 ATTENDANCE_FILE = "attendance.csv"
 ALLOWANCE_FILE = "allowances.csv"
 
-# --- Timezone Configuration ---
-# Replace 'Asia/Kolkata' with your desired timezone
-# List of timezones: import pytz; print(pytz.all_timezones)
 TARGET_TIMEZONE = "Asia/Kolkata" # Example: Indian Standard Time
-# TARGET_TIMEZONE = "America/New_York" # Example: Eastern Time
-# TARGET_TIMEZONE = "Europe/London" # Example: GMT/BST
-
+# You MUST change "Asia/Kolkata" to the correct Olson timezone name for your needs.
+# To see all available timezone names:
+# import pytz
+# print(pytz.all_timezones)
 try:
     tz = pytz.timezone(TARGET_TIMEZONE)
 except pytz.exceptions.UnknownTimeZoneError:
     st.error(f"Invalid TARGET_TIMEZONE: '{TARGET_TIMEZONE}'. Please use a valid Olson timezone name.")
-    st.stop() # Stop the app if timezone is invalid
+    st.stop()
 
 # --- Helper function to get current time in target timezone ---
 def get_current_time_in_tz():
