@@ -476,10 +476,13 @@ elif nav == "🧾 Allowance":
     st.markdown('</div>', unsafe_allow_html=True)
 
 
+# ... (previous code remains the same) ...
+
 elif nav == "📊 View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
     if current_user["role"] == "admin":
+        # ... (admin view logic remains the same) ...
         st.markdown("<h3 class='page-subheader'>📊 Employee Data Logs</h3>", unsafe_allow_html=True)
 
         employee_names = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
@@ -490,34 +493,38 @@ elif nav == "📊 View Logs":
             for emp_name in employee_names:
                 st.markdown(f"<h4 class='employee-section-header'>👤 Records for: {emp_name}</h4>", unsafe_allow_html=True)
 
-                # --- Attendance for this employee ---
+                # --- Attendance for this employee (Admin View - remains as individual entries) ---
                 st.markdown("<h5 class='record-type-header'>🕒 Attendance Records:</h5>", unsafe_allow_html=True)
                 emp_attendance = attendance_df[attendance_df["Username"] == emp_name].copy() # Use .copy()
                 if not emp_attendance.empty:
-                    display_cols_att = [col for col in ATTENDANCE_COLUMNS if col not in ['Username']] # Keep lat/lon for admin
-                    st.dataframe(emp_attendance[display_cols_att], use_container_width=True)
+                    # Ensure Lat/Lon are numeric for potential processing, though admin view might not need it directly
+                    emp_attendance['Latitude'] = pd.to_numeric(emp_attendance['Latitude'], errors='coerce')
+                    emp_attendance['Longitude'] = pd.to_numeric(emp_attendance['Longitude'], errors='coerce')
 
-                    # --- Map for this employee's attendance ---
+                    display_cols_att = [col for col in ATTENDANCE_COLUMNS if col not in ['Username']]
+                    # Format Lat/Lon for display in admin table
+                    admin_att_display = emp_attendance[display_cols_att].copy()
+                    for col in ['Latitude', 'Longitude']:
+                        if col in admin_att_display.columns:
+                             admin_att_display[col] = admin_att_display[col].apply(lambda x: f"{x:.4f}" if pd.notna(x) else "N/A")
+                    st.dataframe(admin_att_display, use_container_width=True, hide_index=True)
+
+
+                    # --- Map for this employee's attendance (Admin View) ---
                     st.markdown("<h6 class='allowance-summary-header' style='margin-top: 10px;'>🗺️ Attendance Locations Map:</h6>", unsafe_allow_html=True)
-                    map_data = emp_attendance.copy()
-                    if 'Latitude' in map_data.columns and 'Longitude' in map_data.columns:
-                        map_data['Latitude'] = pd.to_numeric(map_data['Latitude'], errors='coerce')
-                        map_data['Longitude'] = pd.to_numeric(map_data['Longitude'], errors='coerce')
-                        map_data.dropna(subset=['Latitude', 'Longitude'], inplace=True)
+                    map_data_admin = emp_attendance.copy() # Already has numeric Lat/Lon
+                    map_data_admin.dropna(subset=['Latitude', 'Longitude'], inplace=True)
 
-                        if not map_data.empty:
-                            # st.map expects lowercase 'latitude' and 'longitude'
-                            map_data_for_st_map = map_data.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'})
-                            st.map(map_data_for_st_map[['latitude', 'longitude']])
-                        else:
-                            st.caption(f"No valid location data to display on map for {emp_name}.")
+                    if not map_data_admin.empty:
+                        map_data_admin_st_map = map_data_admin.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'})
+                        st.map(map_data_admin_st_map[['latitude', 'longitude']])
                     else:
-                        st.caption(f"Latitude/Longitude columns not found for map display for {emp_name}.")
+                        st.caption(f"No valid location data to display on map for {emp_name}.")
                 else:
                     st.caption(f"No attendance records found for {emp_name}.")
 
 
-                # --- Allowances for this employee ---
+                # --- Allowances for this employee (Admin View - remains the same) ---
                 st.markdown("<h5 class='record-type-header' style='margin-top: 25px;'>💰 Allowance Section:</h5>", unsafe_allow_html=True)
                 emp_allowances = allowance_df[allowance_df["Username"] == emp_name].copy()
 
@@ -527,25 +534,30 @@ elif nav == "📊 View Logs":
 
                     st.markdown("<h6 class='allowance-summary-header'>📅 Monthly Allowance Summary:</h6>", unsafe_allow_html=True)
                     try:
-                        emp_allowances['Date'] = pd.to_datetime(emp_allowances['Date'], errors='coerce')
-                        emp_allowances['Amount'] = pd.to_numeric(emp_allowances['Amount'], errors='coerce')
-                        emp_allowances.dropna(subset=['Date', 'Amount'], inplace=True)
+                        emp_allowances_summary = emp_allowances.copy()
+                        emp_allowances_summary['Date'] = pd.to_datetime(emp_allowances_summary['Date'], errors='coerce')
+                        emp_allowances_summary['Amount'] = pd.to_numeric(emp_allowances_summary['Amount'], errors='coerce')
+                        emp_allowances_summary.dropna(subset=['Date', 'Amount'], inplace=True)
 
-                        if not emp_allowances.empty:
-                            emp_allowances['YearMonth'] = emp_allowances['Date'].dt.strftime('%Y-%m')
-                            monthly_summary = emp_allowances.groupby('YearMonth')['Amount'].sum().reset_index()
+                        if not emp_allowances_summary.empty:
+                            emp_allowances_summary['YearMonth'] = emp_allowances_summary['Date'].dt.strftime('%Y-%m')
+                            monthly_summary = emp_allowances_summary.groupby('YearMonth')['Amount'].sum().reset_index()
                             monthly_summary = monthly_summary.sort_values('YearMonth', ascending=False)
                             monthly_summary.rename(columns={'Amount': 'Total Amount (INR)', 'YearMonth': 'Month'}, inplace=True)
                             st.dataframe(monthly_summary, use_container_width=True, hide_index=True)
                         else:
                             st.caption("No valid allowance data to summarize by month.")
                     except Exception as e:
-                        st.error(f"Error processing allowance summary: {e}")
+                        st.error(f"Error processing allowance summary for {emp_name}: {e}")
                         st.caption("Could not generate monthly allowance summary.")
 
                     st.markdown("<h6 class='allowance-summary-header' style='margin-top: 20px;'>📋 Detailed Allowance Requests:</h6>", unsafe_allow_html=True)
                     display_cols_allow = [col for col in ALLOWANCE_COLUMNS if col not in ['Username', 'YearMonth']]
-                    st.dataframe(emp_allowances[display_cols_allow], use_container_width=True)
+                    # Create a copy for display to avoid modifying original emp_allowances if YearMonth was added
+                    emp_allowances_detail_display = emp_allowances.copy()
+                    if 'YearMonth' in emp_allowances_detail_display.columns:
+                         emp_allowances_detail_display = emp_allowances_detail_display.drop(columns=['YearMonth'], errors='ignore')
+                    st.dataframe(emp_allowances_detail_display[display_cols_allow], use_container_width=True, hide_index=True)
                 else:
                     st.caption(f"No allowance requests found for {emp_name}.")
 
@@ -554,35 +566,106 @@ elif nav == "📊 View Logs":
 
     else:  # Employee's own view
         st.markdown("<h3 class='page-subheader'>📅 My Attendance History</h3>", unsafe_allow_html=True)
-        my_attendance = attendance_df[attendance_df["Username"] == current_user["username"]].copy()
-        if not my_attendance.empty:
-            display_cols_my_att = [col for col in ATTENDANCE_COLUMNS if col != 'Username']
-            st.dataframe(my_attendance[display_cols_my_att], use_container_width=True)
+        my_attendance_raw = attendance_df[attendance_df["Username"] == current_user["username"]].copy()
 
-            # --- Map for employee's own attendance ---
+        if not my_attendance_raw.empty:
+            my_attendance_proc = my_attendance_raw.copy()
+            # Ensure Timestamp is datetime and Lat/Lon are numeric
+            my_attendance_proc['Timestamp'] = pd.to_datetime(my_attendance_proc['Timestamp'])
+            my_attendance_proc['Latitude'] = pd.to_numeric(my_attendance_proc['Latitude'], errors='coerce')
+            my_attendance_proc['Longitude'] = pd.to_numeric(my_attendance_proc['Longitude'], errors='coerce')
+            my_attendance_proc['DateOnly'] = my_attendance_proc['Timestamp'].dt.date
+
+            check_ins = my_attendance_proc[my_attendance_proc['Type'] == 'Check-In'].copy()
+            check_outs = my_attendance_proc[my_attendance_proc['Type'] == 'Check-Out'].copy()
+
+            # Get the first check-in per day
+            first_check_ins = check_ins.loc[check_ins.groupby('DateOnly')['Timestamp'].idxmin()]
+            first_check_ins_sel = first_check_ins[['DateOnly', 'Timestamp', 'Latitude', 'Longitude']].rename(
+                columns={
+                    'Timestamp': 'Check-In FullTime',
+                    'Latitude': 'Check-In Latitude',
+                    'Longitude': 'Check-In Longitude'
+                }
+            )
+
+            # Get the last check-out per day
+            last_check_outs = check_outs.loc[check_outs.groupby('DateOnly')['Timestamp'].idxmax()]
+            last_check_outs_sel = last_check_outs[['DateOnly', 'Timestamp', 'Latitude', 'Longitude']].rename(
+                columns={
+                    'Timestamp': 'Check-Out FullTime',
+                    'Latitude': 'Check-Out Latitude',
+                    'Longitude': 'Check-Out Longitude'
+                }
+            )
+
+            # Merge on DateOnly
+            combined_df = pd.merge(first_check_ins_sel, last_check_outs_sel, on='DateOnly', how='outer')
+            combined_df = combined_df.sort_values(by='DateOnly', ascending=False, ignore_index=True)
+
+            # Calculate Duration
+            def format_duration_series(row):
+                if pd.notna(row['Check-In FullTime']) and pd.notna(row['Check-Out FullTime']):
+                    if row['Check-Out FullTime'] > row['Check-In FullTime']:
+                        duration = row['Check-Out FullTime'] - row['Check-In FullTime']
+                        total_seconds = duration.total_seconds()
+                        hours = int(total_seconds // 3600)
+                        minutes = int((total_seconds % 3600) // 60)
+                        return f"{hours}h {minutes}m"
+                return "N/A"
+            combined_df['Duration'] = combined_df.apply(format_duration_series, axis=1)
+
+            # Format times for display
+            combined_df['Check-In Time'] = combined_df['Check-In FullTime'].apply(lambda x: x.strftime('%H:%M:%S') if pd.notna(x) else 'N/A')
+            combined_df['Check-Out Time'] = combined_df['Check-Out FullTime'].apply(lambda x: x.strftime('%H:%M:%S') if pd.notna(x) else 'N/A')
+            
+            # Format DateOnly for display
+            combined_df['Date'] = combined_df['DateOnly'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notna(x) else 'N/A')
+
+            # Select and rename columns for final display
+            final_display_df = combined_df[[
+                'Date', 'Check-In Time', 'Check-In Latitude', 'Check-In Longitude',
+                'Check-Out Time', 'Check-Out Latitude', 'Check-Out Longitude', 'Duration'
+            ]].copy()
+
+            final_display_df.rename(columns={
+                'Check-In Time': 'Check-In',
+                'Check-In Latitude': 'In Lat',
+                'Check-In Longitude': 'In Lon',
+                'Check-Out Time': 'Check-Out',
+                'Check-Out Latitude': 'Out Lat',
+                'Check-Out Longitude': 'Out Lon'
+            }, inplace=True)
+
+            # Format Lat/Lon for display
+            for col in ['In Lat', 'In Lon', 'Out Lat', 'Out Lon']:
+                final_display_df[col] = final_display_df[col].apply(lambda x: f"{x:.4f}" if pd.notna(x) else "N/A")
+            
+            st.dataframe(final_display_df, use_container_width=True, hide_index=True)
+
+            # --- Map for employee's own attendance (uses original my_attendance_raw for all points) ---
             st.markdown("<h6 class='allowance-summary-header' style='margin-top: 10px;'>🗺️ My Attendance Locations Map:</h6>", unsafe_allow_html=True)
-            my_map_data = my_attendance.copy()
-            if 'Latitude' in my_map_data.columns and 'Longitude' in my_map_data.columns:
-                my_map_data['Latitude'] = pd.to_numeric(my_map_data['Latitude'], errors='coerce')
-                my_map_data['Longitude'] = pd.to_numeric(my_map_data['Longitude'], errors='coerce')
-                my_map_data.dropna(subset=['Latitude', 'Longitude'], inplace=True)
+            # Use my_attendance_raw as it contains all individual records for map plotting
+            my_map_data = my_attendance_raw.copy() # Lat/Lon already made numeric at start of this block
+            my_map_data.dropna(subset=['Latitude', 'Longitude'], inplace=True)
 
-                if not my_map_data.empty:
-                    my_map_data_for_st_map = my_map_data.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'})
-                    st.map(my_map_data_for_st_map[['latitude', 'longitude']])
-                else:
-                    st.info("No valid location data to display on the map for your attendance records.")
+            if not my_map_data.empty:
+                my_map_data_for_st_map = my_map_data.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'})
+                st.map(my_map_data_for_st_map[['latitude', 'longitude']])
             else:
-                 st.info("Latitude/Longitude columns not found for map display.")
+                st.info("No valid location data to display on the map for your attendance records.")
         else:
             st.info("You have no attendance records yet. Use the 'Attendance' page to check in/out.")
 
+        # --- My Allowance Request History (remains the same) ---
         st.markdown("<h3 class='page-subheader' style='margin-top: 30px;'>🧾 My Allowance Request History</h3>", unsafe_allow_html=True)
         my_allowances = allowance_df[allowance_df["Username"] == current_user["username"]]
         if not my_allowances.empty:
             display_cols_my_allow = [col for col in ALLOWANCE_COLUMNS if col != 'Username']
-            st.dataframe(my_allowances[display_cols_my_allow], use_container_width=True)
+            st.dataframe(my_allowances[display_cols_my_allow], use_container_width=True, hide_index=True)
         else:
             st.info("You have not submitted any allowance requests yet.")
 
     st.markdown('</div>', unsafe_allow_html=True)  # End card
+
+# ... (rest of your code) ...
