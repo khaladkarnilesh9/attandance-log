@@ -7,7 +7,7 @@ import pytz # Import pytz
 
 # --- Credentials (In real app, store securely or hash) ---
 USERS = {
-    "employee1": {"password": "emp123", "role": "employee"},
+    "Nilesh khaladkar": {"password": "emp123", "role": "employee"},
     "employee2": {"password": "emp456", "role": "employee"},
     "admin": {"password": "admin123", "role": "admin"}
 }
