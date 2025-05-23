@@ -240,7 +240,39 @@ div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
     margin-top: 15px;
     margin-bottom: 5px;
 }
-    
+
+/* Add to your html_css string */
+.allowance-summary-header {
+    font-size: 1.0em; /* Slightly smaller or adjust as needed */
+    color: #495057;   /* Muted color */
+    margin-top: 15px;
+    margin-bottom: 8px;
+    font-weight: 550;
+}
+
+
+        .employee-section-header {
+        color: #2070c0; /* Accent blue */
+        margin-top: 30px;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 5px;
+        font-size: 1.3em; /* Adjust as needed */
+    }
+    .record-type-header {
+        font-size: 1.1em;
+        color: #333; /* Dark gray */
+        margin-top: 15px;
+        margin-bottom: 5px;
+        font-weight: 600; /* Made it slightly bolder */
+    }
+    .allowance-summary-header { /* NEW CLASS */
+        font-size: 1.0em;
+        color: #495057;   /* Muted color */
+        margin-top: 15px; /* Space above this header */
+        margin-bottom: 8px; /* Space between header and table/metric */
+        font-weight: 550; /* Semi-bold */
+    }
+
 </style>
 """
 st.markdown(html_css, unsafe_allow_html=True)
@@ -413,21 +445,23 @@ elif nav == "🧾 Allowance":
     st.markdown('</div>', unsafe_allow_html=True) 
 
 
+# ... (Keep all your existing code before the "📊 View Logs" section) ...
+
 elif nav == "📊 View Logs":
-    st.markdown('<div class="card">', unsafe_allow_html=True) 
+    st.markdown('<div class="card">', unsafe_allow_html=True)
 
     if current_user["role"] == "admin":
         st.markdown("<h3 class='page-subheader'>📊 Employee Data Logs</h3>", unsafe_allow_html=True)
-        
+
         employee_names = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
-        
+
         if not employee_names:
             st.info("No employees found in the system or no employee data to display.")
         else:
             for emp_name in employee_names:
-                # Use defined CSS classes for headers
                 st.markdown(f"<h4 class='employee-section-header'>👤 Records for: {emp_name}</h4>", unsafe_allow_html=True)
 
+                # --- Attendance for this employee ---
                 st.markdown("<h5 class='record-type-header'>🕒 Attendance Records:</h5>", unsafe_allow_html=True)
                 emp_attendance = attendance_df[attendance_df["Username"] == emp_name]
                 if not emp_attendance.empty:
@@ -435,18 +469,49 @@ elif nav == "📊 View Logs":
                 else:
                     st.caption(f"No attendance records found for {emp_name}.")
 
-                # Add a specific style for the allowance header if needed, or adjust margin via class
-                st.markdown("<h5 class='record-type-header' style='margin-top: 25px;'>💰 Allowance Requests:</h5>", unsafe_allow_html=True)
-                emp_allowances = allowance_df[allowance_df["Username"] == emp_name]
+                # --- Allowances for this employee ---
+                st.markdown("<h5 class='record-type-header' style='margin-top: 25px;'>💰 Allowance Section:</h5>", unsafe_allow_html=True) # Main header for allowance
+                emp_allowances = allowance_df[allowance_df["Username"] == emp_name].copy() # Use .copy()
+
                 if not emp_allowances.empty:
-                    st.dataframe(emp_allowances.drop(columns=['Username'], errors='ignore'), use_container_width=True)
+                    # --- Calculate Grand Total Allowance ---
+                    grand_total_allowance = emp_allowances['Amount'].sum()
+                    st.metric(label=f"Grand Total Allowance for {emp_name}", value=f"{grand_total_allowance:,.2f} INR")
+
+                    # --- Calculate Monthly Allowance Summary ---
+                    st.markdown("<h6 class='allowance-summary-header'>📅 Monthly Allowance Summary:</h6>", unsafe_allow_html=True)
+                    try:
+                        # Ensure 'Date' is datetime and 'Amount' is numeric
+                        emp_allowances['Date'] = pd.to_datetime(emp_allowances['Date'], errors='coerce')
+                        emp_allowances['Amount'] = pd.to_numeric(emp_allowances['Amount'], errors='coerce')
+                        
+                        # Drop rows where date or amount conversion failed
+                        emp_allowances.dropna(subset=['Date', 'Amount'], inplace=True)
+
+                        if not emp_allowances.empty:
+                            emp_allowances['YearMonth'] = emp_allowances['Date'].dt.strftime('%Y-%m')
+                            monthly_summary = emp_allowances.groupby('YearMonth')['Amount'].sum().reset_index()
+                            monthly_summary = monthly_summary.sort_values('YearMonth', ascending=False)
+                            monthly_summary.rename(columns={'Amount': 'Total Amount (INR)', 'YearMonth': 'Month'}, inplace=True)
+                            
+                            st.dataframe(monthly_summary, use_container_width=True, hide_index=True)
+                        else:
+                            st.caption("No valid allowance data to summarize by month.")
+                            
+                    except Exception as e:
+                        st.error(f"Error processing allowance summary: {e}")
+                        st.caption("Could not generate monthly allowance summary.")
+
+                    # --- Detailed Allowance Requests ---
+                    st.markdown("<h6 class='allowance-summary-header' style='margin-top: 20px;'>📋 Detailed Allowance Requests:</h6>", unsafe_allow_html=True)
+                    st.dataframe(emp_allowances.drop(columns=['Username', 'YearMonth'], errors='ignore'), use_container_width=True) # Drop YearMonth if it exists
                 else:
                     st.caption(f"No allowance requests found for {emp_name}.")
-                
-                if emp_name != employee_names[-1]: # Add horizontal rule unless it's the last employee
-                    st.markdown("---") 
 
-    else: 
+                if emp_name != employee_names[-1]: # Add horizontal rule unless it's the last employee
+                    st.markdown("---")
+
+    else:  # Employee's own view
         st.markdown("<h3 class='page-subheader'>📅 My Attendance History</h3>", unsafe_allow_html=True)
         my_attendance = attendance_df[attendance_df["Username"] == current_user["username"]]
         if not my_attendance.empty:
@@ -461,4 +526,4 @@ elif nav == "📊 View Logs":
         else:
             st.info("You have not submitted any allowance requests yet.")
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)  # End card
