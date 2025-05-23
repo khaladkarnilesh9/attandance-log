@@ -190,6 +190,21 @@ div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
     font-weight: 500;
 }
 
+/* Add to your html_css string */
+.employee-section-header {
+    color: #2070c0; /* Accent blue */
+    margin-top: 30px;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 5px;
+    font-size: 1.3em; /* Adjust as needed */
+}
+.record-type-header {
+    font-size: 1.1em;
+    color: #333; /* Dark gray */
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
 /* ... (rest of your CSS) ... */
 
 
@@ -376,37 +391,75 @@ elif nav == "🧾 Allowance":
 
 # ... (Keep all your existing code after the "🧾 Allowance" section) ...
 
-
-
+# ... (Keep all your existing code before the "📊 View Logs" section) ...
 
 elif nav == "📊 View Logs":
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    if current_user["role"] == "admin":
-        st.markdown("<h3 class='page-subheader'>📋 All Employee Attendance</h3>", unsafe_allow_html=True)
-        if not attendance_df.empty:
-            st.dataframe(attendance_df, use_container_width=True)
-        else:
-            st.info("No attendance records yet.")
+    st.markdown('<div class="card">', unsafe_allow_html=True) # Wrap entire log section in a card
 
-        st.markdown("<h3 class='page-subheader' style='margin-top: 30px;'>📋 All Allowance Requests</h3>", unsafe_allow_html=True)
-        # st.write(f"Displaying allowance_df with {len(allowance_df)} rows in Admin View.") # Uncomment for debugging
-        if not allowance_df.empty:
-            st.dataframe(allowance_df, use_container_width=True)
+    if current_user["role"] == "admin":
+        st.markdown("<h3 class='page-subheader'>📊 Employee Data Logs</h3>", unsafe_allow_html=True)
+
+        # Get unique employee names who have records
+        # Consider all users in USERS dictionary who are employees,
+        # or derive from data if you only want to show users with actual logs.
+        
+        # Option 1: Iterate through USERS with 'employee' role
+        employee_names = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
+        
+        # Option 2: Iterate through unique names present in the dataframes
+        # This will only show employees who have actually logged attendance or requested allowance.
+        # all_usernames_in_data = pd.concat([
+        #     attendance_df["Username"], 
+        #     allowance_df["Username"]
+        # ]).unique()
+        # employee_names_from_data = [name for name in all_usernames_in_data if USERS.get(name, {}).get("role") == "employee"]
+        # If you use this, make sure all_usernames_in_data doesn't contain None or unexpected values.
+        # For simplicity, let's stick with Option 1 for now, assuming USERS is the source of truth for employees.
+
+        if not employee_names:
+            st.info("No employees found in the system or no employee data to display.")
         else:
-            st.info("No allowance requests yet.")
-    else: # Employee's own view
-        st.markdown("<h3 class='page-subheader'>📅 My Attendance Logs</h3>", unsafe_allow_html=True)
+            for emp_name in employee_names:
+                st.markdown(f"<h4 style='color: #2070c0; margin-top: 30px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;'>👤 Records for: {emp_name}</h4>", unsafe_allow_html=True)
+
+                # --- Attendance for this employee ---
+                st.markdown("<h5>🕒 Attendance Records:</h5>", unsafe_allow_html=True)
+                emp_attendance = attendance_df[attendance_df["Username"] == emp_name]
+                if not emp_attendance.empty:
+                    # Optionally drop the 'Username' column as it's redundant under the employee's section
+                    st.dataframe(emp_attendance.drop(columns=['Username'], errors='ignore'), use_container_width=True)
+                else:
+                    st.caption(f"No attendance records found for {emp_name}.")
+
+                # --- Allowances for this employee ---
+                st.markdown("<h5 style='margin-top: 20px;'>💰 Allowance Requests:</h5>", unsafe_allow_html=True)
+                emp_allowances = allowance_df[allowance_df["Username"] == emp_name]
+                if not emp_allowances.empty:
+                    # Optionally drop the 'Username' column
+                    st.dataframe(emp_allowances.drop(columns=['Username'], errors='ignore'), use_container_width=True)
+                else:
+                    st.caption(f"No allowance requests found for {emp_name}.")
+                
+                st.markdown("---") # Add a horizontal rule between employees for better separation
+
+    else: # Employee's own view (remains the same)
+        st.markdown("<h3 class='page-subheader'>📅 My Attendance History</h3>", unsafe_allow_html=True)
         my_attendance = attendance_df[attendance_df["Username"] == current_user["username"]]
         if not my_attendance.empty:
             st.dataframe(my_attendance, use_container_width=True)
         else:
-            st.info("You have no attendance records yet.")
+            st.info("You have no attendance records yet. Use the 'Attendance' page to check in/out.")
 
-        st.markdown("<h3 class='page-subheader' style='margin-top: 30px;'>🧾 My Allowance Requests</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 class='page-subheader' style='margin-top: 30px;'>🧾 My Allowance Request History</h3>", unsafe_allow_html=True)
         my_allowances = allowance_df[allowance_df["Username"] == current_user["username"]]
-        # st.write(f"Displaying my_allowances with {len(my_allowances)} rows in User View.") # Uncomment for debugging
         if not my_allowances.empty:
             st.dataframe(my_allowances, use_container_width=True)
         else:
-            st.info("You have no allowance requests yet.")
-    st.markdown('</div>', unsafe_allow_html=True)
+            st.info("You have not submitted any allowance requests yet.")
+
+    st.markdown('</div>', unsafe_allow_html=True) # End card
+
+# ... (Keep all your existing code after the "📊 View Logs" section) ...
+
+st.markdown(f"<h4 class='employee-section-header'>👤 Records for: {emp_name}</h4>", unsafe_allow_html=True)
+st.markdown("<h5 class='record-type-header'>🕒 Attendance Records:</h5>", unsafe_allow_html=True)
