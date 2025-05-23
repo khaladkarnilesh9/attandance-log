@@ -271,7 +271,7 @@ if "auth" not in st.session_state:
 
 # --- Login Page ---
 if not st.session_state.auth["logged_in"]:
-    st.title("👨‍💼 HR Dashboard Login")
+    st.title("🙂HR Dashboard Login")
     st.markdown('<div class="login-container card">', unsafe_allow_html=True)
     st.markdown("<h3>🔐 Login</h3>", unsafe_allow_html=True)
     uname = st.text_input("Username", key="login_uname")
