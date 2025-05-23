@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import os
 import pytz
 
-# --- CSS (as defined above) ---
+# --- CSS (Keep your existing html_css string here) ---
 html_css = """
 <style>
     /* --- General --- */
@@ -73,14 +73,11 @@ html_css = """
     .stButton button:active {
         transform: translateY(0px);
     }
-    /* --- Logout Button Style (can be more specific if needed) --- */
-    /* We will target it by making its key or label unique in the st.button call */
-    /* For now, a generic "secondary" kind if used, or a more specific selector */
-    /* Example if you make the logout button key 'logout_button' */
-    .stButton[data-testid="stButton"] button[id*="logout_button"] { /* Approximation */
+    /* --- Logout Button Style specific to its key --- */
+    .stButton button[id*="logout_button_sidebar"] { /* Targets button with key containing 'logout_button_sidebar' */
          background-color: #dc3545 !important; /* Red for logout */
     }
-    .stButton[data-testid="stButton"] button[id*="logout_button"]:hover {
+    .stButton button[id*="logout_button_sidebar"]:hover {
          background-color: #c82333 !important; /* Darker red */
     }
     /* --- Input Fields (Limited Styling Possible) --- */
@@ -101,11 +98,11 @@ html_css = """
     [data-testid="stSidebar"] .sidebar-content {
          padding-top: 20px;
     }
-    [data-testid="stSidebar"] p, 
-    [data-testid="stSidebar"] div, 
-    [data-testid="stSidebar"] label, 
-    [data-testid="stSidebar"] h1, 
-    [data-testid="stSidebar"] h2, 
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] div,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
     [data-testid="stSidebar"] h3 {
         color: #ffffff !important; /* White text in sidebar */
     }
@@ -134,9 +131,11 @@ html_css = """
         border-radius: 5px;
     }
     /* --- Columns for buttons (more direct) --- */
-    .button-column-container > div { /* Targets the columns directly if wrapped */
-        display: flex;
-        justify-content: center;
+    .button-column-container > div[data-testid="stHorizontalBlock"] { /* Target Streamlit's column block */
+        gap: 15px; /* Space between columns */
+    }
+     .button-column-container .stButton button {
+        width: 100%; /* Make buttons in columns full width of column */
     }
     /* --- Page Sub Headers --- */
     .page-subheader {
@@ -162,7 +161,7 @@ ATTENDANCE_FILE = "attendance.csv"
 ALLOWANCE_FILE = "allowances.csv"
 
 # --- Timezone Configuration ---
-TARGET_TIMEZONE = "Asia/Kolkata" # Example: Indian Standard Time
+TARGET_TIMEZONE = "Asia/Kolkata"
 try:
     tz = pytz.timezone(TARGET_TIMEZONE)
 except pytz.exceptions.UnknownTimeZoneError:
@@ -182,21 +181,22 @@ def load_data(path, columns):
                 df = pd.read_csv(path)
                 for col in columns:
                     if col not in df.columns:
-                        df[col] = pd.NA
+                        df[col] = pd.NA # Use pandas' NA for missing values
                 return df
-            else:
+            else: # File exists but is empty
                 return pd.DataFrame(columns=columns)
-        except pd.errors.EmptyDataError:
+        except pd.errors.EmptyDataError: # read_csv on an empty file (or only headers)
             return pd.DataFrame(columns=columns)
         except Exception as e:
             st.error(f"Error loading data from {path}: {e}. Returning empty DataFrame.")
             return pd.DataFrame(columns=columns)
-    else:
+    else: # File does not exist
         return pd.DataFrame(columns=columns)
 
 ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp"]
 ALLOWANCE_COLUMNS = ["Username", "Type", "Amount", "Reason", "Date"]
 
+# Load dataframes at the start. These are global.
 attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS)
 allowance_df = load_data(ALLOWANCE_FILE, ALLOWANCE_COLUMNS)
 
@@ -207,7 +207,7 @@ if "auth" not in st.session_state:
 
 # --- Login Page ---
 if not st.session_state.auth["logged_in"]:
-    st.title("👨‍💼 HR Dashboard Login") # Moved title here for login page
+    st.title("👨‍💼 HR Dashboard Login")
     st.markdown('<div class="login-container card">', unsafe_allow_html=True)
     st.markdown("<h3>🔐 Login</h3>", unsafe_allow_html=True)
     uname = st.text_input("Username", key="login_uname")
@@ -224,7 +224,7 @@ if not st.session_state.auth["logged_in"]:
     st.stop()
 
 # --- Main Application ---
-st.title("👨‍💼 HR Dashboard") # Main title for logged-in users
+st.title("👨‍💼 HR Dashboard")
 
 current_user = st.session_state.auth
 
@@ -232,43 +232,40 @@ current_user = st.session_state.auth
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
     nav_options = ["📆 Attendance", "🧾 Allowance", "📊 View Logs"]
-    # Add specific key to logout button for styling if needed
-    # For now, we rely on it being the last option or using more general CSS
     nav = st.radio("Navigation", nav_options, key="sidebar_nav")
-    if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True): # use_container_width for full width
+    if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.success("Logged out successfully.")
         st.rerun()
-        # Add custom class for styling logout button if required:
-        # This requires knowing the exact HTML Streamlit generates or using JavaScript,
-        # which is more complex. Styling based on key or `kind` is simpler.
-        # For the CSS: .stButton button[id*="logout_button_sidebar"] { background-color: #dc3545 !important; }
-        # (Note: Streamlit mangles keys for IDs, so `id*=` is a partial match)
 
 # --- Main Content Area ---
 if nav == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3 class='page-subheader'>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
-    
-    # Using st.columns for button layout
-    st.markdown('<div class="button-column-container">', unsafe_allow_html=True) # Wrapper for columns
+    st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         if st.button("✅ Check In", key="check_in_btn", use_container_width=True):
             now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
-            new_entry = pd.DataFrame([{"Username": current_user["username"], "Type": "Check-In", "Timestamp": now_str}])
-            attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
-            attendance_df.to_csv(ATTENDANCE_FILE, index=False)
-            st.success(f"Checked in at {now_str} ({TARGET_TIMEZONE}).")
+            new_entry_att = pd.DataFrame([{"Username": current_user["username"], "Type": "Check-In", "Timestamp": now_str}])
+            attendance_df = pd.concat([attendance_df, new_entry_att], ignore_index=True)
+            try:
+                attendance_df.to_csv(ATTENDANCE_FILE, index=False)
+                st.success(f"Checked in at {now_str} ({TARGET_TIMEZONE}).")
+            except Exception as e:
+                st.error(f"Error saving attendance data: {e}")
     with col2:
         if st.button("🚪 Check Out", key="check_out_btn", use_container_width=True):
             now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
-            new_entry = pd.DataFrame([{"Username": current_user["username"], "Type": "Check-Out", "Timestamp": now_str}])
-            attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
-            attendance_df.to_csv(ATTENDANCE_FILE, index=False)
-            st.success(f"Checked out at {now_str} ({TARGET_TIMEZONE}).")
-    st.markdown('</div>', unsafe_allow_html=True) # End button-column-container
-    st.markdown('</div>', unsafe_allow_html=True) # End card
+            new_entry_att = pd.DataFrame([{"Username": current_user["username"], "Type": "Check-Out", "Timestamp": now_str}])
+            attendance_df = pd.concat([attendance_df, new_entry_att], ignore_index=True)
+            try:
+                attendance_df.to_csv(ATTENDANCE_FILE, index=False)
+                st.success(f"Checked out at {now_str} ({TARGET_TIMEZONE}).")
+            except Exception as e:
+                st.error(f"Error saving attendance data: {e}")
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -276,19 +273,38 @@ elif nav == "🧾 Allowance":
     a_type = st.selectbox("Select Allowance Type", ["Travel", "Dinner"], key="allowance_type")
     amount = st.number_input("Enter amount", min_value=0.0, step=10.0, format="%.2f", key="allowance_amount")
     reason = st.text_area("Reason for allowance", key="allowance_reason")
+
     if st.button("Submit Allowance", key="submit_allowance_btn"):
+        # st.write(f"Current allowance_df (before submit): {len(allowance_df)} rows") # Uncomment for debugging
         if amount > 0 and reason.strip():
             date_str = get_current_time_in_tz().strftime("%Y-%m-%d")
-            new_entry = pd.DataFrame([{
-                "Username": current_user["username"], "Type": a_type,
-                "Amount": amount, "Reason": reason, "Date": date_str
-            }])
-            allowance_df = pd.concat([allowance_df, new_entry], ignore_index=True)
-            allowance_df.to_csv(ALLOWANCE_FILE, index=False)
-            st.success(f"{a_type} allowance submitted for {date_str} ({TARGET_TIMEZONE}).")
+            new_entry_data = {
+                "Username": current_user["username"],
+                "Type": a_type,
+                "Amount": amount,
+                "Reason": reason,
+                "Date": date_str
+            }
+            new_entry_df = pd.DataFrame([new_entry_data])
+
+            # The global allowance_df is updated here
+            temp_allowance_df = pd.concat([allowance_df, new_entry_df], ignore_index=True)
+            
+            # st.write(f"Temp allowance_df (after concat): {len(temp_allowance_df)} rows") # Uncomment for debugging
+            # st.dataframe(temp_allowance_df.tail()) # Uncomment for debugging
+
+            try:
+                temp_allowance_df.to_csv(ALLOWANCE_FILE, index=False)
+                # IMPORTANT: Only update the global allowance_df if save was successful
+                allowance_df = temp_allowance_df
+                st.success(f"{a_type} allowance submitted for {amount:.2f} on {date_str} ({TARGET_TIMEZONE}).")
+                # st.write(f"Global allowance_df (after successful save): {len(allowance_df)} rows") # Uncomment for debugging
+            except Exception as e:
+                st.error(f"Error saving allowance data: {e}")
+                st.warning("Your allowance request was not saved due to an error. Please try again.")
         else:
             st.warning("Please provide a valid amount and reason.")
-    st.markdown('</div>', unsafe_allow_html=True) # End card
+    st.markdown('</div>', unsafe_allow_html=True)
 
 elif nav == "📊 View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -298,8 +314,9 @@ elif nav == "📊 View Logs":
             st.dataframe(attendance_df, use_container_width=True)
         else:
             st.info("No attendance records yet.")
-        
+
         st.markdown("<h3 class='page-subheader' style='margin-top: 30px;'>📋 All Allowance Requests</h3>", unsafe_allow_html=True)
+        # st.write(f"Displaying allowance_df with {len(allowance_df)} rows in Admin View.") # Uncomment for debugging
         if not allowance_df.empty:
             st.dataframe(allowance_df, use_container_width=True)
         else:
@@ -314,8 +331,9 @@ elif nav == "📊 View Logs":
 
         st.markdown("<h3 class='page-subheader' style='margin-top: 30px;'>🧾 My Allowance Requests</h3>", unsafe_allow_html=True)
         my_allowances = allowance_df[allowance_df["Username"] == current_user["username"]]
+        # st.write(f"Displaying my_allowances with {len(my_allowances)} rows in User View.") # Uncomment for debugging
         if not my_allowances.empty:
             st.dataframe(my_allowances, use_container_width=True)
         else:
             st.info("You have no allowance requests yet.")
-    st.markdown('</div>', unsafe_allow_html=True) # End card
+    st.markdown('</div>', unsafe_allow_html=True)
