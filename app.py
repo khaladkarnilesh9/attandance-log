@@ -281,78 +281,21 @@ current_user = st.session_state.auth
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
     nav_options = ["📆 Attendance", "🧾 Allowance", "📊 View Logs"]
-    nav = st.radio("Menu", nav_options, key="sidebar_nav")
+    nav = st.radio("Navigation", nav_options, key="sidebar_nav")
     if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.success("Logged out successfully.")
         st.rerun()
 
 # --- Main Content Area ---
-
-# --- Main Content Area ---
 if nav == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3 class='page-subheader'>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
-
-    # --- Live Digital Clock ---
-    clock_placeholder = st.empty() # Create a placeholder for the clock
-
-    # JavaScript to update the clock
-    # We'll make the clock update every second.
-    # The ID 'live-clock' will be targeted by the JS.
-    # We use a unique ID for the script tag itself to help prevent re-execution issues if possible.
-    # Though Streamlit's rerun behavior might still re-render it.
-    import uuid
-    script_id = str(uuid.uuid4()) # Generate a unique ID for the script tag
-
-    js_code = f"""
-    <div id="live-clock-container" style="text-align: center; margin-bottom: 20px;">
-        <span id="live-clock" style="font-size: 2.2em; font-weight: bold; color: #1c4e80; letter-spacing: 2px; background-color: #e9ecef; padding: 10px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></span>
-        <br>
-        <span id="live-date" style="font-size: 1.1em; color: #495057;"></span>
-    </div>
-    <script id="{script_id}">
-    function updateClock() {{
-        const now = new Date();
-        const clockElement = document.getElementById('live-clock');
-        const dateElement = document.getElementById('live-date');
-
-        if (clockElement && dateElement) {{
-            // Time formatting
-            let hours = now.getHours();
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const seconds = now.getSeconds().toString().padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12; // the hour '0' should be '12'
-            const hoursStr = hours.toString().padStart(2, '0');
-            
-            clockElement.textContent = `${{hoursStr}}:${{minutes}}:${{seconds}} ${{ampm}}`;
-
-            // Date formatting
-            const options = {{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }};
-            dateElement.textContent = now.toLocaleDateString(undefined, options) + ' ({TARGET_TIMEZONE})';
-        }}
-    }}
-
-    // Check if an interval with this ID already exists to avoid multiple intervals
-    if (!window.clockInterval_{script_id}) {{
-        updateClock(); // Initial call to display clock immediately
-        window.clockInterval_{script_id} = setInterval(updateClock, 1000); // Update every second
-    }} else {{
-        // If interval exists, ensure clock is updated in case of Streamlit partial rerun
-        updateClock();
-    }}
-    </script>
-    """
-    clock_placeholder.markdown(js_code, unsafe_allow_html=True)
-    # --- End Live Digital Clock ---
-
-    st.markdown('<div class="button-column-container">', unsafe_allow_html=True) # Wrapper for columns
+    st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         if st.button("✅ Check In", key="check_in_btn", use_container_width=True):
-            now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S") # Server-side TZ aware time for record
+            now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
             new_entry_att = pd.DataFrame([{"Username": current_user["username"], "Type": "Check-In", "Timestamp": now_str}])
             attendance_df = pd.concat([attendance_df, new_entry_att], ignore_index=True)
             try:
@@ -362,7 +305,7 @@ if nav == "📆 Attendance":
                 st.error(f"Error saving attendance data: {e}")
     with col2:
         if st.button("🚪 Check Out", key="check_out_btn", use_container_width=True):
-            now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S") # Server-side TZ aware time for record
+            now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
             new_entry_att = pd.DataFrame([{"Username": current_user["username"], "Type": "Check-Out", "Timestamp": now_str}])
             attendance_df = pd.concat([attendance_df, new_entry_att], ignore_index=True)
             try:
@@ -370,10 +313,9 @@ if nav == "📆 Attendance":
                 st.success(f"Checked out at {now_str} ({TARGET_TIMEZONE}).")
             except Exception as e:
                 st.error(f"Error saving attendance data: {e}")
-    st.markdown('</div>', unsafe_allow_html=True) # End button-column-container
-    st.markdown('</div>', unsafe_allow_html=True) # End card
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# ... (Keep all your existing code after the "📆 Attendance" section) ...
 # ... (Keep all your existing code before the "🧾 Allowance" section) ...
 
 elif nav == "🧾 Allowance":
@@ -468,28 +410,3 @@ elif nav == "📊 View Logs":
         else:
             st.info("You have no allowance requests yet.")
     st.markdown('</div>', unsafe_allow_html=True)
-
-
-# ...
-js_code = f"""
-<div id="live-clock-container" style="text-align: center; margin-bottom: 20px;">
-    <span id="live-clock" style="font-size: 2.2em; font-weight: bold; color: #1c4e80; letter-spacing: 2px; background-color: #e9ecef; padding: 10px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></span>
-    <br>
-    <span id="live-date" style="font-size: 1.1em; color: #495057;"></span>
-</div>
-<script id="{script_id}">
-function updateClock() {{
-    // ... (omitted for brevity)
-}}
-
-// Check if an interval with this ID already exists to avoid multiple intervals
-// The script_id (e.g., '{script_id}') is dynamically generated by Python's uuid.uuid4() <-- THIS IS FINE HERE
-if (!window.clockInterval_{script_id}) {{
-    updateClock(); // Initial call to display clock immediately
-    window.clockInterval_{script_id} = setInterval(updateClock, 1000); // Update every second
-}} else {{
-    updateClock();
-}}
-</script>
-"""
-# ...
