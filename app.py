@@ -157,7 +157,7 @@ div[role="radiogroup"] { /* Targets the container for radio buttons */
 }
 
 div[role="radiogroup"] > label { /* Targets individual radio button labels */
-    background-color: #e9ecef; /* Light background for each option */
+    background-color: #86a7c7; /* Light background for each option */
     padding: 8px 15px;
     border-radius: 20px; /* Pill shape */
     border: 1px solid #ced4da;
