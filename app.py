@@ -281,7 +281,7 @@ current_user = st.session_state.auth
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
     nav_options = ["📆 Attendance", "🧾 Allowance", "📊 View Logs"]
-    nav = st.radio("Navigation", nav_options, key="sidebar_nav")
+    nav = st.radio("Menu", nav_options, key="sidebar_nav")
     if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.success("Logged out successfully.")
