@@ -658,7 +658,20 @@ elif nav == "🎯 Goal Tracker":
 
 elif nav == "📊 View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    if current_user["role"] == "admin":
+    if current_user and current_user.get("role") == "admin":
+    st.markdown("<h4>Admin: Manage & Track Employee Goals</h4>", unsafe_allow_html=True)
+    
+    try:
+        admin_action = st.radio(
+            "Action:", 
+            ["View Team Progress", f"Set/Edit Goal for {TARGET_GOAL_YEAR}"], 
+            key="admin_goal_action_radio_2025_q", 
+            horizontal=True
+        )
+    except Exception as e:
+        st.error(f"Error rendering radio button: {e}")
+        st.stop()
+
         st.markdown("<h3 class='page-subheader'>📊 Employee Data Logs</h3>", unsafe_allow_html=True)
         employee_names = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
         if not employee_names: st.info("No employees found or no employee data to display.")
