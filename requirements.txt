@@ -6,4 +6,3 @@ plotly
 streamlit-option-menu
 numpy
 matplotlib
-streamlit_geolocation
