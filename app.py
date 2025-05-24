@@ -708,21 +708,21 @@ if nav == "🎯 Goal Tracker":
 
 from io import BytesIO
 
-def download_combined_excel(sales_df, payment_df, current_user):
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-        sales_df.to_excel(writer, index=False, sheet_name="Sales Goals")
-        payment_df.to_excel(writer, index=False, sheet_name="Payment Goals")
-        writer.save()
-    return output.getvalue()
+# def download_combined_excel(sales_df, payment_df, current_user):
+#     output = BytesIO()
+#     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+#         sales_df.to_excel(writer, index=False, sheet_name="Sales Goals")
+#         payment_df.to_excel(writer, index=False, sheet_name="Payment Goals")
+#         writer.save()
+#     return output.getvalue()
 
-# Only show for admin or current user's data
-sales_export_df = goals_df if current_user["role"] == "admin" else goals_df[goals_df["Username"] == current_user["username"]]
-payment_export_df = payment_goals_df if current_user["role"] == "admin" else payment_goals_df[payment_goals_df["Username"] == current_user["username"]]
+# # Only show for admin or current user's data
+# sales_export_df = goals_df if current_user["role"] == "admin" else goals_df[goals_df["Username"] == current_user["username"]]
+# payment_export_df = payment_goals_df if current_user["role"] == "admin" else payment_goals_df[payment_goals_df["Username"] == current_user["username"]]
 
-excel_data = download_combined_excel(sales_export_df, payment_export_df, current_user)
-st.download_button("📂 Download Combined Report (Excel)", data=excel_data,
-                   file_name="sales_payment_goals.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+# excel_data = download_combined_excel(sales_export_df, payment_export_df, current_user)
+# st.download_button("📂 Download Combined Report (Excel)", data=excel_data,
+#                    file_name="sales_payment_goals.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
     
 #-------------------------------------payemnt collection logic-----------------------------------
