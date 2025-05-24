@@ -4,8 +4,6 @@ from datetime import datetime, timezone, timedelta
 import os
 import pytz
 import sys
-
-
 import altair as alt
 
 def render_goal_chart(df: pd.DataFrame, title: str):
