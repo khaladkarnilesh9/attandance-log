@@ -727,7 +727,7 @@ st.download_button("📂 Download Combined Report (Excel)", data=excel_data,
                    file_name="sales_payment_goals.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
     
--------------------------------------payemnt collection logic-----------------------------------
+#-------------------------------------payemnt collection logic-----------------------------------
 
 if nav == "💰 Payment Collection Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
