@@ -5,7 +5,7 @@ import os
 import pytz
 from streamlit_geolocation import streamlit_geolocation
 
-# --- Pillow for placeholder image generation (optional) ---
+# --- Pillow for placeholder image generation (optional) --
 try:
     from PIL import Image, ImageDraw, ImageFont
     PILLOW_INSTALLED = True
@@ -553,3 +553,50 @@ elif nav == "📊 View Logs": # Restored detailed view
         if not my_allowances.empty: st.dataframe(my_allowances[[c for c in ALLOWANCE_COLUMNS if c != 'Username' and c in my_allowances.columns]], use_container_width=True, hide_index=True)
         else: st.info("You have not submitted any allowance requests yet.")
     st.markdown('</div>', unsafe_allow_html=True)
+
+elif nav == "🎯 Sales Targets":
+    st.header("🎯 Sales Target Management")
+
+    # Load or create sales target file
+    SALES_FILE = "sales_targets.csv"
+    if os.path.exists(SALES_FILE):
+        sales_df = pd.read_csv(SALES_FILE)
+    else:
+        sales_df = pd.DataFrame(columns=["Username", "Month", "Quarter", "Year", "Target"])
+
+    if user["role"] == "employee":
+        st.subheader("Enter Your Sales Target")
+        month = st.selectbox("Select Month", [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ])
+        quarter = st.selectbox("Select Quarter", ["Q1", "Q2", "Q3", "Q4"])
+        year = st.number_input("Year", min_value=2023, max_value=2100, step=1, value=datetime.now().year)
+        target = st.number_input("Sales Target (in ₹)", min_value=0.0, step=1000.0)
+
+        if st.button("Save Sales Target"):
+            new_entry = {
+                "Username": user["username"],
+                "Month": month,
+                "Quarter": quarter,
+                "Year": year,
+                "Target": target
+            }
+            sales_df = sales_df._append(new_entry, ignore_index=True)
+            sales_df.to_csv(SALES_FILE, index=False)
+            st.success("✅ Sales target saved successfully!")
+
+        st.subheader("📊 Your Targets")
+        st.dataframe(sales_df[sales_df["Username"] == user["username"]])
+
+    elif user["role"] == "admin":
+        st.subheader("📋 All Employee Sales Targets")
+        st.dataframe(sales_df)
+
+        st.download_button(
+            "📤 Download Targets (Excel)",
+            data=sales_df.to_excel(index=False, engine="openpyxl"),
+            file_name="sales_targets.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
