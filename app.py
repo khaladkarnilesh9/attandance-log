@@ -12,7 +12,7 @@ try:
 except ImportError:
     PILLOW_INSTALLED = False
 
-# --- CSS ---
+# --- CSS -----
 html_css = """
 <style>
     /* --- General --- */
