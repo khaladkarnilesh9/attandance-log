@@ -134,11 +134,40 @@ html_css = """
     div[data-testid="stImage"] > img { border-radius: 8px; border: 2px solid #e0e0e0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .stProgress > div > div { background-color: #2070c0 !important; }
     div[data-testid="stMetricLabel"] { font-size: 0.9em !important; color: #555 !important; }
+
+    /* --- Custom Notification Styling --- */
+    .custom-notification {
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        font-size: 0.95em;
+        border-left: 5px solid;
+    }
+    .custom-notification.success {
+        background-color: #d4edda; /* Light green */
+        color: #155724; /* Dark green */
+        border-left-color: #28a745; /* Green accent */
+    }
+    .custom-notification.error {
+        background-color: #f8d7da; /* Light red */
+        color: #721c24; /* Dark red */
+        border-left-color: #dc3545; /* Red accent */
+    }
+    .custom-notification.warning {
+        background-color: #fff3cd; /* Light yellow */
+        color: #856404; /* Dark yellow */
+        border-left-color: #ffc107; /* Yellow accent */
+    }
+     .custom-notification.info {
+        background-color: #d1ecf1; /* Light blue */
+        color: #0c5460; /* Dark blue */
+        border-left-color: #17a2b8; /* Blue accent */
+    }
 </style>
 """
 st.markdown(html_css, unsafe_allow_html=True)
 
-# --- Credentials & User Info --
+# --- Credentials & User Info ---
 USERS = {
     "Geetali": {"password": "Geetali123", "role": "employee", "position": "Software Engineer", "profile_photo": "images/geetali.png"},
     "Nilesh": {"password": "Nilesh123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/nilesh.png"},
@@ -207,12 +236,13 @@ def load_data(path, columns):
             else: return pd.DataFrame(columns=columns)
         except pd.errors.EmptyDataError: return pd.DataFrame(columns=columns)
         except Exception as e:
-            st.error(f"Error loading {path}: {e}. Empty DataFrame returned.") # This will show on page
+            # This error will be shown directly on the page, not suitable for session state message
+            st.error(f"Error loading {path}: {e}. Empty DataFrame returned.")
             return pd.DataFrame(columns=columns)
     else:
         df = pd.DataFrame(columns=columns)
         try: df.to_csv(path, index=False)
-        except Exception as e: st.warning(f"Could not create {path}: {e}") # This will show on page
+        except Exception as e: st.warning(f"Could not create {path}: {e}") # Shows directly
         return df
 
 ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude"]
@@ -223,10 +253,24 @@ attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS)
 allowance_df = load_data(ALLOWANCE_FILE, ALLOWANCE_COLUMNS)
 goals_df = load_data(GOALS_FILE, GOALS_COLUMNS)
 
+# --- Initialize Session State for Notifications ---
+if "user_message" not in st.session_state:
+    st.session_state.user_message = None
+if "message_type" not in st.session_state:
+    st.session_state.message_type = None # e.g., "success", "error", "warning", "info"
+
+# --- Login Page ---
 if "auth" not in st.session_state: st.session_state.auth = {"logged_in": False, "username": None, "role": None}
 
 if not st.session_state.auth["logged_in"]:
     st.title("🙂HR Dashboard Login")
+    # Display pending messages on login page too, if any (e.g., from a previous logout)
+    message_placeholder_login = st.empty()
+    if st.session_state.user_message:
+        message_placeholder_login.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
+        st.session_state.user_message = None # Clear after displaying
+        st.session_state.message_type = None
+
     st.markdown('<div class="login-container card">', unsafe_allow_html=True)
     st.markdown("<h3>🔐 Login</h3>", unsafe_allow_html=True)
     uname = st.text_input("Username", key="login_uname")
@@ -235,15 +279,27 @@ if not st.session_state.auth["logged_in"]:
         user_creds = USERS.get(uname)
         if user_creds and user_creds["password"] == pwd:
             st.session_state.auth = {"logged_in": True, "username": uname, "role": user_creds["role"]}
-            st.toast("Login successful!", icon="✅") # MODIFIED
+            st.session_state.user_message = "Login successful!" # SET MESSAGE
+            st.session_state.message_type = "success"         # SET TYPE
             st.rerun()
         else:
-            st.error("Invalid username or password.") # This st.error will show as it's not followed by rerun
+            # For errors on the login page, st.error is fine as no immediate rerun
+            st.error("Invalid username or password.")
     st.markdown('</div>', unsafe_allow_html=True); st.stop()
 
+# --- Main Application ---
 st.title("👨‍💼 HR Dashboard")
 current_user = st.session_state.auth
 
+# --- Dedicated Message Placeholder for Main App ---
+message_placeholder = st.empty()
+if st.session_state.user_message:
+    message_placeholder.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
+    st.session_state.user_message = None # Clear after displaying
+    st.session_state.message_type = None
+
+
+# --- Sidebar ---
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
     nav_options = ["📆 Attendance", "🧾 Allowance", "🎯 Goal Tracker", "📊 View Logs"]
@@ -255,9 +311,11 @@ with st.sidebar:
     st.markdown("---")
     if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
-        st.toast("Logged out successfully.", icon="🔒") # MODIFIED
+        st.session_state.user_message = "Logged out successfully." # SET MESSAGE
+        st.session_state.message_type = "info"                  # SET TYPE
         st.rerun()
 
+# --- Main Content Area ---
 if nav == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
@@ -285,10 +343,13 @@ if nav == "📆 Attendance":
             attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
             try:
                 attendance_df.to_csv(ATTENDANCE_FILE, index=False)
-                st.toast(f"Checked in at {now_str} (Location not recorded).", icon="✅") # MODIFIED
+                st.session_state.user_message = f"Checked in at {now_str} (Location not recorded)."
+                st.session_state.message_type = "success"
                 st.rerun()
             except Exception as e:
-                st.toast(f"Error saving attendance: {e}", icon="🚨") # MODIFIED
+                st.session_state.user_message = f"Error saving attendance: {e}"
+                st.session_state.message_type = "error"
+                st.rerun() # Rerun to show the error message at the top
     with col2:
         if st.button("🚪 Check Out", key="check_out_btn_main", use_container_width=True):
             now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
@@ -299,10 +360,13 @@ if nav == "📆 Attendance":
             attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
             try:
                 attendance_df.to_csv(ATTENDANCE_FILE, index=False)
-                st.toast(f"Checked out at {now_str} (Location not recorded).", icon="🚪") # MODIFIED
+                st.session_state.user_message = f"Checked out at {now_str} (Location not recorded)."
+                st.session_state.message_type = "success"
                 st.rerun()
             except Exception as e:
-                st.toast(f"Error saving attendance: {e}", icon="🚨") # MODIFIED
+                st.session_state.user_message = f"Error saving attendance: {e}"
+                st.session_state.message_type = "error"
+                st.rerun()
     st.markdown('</div></div>', unsafe_allow_html=True)
 
 elif nav == "🧾 Allowance":
@@ -320,12 +384,16 @@ elif nav == "🧾 Allowance":
             allowance_df = pd.concat([allowance_df, new_entry], ignore_index=True)
             try:
                 allowance_df.to_csv(ALLOWANCE_FILE, index=False)
-                st.toast(f"Allowance for ₹{amount:.2f} submitted.", icon="💰") # MODIFIED
+                st.session_state.user_message = f"Allowance for ₹{amount:.2f} submitted."
+                st.session_state.message_type = "success"
                 st.rerun()
             except Exception as e:
-                st.toast(f"Error saving allowance: {e}", icon="🚨") # MODIFIED
+                st.session_state.user_message = f"Error saving allowance: {e}"
+                st.session_state.message_type = "error"
+                st.rerun()
         else:
-            st.warning("Please complete all fields with valid values.") # This will show
+            # For immediate warnings not followed by rerun, st.warning is fine
+            st.warning("Please complete all fields with valid values.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif nav == "🎯 Goal Tracker":
@@ -379,7 +447,7 @@ elif nav == "🎯 Goal Tracker":
                 g_target = pd.to_numeric(g_d.get("TargetAmount"),errors='coerce').fillna(0.0)
                 g_achieved = pd.to_numeric(g_d.get("AchievedAmount"),errors='coerce').fillna(0.0)
                 g_status = g_d.get("Status","Not Started")
-                st.info(f"Editing existing goal for {sel_emp} for {target_m_y}.")
+                st.info(f"Editing existing goal for {sel_emp} for {target_m_y}.") # This info message will show
 
             with st.form(key=f"set_goal_form_{sel_emp}_{target_m_y}_main"):
                 new_g_desc = st.text_area("Goal Description:", value=g_desc, key=f"desc_{sel_emp}_{target_m_y}")
@@ -389,22 +457,25 @@ elif nav == "🎯 Goal Tracker":
                 submitted = st.form_submit_button("Save Goal")
 
             if submitted:
-                if not new_g_desc.strip(): st.warning("Description needed.")
-                elif new_g_target <= 0 and new_g_status not in ["Cancelled", "On Hold", "Not Started"]: st.warning("Target > 0 unless Cancelled/On Hold/Not Started.")
+                if not new_g_desc.strip(): st.warning("Description needed.") # Shows directly
+                elif new_g_target <= 0 and new_g_status not in ["Cancelled", "On Hold", "Not Started"]: st.warning("Target > 0 unless Cancelled/On Hold/Not Started.") # Shows directly
                 else:
                     if not existing_g.empty:
                         goals_df.loc[existing_g.index[0]] = [sel_emp, target_m_y, new_g_desc, new_g_target, new_g_achieved, new_g_status]
-                        msg="updated"
+                        msg_verb="updated"
                     else:
                         new_g_entry = pd.DataFrame([{"Username":sel_emp, "MonthYear":target_m_y, "GoalDescription":new_g_desc, "TargetAmount":new_g_target, "AchievedAmount":new_g_achieved, "Status":new_g_status}], columns=GOALS_COLUMNS)
                         goals_df = pd.concat([goals_df, new_g_entry], ignore_index=True)
-                        msg="set"
+                        msg_verb="set"
                     try:
                         goals_df.to_csv(GOALS_FILE, index=False)
-                        st.toast(f"Goal for {sel_emp} ({target_m_y}) {msg}!", icon="🎯") # MODIFIED
+                        st.session_state.user_message = f"Goal for {sel_emp} ({target_m_y}) {msg_verb}!"
+                        st.session_state.message_type = "success"
                         st.rerun()
                     except Exception as e:
-                        st.toast(f"Error saving goal: {e}", icon="🚨") # MODIFIED
+                        st.session_state.user_message = f"Error saving goal: {e}"
+                        st.session_state.message_type = "error"
+                        st.rerun()
     else: # Employee View
         st.markdown("<h4>My Sales Goals</h4>", unsafe_allow_html=True)
         my_all_goals = goals_df[goals_df["Username"] == current_user["username"]].copy()
@@ -432,10 +503,13 @@ elif nav == "🎯 Goal Tracker":
                 goals_df.loc[idx_to_update, "Status"] = "Achieved" if new_ach_val >= target_amt and target_amt > 0 else "In Progress"
                 try:
                     goals_df.to_csv(GOALS_FILE, index=False)
-                    st.toast("Achievement updated!", icon="📈") # MODIFIED
+                    st.session_state.user_message = "Achievement updated!"
+                    st.session_state.message_type = "success"
                     st.rerun()
                 except Exception as e:
-                    st.toast(f"Error updating achievement: {e}", icon="🚨") # MODIFIED
+                    st.session_state.user_message = f"Error updating achievement: {e}"
+                    st.session_state.message_type = "error"
+                    st.rerun()
         else: st.info(f"No goal set for you for {current_month_year}. Contact admin.")
         st.markdown("---")
         st.markdown("<h5>My Past Goals History</h5>", unsafe_allow_html=True)
@@ -471,14 +545,13 @@ elif nav == "📊 View Logs":
                     emp_attendance['Longitude'] = pd.to_numeric(emp_attendance['Longitude'], errors='coerce')
                     display_cols_att = [col for col in ATTENDANCE_COLUMNS if col != 'Username']
                     admin_att_display = emp_attendance[display_cols_att].copy()
-                    for col in ['Latitude', 'Longitude']:
-                        if col in admin_att_display.columns:
-                            admin_att_display[col] = admin_att_display[col].apply(lambda x: f"{x:.4f}" if pd.notna(x) and isinstance(x, (float, int)) else "N/A")
+                    for col_name_map in ['Latitude', 'Longitude']: # Renamed col to col_name_map to avoid conflict
+                        if col_name_map in admin_att_display.columns:
+                            admin_att_display[col_name_map] = admin_att_display[col_name_map].apply(lambda x: f"{x:.4f}" if pd.notna(x) and isinstance(x, (float, int)) else "N/A")
                     st.dataframe(admin_att_display, use_container_width=True, hide_index=True)
                     st.markdown("<h6 class='allowance-summary-header'>🗺️ Attendance Locations Map:</h6>", unsafe_allow_html=True)
                     map_data_admin = emp_attendance.dropna(subset=['Latitude', 'Longitude']).copy()
                     if not map_data_admin.empty:
-                        # Ensure columns are named 'latitude' and 'longitude' for st.map
                         map_df_renamed = map_data_admin.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'})
                         st.map(map_df_renamed[['latitude', 'longitude']])
                     else: st.caption(f"No valid location data for map for {emp_name}.")
@@ -555,14 +628,14 @@ elif nav == "📊 View Logs":
                     combined_df = pd.merge(first_check_ins_sel, last_check_outs_sel, on='DateOnly', how='outer')
                 elif not first_check_ins_sel.empty:
                     combined_df = first_check_ins_sel.copy()
-                    for col in last_check_out_cols[1:]:
-                        if 'Time' in col: combined_df[col] = pd.NaT
-                        else: combined_df[col] = pd.NA
+                    for col_name_c in last_check_out_cols[1:]: # Renamed col to col_name_c
+                        if 'Time' in col_name_c: combined_df[col_name_c] = pd.NaT
+                        else: combined_df[col_name_c] = pd.NA
                 elif not last_check_outs_sel.empty:
                     combined_df = last_check_outs_sel.copy()
-                    for col in first_check_in_cols[1:]:
-                        if 'Time' in col: combined_df[col] = pd.NaT
-                        else: combined_df[col] = pd.NA
+                    for col_name_c in first_check_in_cols[1:]: # Renamed col to col_name_c
+                        if 'Time' in col_name_c: combined_df[col_name_c] = pd.NaT
+                        else: combined_df[col_name_c] = pd.NA
                 else:
                     all_combined_cols = list(dict.fromkeys(first_check_in_cols + last_check_out_cols))
                     combined_df = pd.DataFrame(columns=all_combined_cols)
