@@ -5,14 +5,14 @@ import os
 import pytz
 from streamlit_geolocation import streamlit_geolocation
 
-# --- Pillow for placeholder image generation (optional) ---
+# --- Pillow for placeholder image generation (optional) --
 try:
     from PIL import Image, ImageDraw, ImageFont
     PILLOW_INSTALLED = True
 except ImportError:
     PILLOW_INSTALLED = False
 
-# --- CSS ---
+# --- CSS -----
 html_css = """
 <style>
     /* --- General --- */
@@ -115,9 +115,6 @@ html_css = """
     .button-column-container > div[data-testid="stHorizontalBlock"] { gap: 15px; }
     .button-column-container .stButton button { width: 100%; }
 
-    /* --- Page Sub Headers (already covered by .card h3) --- */
-    /* .page-subheader { font-size: 1.8em; color: #1c4e80; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0; } */
-
     /* Horizontal Radio Buttons */
     div[role="radiogroup"] { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
     div[role="radiogroup"] > label { background-color: #86a7c7; padding: 8px 15px; border-radius: 20px; border: 1px solid #ced4da; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; font-size: 0.95em; }
@@ -160,20 +157,21 @@ if PILLOW_INSTALLED:
             try:
                 img = Image.new('RGB', (120, 120), color = (200, 220, 240))
                 draw = ImageDraw.Draw(img)
-                try: font = ImageFont.truetype("arial.ttf", 40)
-                except IOError: font = ImageFont.load_default(size=40 if hasattr(ImageFont, 'load_default') and 'size' in ImageFont.load_default.__code__.co_varnames else None)
-
+                try:
+                    font = ImageFont.truetype("arial.ttf", 40)
+                except IOError:
+                    font = ImageFont.load_default() # Load default font if Arial not found
 
                 text = user_key[:2].upper()
                 if hasattr(draw, 'textbbox'): # Pillow 9.2.0+
                     bbox = draw.textbbox((0,0), text, font=font)
                     text_width, text_height = bbox[2] - bbox[0], bbox[3] - bbox[1]
-                    text_x, text_y = (120 - text_width) / 2, (120 - text_height) / 2 - bbox[1] # bbox[1] is y_offset
+                    text_x, text_y = (120 - text_width) / 2, (120 - text_height) / 2 - bbox[1]
                 elif hasattr(draw, 'textsize'): # Older Pillow
                     text_width, text_height = draw.textsize(text, font=font)
                     text_x, text_y = (120 - text_width) / 2, (120 - text_height) / 2
-                else: # Fallback if textsize and textbbox are missing (very unlikely)
-                    text_x, text_y = 30,30
+                else:
+                    text_x, text_y = 30,30 # Basic fallback
                 draw.text((text_x, text_y), text, fill=(28, 78, 128), font=font)
                 img.save(img_path)
             except Exception: pass
@@ -247,7 +245,7 @@ current_user = st.session_state.auth
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
     nav_options = ["📆 Attendance", "🧾 Allowance", "🎯 Goal Tracker", "📊 View Logs"]
-    nav = st.radio("Navigation", nav_options, key="sidebar_nav_main") # Unique key
+    nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
         st.image(user_sidebar_info["profile_photo"], width=80, use_column_width='auto')
@@ -259,8 +257,8 @@ with st.sidebar:
 
 if nav == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True) # Using h3 from card styling
-    location_data = streamlit_geolocation(key="attendance_page_location_final")
+    st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
+    location_data = streamlit_geolocation(key="attendance_page_location_final") # Unique key for this instance
     lat, lon = None, None
     if location_data and 'latitude' in location_data and 'longitude' in location_data:
         lat, lon = location_data['latitude'], location_data['longitude']
@@ -309,9 +307,6 @@ elif nav == "🧾 Allowance":
 elif nav == "🎯 Goal Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🎯 Sales Goal Tracker</h3>", unsafe_allow_html=True)
-    # Ensure goals_df is accessible and up-to-date
-    # No need for 'global goals_df' if it's loaded at script start and passed around or re-assigned like:
-    # goals_df = updated_df
     current_month_year = get_current_month_year_str()
     status_options = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
 
@@ -328,16 +323,16 @@ elif nav == "🎯 Goal Tracker":
                 for emp_name in employee_users:
                     user_info_gt = USERS.get(emp_name, {})
                     emp_current_goal = goals_df[(goals_df["Username"] == emp_name) & (goals_df["MonthYear"] == current_month_year)]
-                    target, achieved, prog_val, goal_desc, status = 0.0, 0.0, 0.0, "Not Set", "N/A"
+                    target, achieved, prog_val, goal_desc, status_val = 0.0, 0.0, 0.0, "Not Set", "N/A" # Renamed 'status' to 'status_val'
                     if not emp_current_goal.empty:
                         g_data = emp_current_goal.iloc[0]
                         target = pd.to_numeric(g_data.get("TargetAmount"), errors='coerce').fillna(0.0)
                         achieved = pd.to_numeric(g_data.get("AchievedAmount"), errors='coerce').fillna(0.0)
                         if target > 0: prog_val = min(achieved / target, 1.0)
-                        goal_desc, status = g_data.get("GoalDescription", "N/A"), g_data.get("Status", "N/A")
+                        goal_desc, status_val = g_data.get("GoalDescription", "N/A"), g_data.get("Status", "N/A")
                     summary_data.append({
                         "Photo": user_info_gt.get("profile_photo",""), "Employee": emp_name, "Position": user_info_gt.get("position","N/A"),
-                        "Goal": goal_desc, "Target": target, "Achieved": achieved, "Progress": prog_val, "Status": status })
+                        "Goal": goal_desc, "Target": target, "Achieved": achieved, "Progress": prog_val, "Status": status_val }) # Use status_val
                 if summary_data:
                     st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True, column_config={
                         "Photo": st.column_config.ImageColumn("Pic", width="small"),
@@ -356,14 +351,17 @@ elif nav == "🎯 Goal Tracker":
             g_desc, g_target, g_achieved, g_status = "", 0.0, 0.0, "Not Started"
             if not existing_g.empty:
                 g_d = existing_g.iloc[0]
-                g_desc, g_target, g_achieved, g_status = g_d.get("GoalDescription",""), pd.to_numeric(g_d.get("TargetAmount"),errors='coerce').fillna(0.0), pd.to_numeric(g_d.get("AchievedAmount"),errors='coerce').fillna(0.0), g_d.get("Status","Not Started")
+                g_desc = g_d.get("GoalDescription","")
+                g_target = pd.to_numeric(g_d.get("TargetAmount"),errors='coerce').fillna(0.0)
+                g_achieved = pd.to_numeric(g_d.get("AchievedAmount"),errors='coerce').fillna(0.0)
+                g_status = g_d.get("Status","Not Started")
                 st.info(f"Editing existing goal for {sel_emp} for {target_m_y}.")
 
             with st.form(key=f"set_goal_form_{sel_emp}_{target_m_y}_main"):
-                new_g_desc = st.text_area("Goal Description:", value=g_desc)
-                new_g_target = st.number_input("Target Sales (INR):", 0.0, value=g_target, step=1000.0, format="%.2f")
-                new_g_achieved = st.number_input("Achieved Sales (INR):", 0.0, value=g_achieved, step=100.0, format="%.2f")
-                new_g_status = st.selectbox("Status:", status_options, index=status_options.index(g_status) if g_status in status_options else 0)
+                new_g_desc = st.text_area("Goal Description:", value=g_desc, key=f"desc_{sel_emp}_{target_m_y}")
+                new_g_target = st.number_input("Target Sales (INR):", 0.0, value=g_target, step=1000.0, format="%.2f", key=f"target_{sel_emp}_{target_m_y}")
+                new_g_achieved = st.number_input("Achieved Sales (INR):", 0.0, value=g_achieved, step=100.0, format="%.2f", key=f"achieved_{sel_emp}_{target_m_y}")
+                new_g_status = st.selectbox("Status:", status_options, index=status_options.index(g_status) if g_status in status_options else 0, key=f"status_{sel_emp}_{target_m_y}")
                 submitted = st.form_submit_button("Save Goal")
 
             if submitted:
@@ -375,7 +373,6 @@ elif nav == "🎯 Goal Tracker":
                         msg="updated"
                     else:
                         new_g_entry = pd.DataFrame([{"Username":sel_emp, "MonthYear":target_m_y, "GoalDescription":new_g_desc, "TargetAmount":new_g_target, "AchievedAmount":new_g_achieved, "Status":new_g_status}], columns=GOALS_COLUMNS)
-                        # Need to reassign goals_df if it was empty or to ensure type consistency
                         goals_df = pd.concat([goals_df, new_g_entry], ignore_index=True)
                         msg="set"
                     try: goals_df.to_csv(GOALS_FILE, index=False); st.success(f"Goal for {sel_emp} ({target_m_y}) {msg}!"); st.rerun()
@@ -399,7 +396,7 @@ elif nav == "🎯 Goal Tracker":
             st.markdown("---")
             st.markdown("<h6>Update My Achievement (Current Month)</h6>", unsafe_allow_html=True)
             with st.form(key=f"update_ach_form_{current_user['username']}_main"):
-                new_ach_val = st.number_input("My Total Achieved Sales (INR):", 0.0, value=achieved_amt, step=100.0, format="%.2f")
+                new_ach_val = st.number_input("My Total Achieved Sales (INR):", 0.0, value=achieved_amt, step=100.0, format="%.2f", key=f"emp_ach_update_{current_month_year}")
                 submit_upd = st.form_submit_button("Update My Achieved Amount")
             if submit_upd:
                 idx_to_update = current_g.index[0]
@@ -410,4 +407,165 @@ elif nav == "🎯 Goal Tracker":
         else: st.info(f"No goal set for you for {current_month_year}. Contact admin.")
         st.markdown("---")
         st.markdown("<h5>My Past Goals History</h5>", unsafe_allow_html=True)
-        past_g = my_all_goals[my_all_goals["MonthYear"] != current_month_year].sort_
+        past_g = my_all_goals[my_all_goals["MonthYear"] != current_month_year].sort_values(by="MonthYear", ascending=False)
+        if not past_g.empty:
+            st.dataframe(past_g[["MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]], hide_index=True, use_container_width=True,
+                column_config={"TargetAmount":st.column_config.NumberColumn(format="₹%.0f"), "AchievedAmount":st.column_config.NumberColumn(format="₹%.0f")})
+        else: st.info("No past goal records found.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+elif nav == "📊 View Logs":
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    if current_user["role"] == "admin":
+        st.markdown("<h3 class='page-subheader'>📊 Employee Data Logs</h3>", unsafe_allow_html=True)
+        employee_names = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
+        if not employee_names: st.info("No employees found or no employee data to display.")
+        else:
+            for emp_name in employee_names:
+                user_info = USERS.get(emp_name, {})
+                profile_col1, profile_col2 = st.columns([1, 4])
+                with profile_col1:
+                    if user_info.get("profile_photo") and os.path.exists(user_info.get("profile_photo")):
+                        st.image(user_info.get("profile_photo"), width=80)
+                with profile_col2:
+                    st.markdown(f"<h4 class='employee-section-header' style='margin-bottom: 5px; margin-top:0px; border-bottom: none; font-size: 1.2em;'>👤 {emp_name}</h4>", unsafe_allow_html=True)
+                    st.markdown(f"**Position:** {user_info.get('position', 'N/A')}")
+                st.markdown("---")
+
+                st.markdown("<h5 class='record-type-header'>🕒 Attendance Records:</h5>", unsafe_allow_html=True)
+                emp_attendance = attendance_df[attendance_df["Username"] == emp_name].copy()
+                if not emp_attendance.empty:
+                    emp_attendance['Latitude'] = pd.to_numeric(emp_attendance['Latitude'], errors='coerce')
+                    emp_attendance['Longitude'] = pd.to_numeric(emp_attendance['Longitude'], errors='coerce')
+                    display_cols_att = [col for col in ATTENDANCE_COLUMNS if col != 'Username']
+                    admin_att_display = emp_attendance[display_cols_att].copy()
+                    for col in ['Latitude', 'Longitude']:
+                        if col in admin_att_display.columns:
+                            admin_att_display[col] = admin_att_display[col].apply(lambda x: f"{x:.4f}" if pd.notna(x) and isinstance(x, (float, int)) else "N/A")
+                    st.dataframe(admin_att_display, use_container_width=True, hide_index=True)
+                    st.markdown("<h6 class='allowance-summary-header'>🗺️ Attendance Locations Map:</h6>", unsafe_allow_html=True)
+                    map_data_admin = emp_attendance.dropna(subset=['Latitude', 'Longitude']).copy()
+                    if not map_data_admin.empty: st.map(map_data_admin.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'}))
+                    else: st.caption(f"No valid location data for map for {emp_name}.")
+                else: st.caption(f"No attendance records for {emp_name}.")
+
+                st.markdown("<h5 class='record-type-header'>💰 Allowance Section:</h5>", unsafe_allow_html=True)
+                emp_allowances = allowance_df[allowance_df["Username"] == emp_name].copy()
+                if not emp_allowances.empty:
+                    emp_allowances['Amount'] = pd.to_numeric(emp_allowances['Amount'], errors='coerce').fillna(0.0)
+                    st.metric(label=f"Grand Total Allowance for {emp_name}", value=f"₹{emp_allowances['Amount'].sum():,.2f}")
+                    st.markdown("<h6 class='allowance-summary-header'>📅 Monthly Allowance Summary:</h6>", unsafe_allow_html=True)
+                    emp_allow_sum = emp_allowances.dropna(subset=['Amount']).copy() # Process only valid amounts
+                    if 'Date' in emp_allow_sum.columns:
+                        emp_allow_sum['Date'] = pd.to_datetime(emp_allow_sum['Date'], errors='coerce')
+                        emp_allow_sum.dropna(subset=['Date'], inplace=True)
+                    if not emp_allow_sum.empty and 'Date' in emp_allow_sum.columns:
+                        emp_allow_sum['YearMonth'] = emp_allow_sum['Date'].dt.strftime('%Y-%m')
+                        monthly_summary = emp_allow_sum.groupby('YearMonth')['Amount'].sum().reset_index().sort_values('YearMonth', ascending=False)
+                        st.dataframe(monthly_summary.rename(columns={'Amount': 'Total Amount (₹)', 'YearMonth': 'Month'}), use_container_width=True, hide_index=True)
+                    else: st.caption("No valid allowance data for monthly summary.")
+                    st.markdown("<h6 class='allowance-summary-header'>📋 Detailed Allowance Requests:</h6>", unsafe_allow_html=True)
+                    st.dataframe(emp_allowances[[c for c in ALLOWANCE_COLUMNS if c != 'Username']], use_container_width=True, hide_index=True)
+                else: st.caption(f"No allowance requests for {emp_name}.")
+                if emp_name != employee_names[-1]: st.markdown("<hr style='margin-top: 25px; margin-bottom:10px;'>", unsafe_allow_html=True)
+
+    else: # Employee's Own View
+        st.markdown("<h3>📊 My Profile & Logs</h3>", unsafe_allow_html=True)
+        my_user_info = USERS.get(current_user["username"], {})
+        profile_col1_my, profile_col2_my = st.columns([1, 4])
+        with profile_col1_my:
+            if my_user_info.get("profile_photo") and os.path.exists(my_user_info.get("profile_photo")):
+                st.image(my_user_info.get("profile_photo"), width=80)
+        with profile_col2_my:
+            st.markdown(f"**Name:** {current_user['username']}")
+            st.markdown(f"**Position:** {my_user_info.get('position', 'N/A')}")
+        st.markdown("---")
+
+        st.markdown("<h4 class='record-type-header'>📅 My Attendance History</h4>", unsafe_allow_html=True)
+        my_att_raw = attendance_df[attendance_df["Username"] == current_user["username"]].copy()
+        final_display_df = pd.DataFrame() # Initialize to ensure it's always defined
+        my_att_proc = pd.DataFrame() # Initialize for map
+
+        if not my_att_raw.empty:
+            my_att_proc = my_att_raw.copy()
+            my_att_proc['Timestamp'] = pd.to_datetime(my_att_proc['Timestamp'], errors='coerce')
+            my_att_proc.dropna(subset=['Timestamp'], inplace=True)
+            if not my_att_proc.empty:
+                my_att_proc['Latitude'] = pd.to_numeric(my_att_proc['Latitude'], errors='coerce')
+                my_att_proc['Longitude'] = pd.to_numeric(my_att_proc['Longitude'], errors='coerce')
+                my_att_proc['DateOnly'] = my_att_proc['Timestamp'].dt.date
+
+                check_ins_df = my_att_proc[my_att_proc['Type'] == 'Check-In'].copy()
+                check_outs_df = my_att_proc[my_att_proc['Type'] == 'Check-Out'].copy()
+
+                first_check_in_cols = ['DateOnly', 'Check-In FullTime', 'Check-In Latitude', 'Check-In Longitude']
+                first_check_ins_sel = pd.DataFrame(columns=first_check_in_cols)
+                if not check_ins_df.empty:
+                    first_check_ins_grouped = check_ins_df.loc[check_ins_df.groupby('DateOnly')['Timestamp'].idxmin()]
+                    first_check_ins_sel = first_check_ins_grouped[['DateOnly', 'Timestamp', 'Latitude', 'Longitude']].rename(
+                        columns={'Timestamp': 'Check-In FullTime', 'Latitude': 'Check-In Latitude', 'Longitude': 'Check-In Longitude'})
+
+                last_check_out_cols = ['DateOnly', 'Check-Out FullTime', 'Check-Out Latitude', 'Check-Out Longitude']
+                last_check_outs_sel = pd.DataFrame(columns=last_check_out_cols)
+                if not check_outs_df.empty:
+                    last_check_outs_grouped = check_outs_df.loc[check_outs_df.groupby('DateOnly')['Timestamp'].idxmax()]
+                    last_check_outs_sel = last_check_outs_grouped[['DateOnly', 'Timestamp', 'Latitude', 'Longitude']].rename(
+                        columns={'Timestamp': 'Check-Out FullTime', 'Latitude': 'Check-Out Latitude', 'Longitude': 'Check-Out Longitude'})
+
+                for df_sel in [first_check_ins_sel, last_check_outs_sel]:
+                    if 'DateOnly' in df_sel.columns and not df_sel.empty:
+                        df_sel['DateOnly'] = pd.to_datetime(df_sel['DateOnly']).dt.date
+                
+                # CORRECTED INDENTATION STARTS HERE
+                if not first_check_ins_sel.empty and not last_check_outs_sel.empty:
+                    combined_df = pd.merge(first_check_ins_sel, last_check_outs_sel, on='DateOnly', how='outer')
+                elif not first_check_ins_sel.empty:
+                    combined_df = first_check_ins_sel.copy()
+                    for col in last_check_out_cols[1:]: # Skip 'DateOnly'
+                        if 'Time' in col: combined_df[col] = pd.NaT
+                        else: combined_df[col] = pd.NA
+                elif not last_check_outs_sel.empty:
+                    combined_df = last_check_outs_sel.copy()
+                    for col in first_check_in_cols[1:]: # Skip 'DateOnly'
+                        if 'Time' in col: combined_df[col] = pd.NaT
+                        else: combined_df[col] = pd.NA
+                else:
+                    all_combined_cols = list(dict.fromkeys(first_check_in_cols + last_check_out_cols)) # Unique columns
+                    combined_df = pd.DataFrame(columns=all_combined_cols)
+                # CORRECTED INDENTATION ENDS HERE
+
+                if not combined_df.empty:
+                    combined_df = combined_df.sort_values(by='DateOnly', ascending=False, ignore_index=True)
+                    for ft_col in ['Check-In FullTime', 'Check-Out FullTime']:
+                        if ft_col in combined_df.columns: combined_df[ft_col] = pd.to_datetime(combined_df[ft_col], errors='coerce')
+                    def format_duration(row):
+                        if pd.notna(row.get('Check-In FullTime')) and pd.notna(row.get('Check-Out FullTime')) and row['Check-Out FullTime'] > row['Check-In FullTime']:
+                            secs = (row['Check-Out FullTime'] - row['Check-In FullTime']).total_seconds(); return f"{int(secs//3600)}h {int((secs%3600)//60)}m"
+                        return "N/A"
+                    combined_df['Duration'] = combined_df.apply(format_duration, axis=1)
+                    for t_col, new_name in [('Check-In FullTime', 'Check-In Time'), ('Check-Out FullTime', 'Check-Out Time')]:
+                        combined_df[new_name] = combined_df.get(t_col, pd.Series(dtype='datetime64[ns]')).apply(lambda x: x.strftime('%H:%M:%S') if pd.notna(x) else 'N/A')
+                    combined_df['Date'] = combined_df.get('DateOnly', pd.Series(dtype='object')).apply(lambda x: x.strftime('%Y-%m-%d') if pd.notna(x) else 'N/A')
+                    final_cols = ['Date', 'Check-In Time', 'Check-In Latitude', 'Check-In Longitude', 'Check-Out Time', 'Check-Out Latitude', 'Check-Out Longitude', 'Duration']
+                    final_display_df = combined_df[[c for c in final_cols if c in combined_df.columns]].copy()
+                    final_display_df.rename(columns={'Check-In Time': 'Check-In', 'Check-In Latitude': 'In Lat', 'Check-In Longitude': 'In Lon', 'Check-Out Time': 'Check-Out', 'Check-Out Latitude': 'Out Lat', 'Check-Out Longitude': 'Out Lon'}, inplace=True)
+                    for loc_col in ['In Lat', 'In Lon', 'Out Lat', 'Out Lon']:
+                        if loc_col in final_display_df.columns: final_display_df[loc_col] = final_display_df[loc_col].apply(lambda x: f"{x:.4f}" if pd.notna(x) and isinstance(x, (float,int)) else ("N/A" if pd.isna(x) else str(x)))
+
+        if not final_display_df.empty: st.dataframe(final_display_df, use_container_width=True, hide_index=True)
+        elif my_att_raw.empty: st.info("You have no attendance records yet.")
+        else: st.info("No processed attendance data (check timestamp formats).")
+
+        st.markdown("<h6 class='allowance-summary-header'>🗺️ My Attendance Locations Map:</h6>", unsafe_allow_html=True)
+        if not my_att_proc.empty: # Use the cleaned my_att_proc
+            my_map_data = my_att_proc.dropna(subset=['Latitude', 'Longitude']).copy()
+            if not my_map_data.empty: st.map(my_map_data.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'}))
+            else: st.info("No valid location data for map.")
+        elif my_att_raw.empty: st.info("No attendance records for map.")
+        else: st.info("No valid attendance data with locations for map.")
+
+        st.markdown("<h4 class='record-type-header'>🧾 My Allowance Request History</h4>", unsafe_allow_html=True)
+        my_allowances = allowance_df[allowance_df["Username"] == current_user["username"]].copy()
+        if not my_allowances.empty: st.dataframe(my_allowances[[c for c in ALLOWANCE_COLUMNS if c != 'Username' and c in my_allowances.columns]], use_container_width=True, hide_index=True)
+        else: st.info("You have not submitted any allowance requests yet.")
+    st.markdown('</div>', unsafe_allow_html=True)
