@@ -138,7 +138,7 @@ html_css = """
 """
 st.markdown(html_css, unsafe_allow_html=True)
 
-# --- Credentials & User Info ---
+# --- Credentials & User Info --
 USERS = {
     "Geetali": {"password": "Geetali123", "role": "employee", "position": "Software Engineer", "profile_photo": "images/geetali.png"},
     "Nilesh": {"password": "Nilesh123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/nilesh.png"},
