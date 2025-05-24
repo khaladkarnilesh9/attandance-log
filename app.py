@@ -427,84 +427,123 @@ elif nav == "🧾 Allowance":
 
             employee_options = [u for u, d in USERS.items() if d["role"] == "employee"]
             
-            # --- Try managing selectbox state more explicitly ---
-            # Initialize session state for these selectboxes if not present
-            if "goal_tracker_sel_emp" not in st.session_state:
-                st.session_state.goal_tracker_sel_emp = employee_options[0] if employee_options else None
+            if not employee_options:
+                st.warning("No employees available to set goals for.")
+                # If there are no employees, we should probably stop here or disable further widgets.
+                # For now, let's ensure sel_emp_from_state is None to prevent errors later.
+                st.session_state.goal_tracker_sel_emp = None 
+                current_selected_employee = None
+            else:
+                if "goal_tracker_sel_emp" not in st.session_state or st.session_state.goal_tracker_sel_emp not in employee_options:
+                    st.session_state.goal_tracker_sel_emp = employee_options[0]
             
-            # Use an on_change callback to update session_state explicitly
-            def update_selected_employee():
-                st.session_state.goal_tracker_sel_emp = st.session_state.goal_sel_emp_admin_main_explicit
-            
-            sel_emp = st.selectbox(
-                "Select Employee:", 
-                employee_options, 
-                index=employee_options.index(st.session_state.goal_tracker_sel_emp) if st.session_state.goal_tracker_sel_emp in employee_options else 0,
-                key="goal_sel_emp_admin_main_explicit", # Slightly new key for this test
-                on_change=update_selected_employee
-            )
-            # The actual value we work with will now be from session state after the callback
-            sel_emp_from_state = st.session_state.goal_tracker_sel_emp
-
-            st.write(f"DEBUG: `sel_emp` (from selectbox direct output): {sel_emp}")
-            st.write(f"DEBUG: `sel_emp_from_state` (from session_state after callback): {sel_emp_from_state}")
+                def update_selected_employee():
+                    st.session_state.goal_tracker_sel_emp = st.session_state.goal_sel_emp_admin_main_explicit
+                
+                sel_emp = st.selectbox(
+                    "Select Employee:", 
+                    employee_options, 
+                    index=employee_options.index(st.session_state.goal_tracker_sel_emp) if st.session_state.goal_tracker_sel_emp in employee_options else 0,
+                    key="goal_sel_emp_admin_main_explicit",
+                    on_change=update_selected_employee
+                )
+                current_selected_employee = st.session_state.goal_tracker_sel_emp # Use the state variable
+                st.write(f"DEBUG: Current Selected Employee (from state): {current_selected_employee}")
 
 
+            # --- Month Selectbox Logic with Enhanced Robustness ---
             year_now = get_current_time_in_tz().year
-            months_list = sorted(list(set( [datetime(y,m,1).strftime("%Y-%m") for y in range(year_now-1, year_now+2) for m in range(1,13)] + [current_month_year] )), reverse=True)
+            # Ensure current_month_year is a valid string like "YYYY-MM"
+            current_month_year_str = get_current_month_year_str() 
+            st.write(f"DEBUG: current_month_year_str: {current_month_year_str}, type: {type(current_month_year_str)}")
+
+
+            months_list = []
+            try:
+                # Generate list of month strings
+                base_months = [datetime(y,m,1).strftime("%Y-%m") for y in range(year_now-1, year_now+2) for m in range(1,13)]
+                # Ensure current_month_year_str is in the list if not already, and then sort.
+                # Using set for uniqueness before sorting.
+                months_list = sorted(list(set(base_months + [current_month_year_str])), reverse=True)
+            except Exception as e_months:
+                st.error(f"Error generating months_list: {e_months}")
+                # Fallback to a very simple list if generation fails
+                months_list = [current_month_year_str] if isinstance(current_month_year_str, str) else ["2024-01"] 
             
-            current_default_month = current_month_year
-            if "goal_tracker_target_month" not in st.session_state:
-                 st.session_state.goal_tracker_target_month = current_default_month
-            
-            # If sel_emp changes, we might want to reset the month, or not. For now, let's keep it simple.
-            # However, the index for the month selectbox needs to be robust.
+            st.write(f"DEBUG: months_list: {months_list}")
+            if not months_list: # Should not happen with the fallback, but good check
+                st.error("Month list is empty! Cannot proceed.")
+                st.stop()
+
+
+            # Determine the default month for the selectbox
+            # Initialize session state for target month if not present or invalid
+            initial_target_month = current_month_year_str
+            if "goal_tracker_target_month" not in st.session_state or \
+               st.session_state.goal_tracker_target_month not in months_list:
+                st.session_state.goal_tracker_target_month = initial_target_month if initial_target_month in months_list else months_list[0]
+
+            # Find the index of the current target month in the list
             try:
                 def_m_idx = months_list.index(st.session_state.goal_tracker_target_month)
-            except ValueError: # If the stored month is not in the list (e.g. after employee change if we reset it)
-                def_m_idx = months_list.index(current_default_month) if current_default_month in months_list else 0
-                st.session_state.goal_tracker_target_month = months_list[def_m_idx]
+            except ValueError: # Should be rare now due to initialization logic
+                st.warning(f"Warning: Stored target month '{st.session_state.goal_tracker_target_month}' not in generated list. Defaulting.")
+                def_m_idx = 0 # Default to the first item in the list
+                st.session_state.goal_tracker_target_month = months_list[0] # Update state to valid
+            
+            st.write(f"DEBUG: Default month index (def_m_idx): {def_m_idx}")
+            st.write(f"DEBUG: st.session_state.goal_tracker_target_month: {st.session_state.goal_tracker_target_month}")
 
 
             def update_selected_month():
+                # Callback updates the session state variable from the widget's state
                 st.session_state.goal_tracker_target_month = st.session_state.goal_month_admin_main_explicit
+                st.write(f"DEBUG: update_selected_month callback: st.session_state.goal_tracker_target_month set to {st.session_state.goal_tracker_target_month}")
 
-            target_m_y = st.selectbox(
-                "Goal Month (YYYY-MM):", 
-                months_list, 
-                index=def_m_idx, 
-                key="goal_month_admin_main_explicit", # Slightly new key
-                on_change=update_selected_month
-            )
-            target_m_y_from_state = st.session_state.goal_tracker_target_month
-            
-            st.write(f"DEBUG: `target_m_y` (from selectbox direct output): {target_m_y}")
-            st.write(f"DEBUG: `target_m_y_from_state` (from session_state after callback): {target_m_y_from_state}")
 
-            # Use values from session state for subsequent logic
-            current_selected_employee = sel_emp_from_state
+            # Ensure options is a list of strings, and index is valid
+            if not isinstance(months_list, list) or not all(isinstance(item, str) for item in months_list):
+                st.error("Month options are not in the correct format (list of strings).")
+                # Potentially stop or use a fallback
+                target_m_y_from_state = months_list[0] if months_list else None
+            elif not (0 <= def_m_idx < len(months_list)):
+                 st.error(f"Default month index {def_m_idx} is out of bounds for months_list (len {len(months_list)}).")
+                 def_m_idx = 0 # Reset to a safe default
+                 target_m_y_from_state = months_list[0] if months_list else None # Use the reset index
+            else:
+                target_m_y = st.selectbox( # This is the problematic line (around 473)
+                    "Goal Month (YYYY-MM):", 
+                    options=months_list,  # Explicitly named options
+                    index=def_m_idx, 
+                    key="goal_month_admin_main_explicit", 
+                    on_change=update_selected_month
+                )
+                target_m_y_from_state = st.session_state.goal_tracker_target_month
+
+            st.write(f"DEBUG: Final target_m_y_from_state: {target_m_y_from_state}")
             current_selected_month = target_m_y_from_state
 
+            # --- Rest of your form logic using current_selected_employee and current_selected_month ---
             st.write(f"DEBUG: Using Employee: {current_selected_employee}, Month: {current_selected_month} for form.")
 
-            existing_g = pd.DataFrame() # Default to empty DataFrame
-            if current_selected_employee and current_selected_month: # Ensure they are not None
+            existing_g = pd.DataFrame() 
+            if current_selected_employee and current_selected_month:
                  existing_g = goals_df[(goals_df["Username"] == current_selected_employee) & (goals_df["MonthYear"] == current_selected_month)]
             
             g_desc, g_target, g_achieved, g_status = "", 0.0, 0.0, "Not Started"
+            # ... (rest of your logic to populate g_desc, g_target, etc.) ...
             if not existing_g.empty:
                 g_d = existing_g.iloc[0]
                 g_desc = g_d.get("GoalDescription","")
                 g_target = pd.to_numeric(g_d.get("TargetAmount"),errors='coerce').fillna(0.0)
                 g_achieved = pd.to_numeric(g_d.get("AchievedAmount"),errors='coerce').fillna(0.0)
                 g_status = g_d.get("Status","Not Started")
-                # The st.info message will use the latest selected values
                 st.info(f"Editing existing goal for {current_selected_employee} for {current_selected_month}.")
 
-            # The form key now reliably uses the state-managed selections
-            form_key = f"set_goal_form_{current_selected_employee}_{current_selected_month}_main_v2"
+            form_key = f"set_goal_form_{current_selected_employee}_{current_selected_month}_main_v3" # New form key
             with st.form(key=form_key):
-                st.write(f"DEBUG: Form Key: {form_key}") # To see if form is recreated
+                # ... (form elements) ...
+                st.write(f"DEBUG: Form Key: {form_key}") 
                 new_g_desc = st.text_area("Goal Description:", value=g_desc, key=f"desc_{current_selected_employee}_{current_selected_month}")
                 new_g_target = st.number_input("Target Sales (INR):", value=g_target, min_value=0.0, step=1000.0, format="%.2f", key=f"target_{current_selected_employee}_{current_selected_month}")
                 new_g_achieved = st.number_input("Achieved Sales (INR):", value=g_achieved, min_value=0.0, step=100.0, format="%.2f", key=f"achieved_{current_selected_employee}_{current_selected_month}")
@@ -512,15 +551,14 @@ elif nav == "🧾 Allowance":
                 status_default_index = 0
                 if g_status in status_options:
                     status_default_index = status_options.index(g_status)
-
                 new_g_status = st.selectbox("Status:", status_options, index=status_default_index, key=f"status_{current_selected_employee}_{current_selected_month}")
                 submitted = st.form_submit_button("Save Goal")
 
             if submitted:
+                # ... (submission logic) ...
                 if not new_g_desc.strip(): st.warning("Description needed.")
                 elif new_g_target <= 0 and new_g_status not in ["Cancelled", "On Hold", "Not Started"]: st.warning("Target > 0 unless Cancelled/On Hold/Not Started.")
                 else:
-                    # Use current_selected_employee and current_selected_month for saving
                     if not existing_g.empty:
                         goals_df.loc[existing_g.index[0]] = [current_selected_employee, current_selected_month, new_g_desc, new_g_target, new_g_achieved, new_g_status]
                         msg_verb="updated"
@@ -541,6 +579,9 @@ elif nav == "🧾 Allowance":
                         st.session_state.user_message = f"Error saving goal: {e}"
                         st.session_state.message_type = "error"
                         st.rerun()
+
+    
+
 
     else: # Employee View
         st.markdown("<h4>My Sales Goals</h4>", unsafe_allow_html=True)
