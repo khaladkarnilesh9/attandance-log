@@ -513,18 +513,32 @@ elif nav == "📊 View Logs": # Restored detailed view
                         columns={'Timestamp': 'Check-Out FullTime', 'Latitude': 'Check-Out Latitude', 'Longitude': 'Check-Out Longitude'})
                 for df_sel in [first_check_ins_sel, last_check_outs_sel]:
                     if 'DateOnly' in df_sel.columns and not df_sel.empty: df_sel['DateOnly'] = pd.to_datetime(df_sel['DateOnly']).dt.date
-                if not first_check_ins_sel.empty and not last_check_outs_sel.empty: combined_df = pd.merge(first_check_ins_sel, last_check_outs_sel, on='DateOnly', how='outer')
-                elif not first_check_ins_sel.empty: 
-                    elif not first_check_ins_sel.empty elif not first_check_ins_sel.empty:
+                        if not first_check_ins_sel.empty and not last_check_outs_sel.empty:
+    # Merge both DataFrames on 'DateOnly'
+    combined_df = pd.merge(first_check_ins_sel, last_check_outs_sel, on='DateOnly', how='outer')
+
+elif not first_check_ins_sel.empty:
+    # Only check-ins available, create empty checkout columns
     combined_df = first_check_ins_sel.copy()
     for col in last_check_out_cols[1:]:
         if 'Time' in col:
             combined_df[col] = pd.NaT
         else:
             combined_df[col] = pd.NA
-                         if 'Time' in col:         combined_df[col] = pd.NaT     else:         combined_df[col] = pd.NA
-                elif not last_check_outs_sel.empty: combined_df = last_check_outs_sel.copy(); [combined_df.update({col: pd.NaT if 'Time' in col else pd.NA}) for col in first_check_in_cols[1:]]
-                else: combined_df = pd.DataFrame(columns=list(dict.fromkeys(first_check_in_cols + last_check_out_cols)))
+
+elif not last_check_outs_sel.empty:
+    # Only check-outs available, create empty check-in columns
+    combined_df = last_check_outs_sel.copy()
+    for col in first_check_in_cols[1:]:
+        if 'Time' in col:
+            combined_df[col] = pd.NaT
+        else:
+            combined_df[col] = pd.NA
+
+else:
+    # No data available at all
+    combined_df = pd.DataFrame(columns=list(dict.fromkeys(first_check_in_cols + last_check_out_cols)))
+
 
                 if not combined_df.empty:
                     combined_df = combined_df.sort_values(by='DateOnly', ascending=False, ignore_index=True)
