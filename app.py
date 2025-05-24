@@ -258,34 +258,86 @@ with st.sidebar:
 if nav == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
-    location_data = streamlit_geolocation(key="attendance_page_location_final") # Unique key for this instance
-    lat, lon = None, None
-    if location_data and 'latitude' in location_data and 'longitude' in location_data:
-        lat, lon = location_data['latitude'], location_data['longitude']
-        accuracy_str = f"(Accuracy: {location_data.get('accuracy', 0):.0f}m)" if location_data.get('accuracy') else ""
-        st.caption(f"📍 Current Location: Lat {lat:.4f}, Lon {lon:.4f} {accuracy_str}")
-        st.markdown(f"[View on Google Maps](https://www.google.com/maps?q={lat},{lon})", unsafe_allow_html=True)
-    else: st.warning("📍 Location access denied or unavailable. Please allow browser location access.", icon="📡")
+
+    lat, lon = None, None  # Initialize lat, lon before the try-except
+    location_data_raw = None  # Initialize raw location data
+
+    try:
+        # Call the geolocation component
+        location_data_raw = streamlit_geolocation(key="attendance_page_location_final_robust") # Unique key
+
+        # Check if the component returned data and if it's structured as expected
+        if location_data_raw is not None and \
+           isinstance(location_data_raw, dict) and \
+           'latitude' in location_data_raw and location_data_raw['latitude'] is not None and \
+           'longitude' in location_data_raw and location_data_raw['longitude'] is not None:
+            
+            lat = location_data_raw['latitude']
+            lon = location_data_raw['longitude']
+            
+            accuracy_val = location_data_raw.get('accuracy') # Get accuracy if available
+            accuracy_str = f"(Accuracy: {accuracy_val:.0f}m)" if accuracy_val is not None and isinstance(accuracy_val, (int, float)) else "(Accuracy: N/A)"
+            
+            st.caption(f"📍 Current Location: Lat {lat:.4f}, Lon {lon:.4f} {accuracy_str}")
+            st.markdown(f"[View on Google Maps](https://www.google.com/maps?q={lat},{lon})", unsafe_allow_html=True)
+        else:
+            # Handle cases where location data is missing, incomplete, or not in the expected format
+            st.warning("📍 Location data is currently unavailable or incomplete. Please ensure location services are enabled and permissions are granted for this site in your browser.", icon="📡")
+            # For debugging, you could uncomment the line below to see what `location_data_raw` contains:
+            # if location_data_raw is not None: st.write("Debug - Raw location data:", location_data_raw)
+
+    except Exception as e:
+        # Catch any other unexpected errors during the geolocation process
+        st.error(f"An error occurred while trying to get location: {str(e)}", icon="🚨")
+        st.warning("📍 Location access failed. Please ensure location services are enabled and permissions are granted for this site in your browser.", icon="📡")
+        # lat and lon will remain None, which is handled by the common_data dictionary later
+
     st.markdown("---")
     st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
-    common_data = {"Username": current_user["username"], "Latitude": lat if lat else pd.NA, "Longitude": lon if lon else pd.NA}
+
+    # common_data will use lat/lon (which might be None) and handle pd.NA accordingly
+    common_data = {
+        "Username": current_user["username"],
+        "Latitude": lat if lat is not None else pd.NA, # Use pd.NA if lat is None
+        "Longitude": lon if lon is not None else pd.NA # Use pd.NA if lon is None
+    }
+
     with col1:
         if st.button("✅ Check In", key="check_in_btn_main", use_container_width=True):
             now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
-            new_entry = pd.DataFrame([{"Type": "Check-In", "Timestamp": now_str, **common_data}], columns=ATTENDANCE_COLUMNS)
+            new_entry_data = {"Type": "Check-In", "Timestamp": now_str, **common_data}
+            # Ensure all columns are present before creating DataFrame
+            for col_name in ATTENDANCE_COLUMNS:
+                if col_name not in new_entry_data:
+                    new_entry_data[col_name] = pd.NA # Or some other default
+            
+            new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
             attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
-            try: attendance_df.to_csv(ATTENDANCE_FILE, index=False); st.success(f"Checked in at {now_str}."); st.rerun()
-            except Exception as e: st.error(f"Error saving: {e}")
+            try:
+                attendance_df.to_csv(ATTENDANCE_FILE, index=False)
+                st.success(f"Checked in at {now_str}.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error saving attendance: {e}")
     with col2:
         if st.button("🚪 Check Out", key="check_out_btn_main", use_container_width=True):
             now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
-            new_entry = pd.DataFrame([{"Type": "Check-Out", "Timestamp": now_str, **common_data}], columns=ATTENDANCE_COLUMNS)
-            attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
-            try: attendance_df.to_csv(ATTENDANCE_FILE, index=False); st.success(f"Checked out at {now_str}."); st.rerun()
-            except Exception as e: st.error(f"Error saving: {e}")
-    st.markdown('</div></div>', unsafe_allow_html=True)
+            new_entry_data = {"Type": "Check-Out", "Timestamp": now_str, **common_data}
+            # Ensure all columns are present
+            for col_name in ATTENDANCE_COLUMNS:
+                if col_name not in new_entry_data:
+                    new_entry_data[col_name] = pd.NA
 
+            new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
+            attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
+            try:
+                attendance_df.to_csv(ATTENDANCE_FILE, index=False)
+                st.success(f"Checked out at {now_str}.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error saving attendance: {e}")
+    st.markdown('</div></div>', unsafe_allow_html=True)
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💼 Claim Allowance</h3>", unsafe_allow_html=True)
