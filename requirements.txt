@@ -4,3 +4,5 @@ openpyxl
 pytz
 plotly
 streamlit-option-menu
+numpy
+matplotlib
