@@ -6,5 +6,4 @@ plotly
 streamlit-option-menu
 numpy
 matplotlib
-pip install XlsxWriter
 
