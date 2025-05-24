@@ -12,7 +12,6 @@ try:
 except ImportError:
     PILLOW_INSTALLED = False
 
-# --- CSS -----
 html_css = """
 <style>
     /* --- General --- */
@@ -87,12 +86,39 @@ html_css = """
     .stButton button[id*="logout_button_sidebar"] { background-color: #dc3545 !important; }
     .stButton button[id*="logout_button_sidebar"]:hover { background-color: #c82333 !important; }
 
-    /* --- Input Fields --- */
-    .stTextInput input, .stNumberInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div {
-        border-radius: 5px !important; border: 1px solid #ced4da !important;
-        padding: 10px !important; font-size: 1em;
+    /* --- Input Fields (MODIFIED SECTION) --- */
+    .stTextInput input, 
+    .stNumberInput input, 
+    .stTextArea textarea, 
+    .stSelectbox div[data-baseweb="select"] > div { /* General selectbox styling for consistency */
+        border-radius: 5px !important; 
+        border: 1px solid #ced4da !important;
+        padding: 10px !important; 
+        font-size: 1em !important; 
+        color: #212529 !important;      /* Ensure dark text color */
+        background-color: #fff !important; /* Ensure white background */
     }
-    .stTextArea textarea { min-height: 100px; }
+    /* Ensure placeholder text is also visible if it was an issue */
+    .stTextInput input::placeholder,
+    .stNumberInput input::placeholder,
+    .stTextArea textarea::placeholder {
+        color: #6c757d !important; /* A standard placeholder color */
+        opacity: 1; /* Ensure it's not transparent */
+    }
+
+    .stTextArea textarea { 
+        min-height: 100px;
+        /* The color and background should be inherited from the rule above */
+    }
+
+    /* If inputs are specifically within a card and need more specific overriding: */
+    .card .stTextInput input,
+    .card .stNumberInput input,
+    .card .stTextArea textarea {
+        color: #212529 !important; 
+        background-color: #fff !important;
+    }
+    /* --- END OF MODIFIED INPUT FIELDS SECTION --- */
 
     /* --- Sidebar --- */
     [data-testid="stSidebar"] { background-color: #1c4e80; padding: 20px !important; }
@@ -164,6 +190,7 @@ html_css = """
         border-left-color: #17a2b8; /* Blue accent */
     }
 </style>
+"""
 """
 st.markdown(html_css, unsafe_allow_html=True)
 
