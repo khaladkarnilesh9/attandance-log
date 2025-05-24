@@ -424,168 +424,179 @@ elif nav == "🧾 Allowance":
             st.warning("Please complete all fields with valid values.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-            elif admin_action == "Set/Edit Employee Goal":
+elif nav == "🎯 Goal Tracker":
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown("<h3>🎯 Sales Goal Tracker</h3>", unsafe_allow_html=True)
+    current_month_year = get_current_month_year_str() # Should be defined elsewhere or get_current_month_year_str()
+    status_options = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
+
+    if current_user["role"] == "admin":
+        st.markdown("<h4>Admin: Manage & Track Employee Goals</h4>", unsafe_allow_html=True)
+        admin_action = st.radio(
+            "Action:", 
+            ["View Team Progress", "Set/Edit Employee Goal"], 
+            key="admin_goal_action_radio_main", # Ensure this key is unique
+            horizontal=True
+        )
+
+        if admin_action == "View Team Progress":
+            st.markdown(f"<h5>Team Goal Progress for {current_month_year}</h5>", unsafe_allow_html=True)
+            employee_users = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
+            if not employee_users: 
+                st.info("No employees found.")
+            else:
+                summary_data = []
+                for emp_name in employee_users:
+                    user_info_gt = USERS.get(emp_name, {})
+                    emp_current_goal = goals_df[(goals_df["Username"] == emp_name) & (goals_df["MonthYear"] == current_month_year)]
+                    target, achieved, prog_val, goal_desc, status_val = 0.0, 0.0, 0.0, "Not Set", "N/A"
+                    if not emp_current_goal.empty:
+                        g_data = emp_current_goal.iloc[0]
+                        target = pd.to_numeric(g_data.get("TargetAmount"), errors='coerce').fillna(0.0)
+                        achieved = pd.to_numeric(g_data.get("AchievedAmount"), errors='coerce').fillna(0.0)
+                        if target > 0: prog_val = min(achieved / target, 1.0)
+                        goal_desc, status_val = g_data.get("GoalDescription", "N/A"), g_data.get("Status", "N/A")
+                    summary_data.append({
+                        "Photo": user_info_gt.get("profile_photo",""), "Employee": emp_name, "Position": user_info_gt.get("position","N/A"),
+                        "Goal": goal_desc, "Target": target, "Achieved": achieved, "Progress": prog_val, "Status": status_val 
+                    })
+                if summary_data:
+                    st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True, column_config={
+                        "Photo": st.column_config.ImageColumn("Pic", width="small"),
+                        "Target": st.column_config.NumberColumn("Target (₹)", format="%.0f"),
+                        "Achieved": st.column_config.NumberColumn("Achieved (₹)", format="%.0f"),
+                        "Progress": st.column_config.ProgressColumn("Progress", format="%.0f%%", min_value=0, max_value=1)
+                    })
+        # CORRECTED INDENTATION FOR THIS ELIF BLOCK
+        elif admin_action == "Set/Edit Employee Goal":
             st.markdown("<h5>Set or Update Employee Goal</h5>", unsafe_allow_html=True)
 
             employee_options = [u for u, d in USERS.items() if d["role"] == "employee"]
             
+            # Initialize session state for employee selectbox if not present or if current value is invalid
             if not employee_options:
                 st.warning("No employees available to set goals for.")
-                # If there are no employees, we should probably stop here or disable further widgets.
-                # For now, let's ensure sel_emp_from_state is None to prevent errors later.
-                st.session_state.goal_tracker_sel_emp = None 
-                current_selected_employee = None
+                current_selected_employee = None # No employee to select
             else:
-                if "goal_tracker_sel_emp" not in st.session_state or st.session_state.goal_tracker_sel_emp not in employee_options:
+                if "goal_tracker_sel_emp" not in st.session_state or \
+                   st.session_state.goal_tracker_sel_emp not in employee_options:
                     st.session_state.goal_tracker_sel_emp = employee_options[0]
             
                 def update_selected_employee():
-                    st.session_state.goal_tracker_sel_emp = st.session_state.goal_sel_emp_admin_main_explicit
+                    st.session_state.goal_tracker_sel_emp = st.session_state.goal_sel_emp_key_admin # Use the widget's key to get value
                 
-                sel_emp = st.selectbox(
+                sel_emp_widget_val = st.selectbox(
                     "Select Employee:", 
                     employee_options, 
-                    index=employee_options.index(st.session_state.goal_tracker_sel_emp) if st.session_state.goal_tracker_sel_emp in employee_options else 0,
-                    key="goal_sel_emp_admin_main_explicit",
+                    index=employee_options.index(st.session_state.goal_tracker_sel_emp), # Index from session state
+                    key="goal_sel_emp_key_admin", # Unique key for this widget
                     on_change=update_selected_employee
                 )
-                current_selected_employee = st.session_state.goal_tracker_sel_emp # Use the state variable
-                st.write(f"DEBUG: Current Selected Employee (from state): {current_selected_employee}")
+                current_selected_employee = st.session_state.goal_tracker_sel_emp # Work with the value from session state
+                # st.write(f"DEBUG: Admin - Selected Employee (from state): {current_selected_employee}")
 
 
-            # --- Month Selectbox Logic with Enhanced Robustness ---
+            # Month Selectbox Logic
             year_now = get_current_time_in_tz().year
-            # Ensure current_month_year is a valid string like "YYYY-MM"
-            current_month_year_str = get_current_month_year_str() 
-            st.write(f"DEBUG: current_month_year_str: {current_month_year_str}, type: {type(current_month_year_str)}")
-
-
+            current_month_year_str = get_current_month_year_str()
+            
             months_list = []
             try:
-                # Generate list of month strings
                 base_months = [datetime(y,m,1).strftime("%Y-%m") for y in range(year_now-1, year_now+2) for m in range(1,13)]
-                # Ensure current_month_year_str is in the list if not already, and then sort.
-                # Using set for uniqueness before sorting.
                 months_list = sorted(list(set(base_months + [current_month_year_str])), reverse=True)
             except Exception as e_months:
                 st.error(f"Error generating months_list: {e_months}")
-                # Fallback to a very simple list if generation fails
                 months_list = [current_month_year_str] if isinstance(current_month_year_str, str) else ["2024-01"] 
             
-            st.write(f"DEBUG: months_list: {months_list}")
-            if not months_list: # Should not happen with the fallback, but good check
-                st.error("Month list is empty! Cannot proceed.")
-                st.stop()
-
-
-            # Determine the default month for the selectbox
-            # Initialize session state for target month if not present or invalid
-            initial_target_month = current_month_year_str
-            if "goal_tracker_target_month" not in st.session_state or \
-               st.session_state.goal_tracker_target_month not in months_list:
-                st.session_state.goal_tracker_target_month = initial_target_month if initial_target_month in months_list else months_list[0]
-
-            # Find the index of the current target month in the list
-            try:
-                def_m_idx = months_list.index(st.session_state.goal_tracker_target_month)
-            except ValueError: # Should be rare now due to initialization logic
-                st.warning(f"Warning: Stored target month '{st.session_state.goal_tracker_target_month}' not in generated list. Defaulting.")
-                def_m_idx = 0 # Default to the first item in the list
-                st.session_state.goal_tracker_target_month = months_list[0] # Update state to valid
-            
-            st.write(f"DEBUG: Default month index (def_m_idx): {def_m_idx}")
-            st.write(f"DEBUG: st.session_state.goal_tracker_target_month: {st.session_state.goal_tracker_target_month}")
-
-
-            def update_selected_month():
-                # Callback updates the session state variable from the widget's state
-                st.session_state.goal_tracker_target_month = st.session_state.goal_month_admin_main_explicit
-                st.write(f"DEBUG: update_selected_month callback: st.session_state.goal_tracker_target_month set to {st.session_state.goal_tracker_target_month}")
-
-
-            # Ensure options is a list of strings, and index is valid
-            if not isinstance(months_list, list) or not all(isinstance(item, str) for item in months_list):
-                st.error("Month options are not in the correct format (list of strings).")
-                # Potentially stop or use a fallback
-                target_m_y_from_state = months_list[0] if months_list else None
-            elif not (0 <= def_m_idx < len(months_list)):
-                 st.error(f"Default month index {def_m_idx} is out of bounds for months_list (len {len(months_list)}).")
-                 def_m_idx = 0 # Reset to a safe default
-                 target_m_y_from_state = months_list[0] if months_list else None # Use the reset index
+            if not months_list:
+                st.error("Month list is empty! Cannot proceed with month selection.")
+                current_selected_month = None # No month to select
             else:
-                target_m_y = st.selectbox( # This is the problematic line (around 473)
+                initial_target_month = current_month_year_str
+                if "goal_tracker_target_month" not in st.session_state or \
+                   st.session_state.goal_tracker_target_month not in months_list:
+                    st.session_state.goal_tracker_target_month = initial_target_month if initial_target_month in months_list else months_list[0]
+
+                try:
+                    def_m_idx = months_list.index(st.session_state.goal_tracker_target_month)
+                except ValueError:
+                    def_m_idx = 0 
+                    st.session_state.goal_tracker_target_month = months_list[0]
+            
+                def update_selected_month():
+                    st.session_state.goal_tracker_target_month = st.session_state.goal_month_key_admin # Use widget's key
+                
+                # st.write(f"DEBUG: Admin - Month list: {months_list}")
+                # st.write(f"DEBUG: Admin - Default month index: {def_m_idx}")
+
+                target_m_y_widget_val = st.selectbox(
                     "Goal Month (YYYY-MM):", 
-                    options=months_list,  # Explicitly named options
+                    options=months_list,
                     index=def_m_idx, 
-                    key="goal_month_admin_main_explicit", 
+                    key="goal_month_key_admin", # Unique key for this widget
                     on_change=update_selected_month
                 )
-                target_m_y_from_state = st.session_state.goal_tracker_target_month
+                current_selected_month = st.session_state.goal_tracker_target_month # Work with value from session state
+                # st.write(f"DEBUG: Admin - Selected Month (from state): {current_selected_month}")
 
-            st.write(f"DEBUG: Final target_m_y_from_state: {target_m_y_from_state}")
-            current_selected_month = target_m_y_from_state
-
-            # --- Rest of your form logic using current_selected_employee and current_selected_month ---
-            st.write(f"DEBUG: Using Employee: {current_selected_employee}, Month: {current_selected_month} for form.")
-
-            existing_g = pd.DataFrame() 
+            # Proceed with form logic only if an employee and month are selected
             if current_selected_employee and current_selected_month:
-                 existing_g = goals_df[(goals_df["Username"] == current_selected_employee) & (goals_df["MonthYear"] == current_selected_month)]
-            
-            g_desc, g_target, g_achieved, g_status = "", 0.0, 0.0, "Not Started"
-            # ... (rest of your logic to populate g_desc, g_target, etc.) ...
-            if not existing_g.empty:
-                g_d = existing_g.iloc[0]
-                g_desc = g_d.get("GoalDescription","")
-                g_target = pd.to_numeric(g_d.get("TargetAmount"),errors='coerce').fillna(0.0)
-                g_achieved = pd.to_numeric(g_d.get("AchievedAmount"),errors='coerce').fillna(0.0)
-                g_status = g_d.get("Status","Not Started")
-                st.info(f"Editing existing goal for {current_selected_employee} for {current_selected_month}.")
-
-            form_key = f"set_goal_form_{current_selected_employee}_{current_selected_month}_main_v3" # New form key
-            with st.form(key=form_key):
-                # ... (form elements) ...
-                st.write(f"DEBUG: Form Key: {form_key}") 
-                new_g_desc = st.text_area("Goal Description:", value=g_desc, key=f"desc_{current_selected_employee}_{current_selected_month}")
-                new_g_target = st.number_input("Target Sales (INR):", value=g_target, min_value=0.0, step=1000.0, format="%.2f", key=f"target_{current_selected_employee}_{current_selected_month}")
-                new_g_achieved = st.number_input("Achieved Sales (INR):", value=g_achieved, min_value=0.0, step=100.0, format="%.2f", key=f"achieved_{current_selected_employee}_{current_selected_month}")
+                # st.write(f"DEBUG: Admin - Using Employee: {current_selected_employee}, Month: {current_selected_month} for form.")
+                existing_g = goals_df[(goals_df["Username"] == current_selected_employee) & (goals_df["MonthYear"] == current_selected_month)]
                 
-                status_default_index = 0
-                if g_status in status_options:
-                    status_default_index = status_options.index(g_status)
-                new_g_status = st.selectbox("Status:", status_options, index=status_default_index, key=f"status_{current_selected_employee}_{current_selected_month}")
-                submitted = st.form_submit_button("Save Goal")
+                g_desc, g_target, g_achieved, g_status = "", 0.0, 0.0, "Not Started"
+                if not existing_g.empty:
+                    g_d = existing_g.iloc[0]
+                    g_desc = g_d.get("GoalDescription","")
+                    g_target = pd.to_numeric(g_d.get("TargetAmount"),errors='coerce').fillna(0.0)
+                    g_achieved = pd.to_numeric(g_d.get("AchievedAmount"),errors='coerce').fillna(0.0)
+                    g_status = g_d.get("Status","Not Started")
+                    st.info(f"Editing existing goal for {current_selected_employee} for {current_selected_month}.")
 
-            if submitted:
-                # ... (submission logic) ...
-                if not new_g_desc.strip(): st.warning("Description needed.")
-                elif new_g_target <= 0 and new_g_status not in ["Cancelled", "On Hold", "Not Started"]: st.warning("Target > 0 unless Cancelled/On Hold/Not Started.")
-                else:
-                    if not existing_g.empty:
-                        goals_df.loc[existing_g.index[0]] = [current_selected_employee, current_selected_month, new_g_desc, new_g_target, new_g_achieved, new_g_status]
-                        msg_verb="updated"
+                form_key = f"set_goal_form_{current_selected_employee}_{current_selected_month}_main_v4" # New form key
+                with st.form(key=form_key):
+                    # st.write(f"DEBUG: Form Key: {form_key}")
+                    new_g_desc = st.text_area("Goal Description:", value=g_desc, key=f"desc_{current_selected_employee}_{current_selected_month}")
+                    new_g_target = st.number_input("Target Sales (INR):", value=g_target, min_value=0.0, step=1000.0, format="%.2f", key=f"target_{current_selected_employee}_{current_selected_month}")
+                    new_g_achieved = st.number_input("Achieved Sales (INR):", value=g_achieved, min_value=0.0, step=100.0, format="%.2f", key=f"achieved_{current_selected_employee}_{current_selected_month}")
+                    
+                    status_default_index = 0
+                    if g_status in status_options:
+                        status_default_index = status_options.index(g_status)
+                    new_g_status = st.selectbox("Status:", status_options, index=status_default_index, key=f"status_{current_selected_employee}_{current_selected_month}")
+                    submitted = st.form_submit_button("Save Goal")
+
+                if submitted:
+                    if not new_g_desc.strip(): st.warning("Description needed.")
+                    elif new_g_target <= 0 and new_g_status not in ["Cancelled", "On Hold", "Not Started"]: st.warning("Target > 0 unless Cancelled/On Hold/Not Started.")
                     else:
-                        new_g_entry = pd.DataFrame([{
-                            "Username": current_selected_employee, "MonthYear": current_selected_month, 
-                            "GoalDescription": new_g_desc, "TargetAmount": new_g_target, 
-                            "AchievedAmount": new_g_achieved, "Status": new_g_status
-                        }], columns=GOALS_COLUMNS)
-                        goals_df = pd.concat([goals_df, new_g_entry], ignore_index=True)
-                        msg_verb="set"
-                    try:
-                        goals_df.to_csv(GOALS_FILE, index=False)
-                        st.session_state.user_message = f"Goal for {current_selected_employee} ({current_selected_month}) {msg_verb}!"
-                        st.session_state.message_type = "success"
-                        st.rerun()
-                    except Exception as e:
-                        st.session_state.user_message = f"Error saving goal: {e}"
-                        st.session_state.message_type = "error"
-                        st.rerun()
+                        if not existing_g.empty:
+                            goals_df.loc[existing_g.index[0]] = [current_selected_employee, current_selected_month, new_g_desc, new_g_target, new_g_achieved, new_g_status]
+                            msg_verb="updated"
+                        else:
+                            new_g_entry = pd.DataFrame([{
+                                "Username": current_selected_employee, "MonthYear": current_selected_month, 
+                                "GoalDescription": new_g_desc, "TargetAmount": new_g_target, 
+                                "AchievedAmount": new_g_achieved, "Status": new_g_status
+                            }], columns=GOALS_COLUMNS)
+                            goals_df = pd.concat([goals_df, new_g_entry], ignore_index=True)
+                            msg_verb="set"
+                        try:
+                            goals_df.to_csv(GOALS_FILE, index=False)
+                            st.session_state.user_message = f"Goal for {current_selected_employee} ({current_selected_month}) {msg_verb}!"
+                            st.session_state.message_type = "success"
+                            st.rerun()
+                        except Exception as e:
+                            st.session_state.user_message = f"Error saving goal: {e}"
+                            st.session_state.message_type = "error"
+                            st.rerun()
+            else:
+                if not current_selected_employee and employee_options: # Only show if employees exist but none selected (shouldn't happen with current logic)
+                    st.warning("Please select an employee to proceed.")
+                # If month list was empty, error already shown.
+                # If current_selected_month is None due to empty month list, this implies an issue handled above.
 
-    
-
-
-    else: # Employee View
+    else: # Employee View (current_user["role"] == "employee")
         st.markdown("<h4>My Sales Goals</h4>", unsafe_allow_html=True)
         my_all_goals = goals_df[goals_df["Username"] == current_user["username"]].copy()
         if not my_all_goals.empty:
@@ -599,12 +610,16 @@ elif nav == "🧾 Allowance":
             prog_val = min(achieved_amt / target_amt, 1.0) if target_amt > 0 else 0.0
             st.markdown(f"**Description:** {g_e.get('GoalDescription', 'N/A')}")
             c1,c2,c3 = st.columns(3)
-            c1.metric("Target Sales", f"₹{target_amt:,.0f}"); c2.metric("Achieved Sales", f"₹{achieved_amt:,.0f}")
-            with c3: st.metric("Status", g_e.get('Status','In Progress')); st.progress(prog_val); st.caption(f"{prog_val*100:.1f}% Completed")
+            c1.metric("Target Sales", f"₹{target_amt:,.0f}")
+            c2.metric("Achieved Sales", f"₹{achieved_amt:,.0f}")
+            with c3: 
+                st.metric("Status", g_e.get('Status','In Progress'))
+                st.progress(prog_val)
+                st.caption(f"{prog_val*100:.1f}% Completed")
             st.markdown("---")
             st.markdown("<h6>Update My Achievement (Current Month)</h6>", unsafe_allow_html=True)
             with st.form(key=f"update_ach_form_{current_user['username']}_main"):
-                new_ach_val = st.number_input("My Total Achieved Sales (INR):", 0.0, value=achieved_amt, step=100.0, format="%.2f", key=f"emp_ach_update_{current_month_year}")
+                new_ach_val = st.number_input("My Total Achieved Sales (INR):", value=achieved_amt, min_value=0.0, step=100.0, format="%.2f", key=f"emp_ach_update_{current_month_year}")
                 submit_upd = st.form_submit_button("Update My Achieved Amount")
             if submit_upd:
                 idx_to_update = current_g.index[0]
@@ -619,14 +634,23 @@ elif nav == "🧾 Allowance":
                     st.session_state.user_message = f"Error updating achievement: {e}"
                     st.session_state.message_type = "error"
                     st.rerun()
-        else: st.info(f"No goal set for you for {current_month_year}. Contact admin.")
+        else: 
+            st.info(f"No goal set for you for {current_month_year}. Contact admin.")
         st.markdown("---")
         st.markdown("<h5>My Past Goals History</h5>", unsafe_allow_html=True)
         past_g = my_all_goals[my_all_goals["MonthYear"] != current_month_year].sort_values(by="MonthYear", ascending=False)
         if not past_g.empty:
-            st.dataframe(past_g[["MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]], hide_index=True, use_container_width=True,
-                column_config={"TargetAmount":st.column_config.NumberColumn(format="₹%.0f"), "AchievedAmount":st.column_config.NumberColumn(format="₹%.0f")})
-        else: st.info("No past goal records found.")
+            st.dataframe(
+                past_g[["MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]], 
+                hide_index=True, 
+                use_container_width=True,
+                column_config={
+                    "TargetAmount":st.column_config.NumberColumn(format="₹%.0f"), 
+                    "AchievedAmount":st.column_config.NumberColumn(format="₹%.0f")
+                }
+            )
+        else: 
+            st.info("No past goal records found.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif nav == "📊 View Logs":
