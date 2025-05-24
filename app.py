@@ -5,6 +5,31 @@ import os
 import pytz
 import sys
 
+
+import altair as alt
+
+def render_goal_chart(df: pd.DataFrame, title: str):
+    if df.empty:
+        st.warning("No data available to plot.")
+        return
+    df = df.copy()
+    df[["TargetAmount", "AchievedAmount"]] = df[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce")
+    df = df.sort_values(by="MonthYear")
+
+    long_df = df.melt(id_vars=["MonthYear"], value_vars=["TargetAmount", "AchievedAmount"],
+                      var_name="Metric", value_name="Amount")
+    chart = alt.Chart(long_df).mark_bar().encode(
+        x=alt.X('MonthYear:N', title="Quarter"),
+        y=alt.Y('Amount:Q', title="Amount (INR)"),
+        color=alt.Color('Metric:N', scale=alt.Scale(range=["#3498db", "#2ecc71"])),
+        tooltip=["MonthYear", "Metric", "Amount"]
+    ).properties(
+        title=title,
+        width="container"
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+
 # from streamlit_geolocation import streamlit_geolocation # Geolocation is disabled
 
 # --- Pillow for placeholder image generation (optional) --
@@ -191,6 +216,31 @@ html_css = """
         color: #0c5460; /* Dark blue */
         border-left-color: #17a2b8; /* Blue accent */
     }
+
+
+        .card {
+        background-color: #f9f9f9;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: white;
+    }
+    .badge.green { background-color: #2ecc71; }
+    .badge.red { background-color: #e74c3c; }
+    .badge.orange { background-color: #f39c12; }
+
+
+
+
+    
 </style>
 """
 st.markdown(html_css, unsafe_allow_html=True)
@@ -325,12 +375,20 @@ if st.session_state.user_message:
     message_placeholder.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
     st.session_state.user_message = None # Clear after displaying
     st.session_state.message_type = None
+#------------------------------------------------------------------------------------------------
+PAYMENT_GOALS_FILE = "payment_goals.csv"
+PAYMENT_GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
+
+if os.path.exists(PAYMENT_GOALS_FILE):
+    payment_goals_df = pd.read_csv(PAYMENT_GOALS_FILE)
+else:
+    payment_goals_df = pd.DataFrame(columns=PAYMENT_GOALS_COLUMNS)
 
 
-# --- Sidebar ---
+# --- Sidebar -------------------------------------------------------------------------
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
-    nav_options = ["📆 Attendance", "🧾 Allowance", "🎯 Goal Tracker", "📊 View Logs"]
+    nav_options = ["📆 Attendance", "🧾 Allowance", "🎯 Goal Tracker","💰 Payment Collection Tracker", "📊 View Logs"]
     nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
@@ -649,3 +707,184 @@ if nav == "🎯 Goal Tracker":
             st.info(f"No past goal records found for {TARGET_GOAL_YEAR}.")
 
     st.markdown("</div>", unsafe_allow_html=True)
+
+from io import BytesIO
+
+def download_combined_excel(sales_df, payment_df, current_user):
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        sales_df.to_excel(writer, index=False, sheet_name="Sales Goals")
+        payment_df.to_excel(writer, index=False, sheet_name="Payment Goals")
+        writer.save()
+    return output.getvalue()
+
+# Only show for admin or current user's data
+sales_export_df = goals_df if current_user["role"] == "admin" else goals_df[goals_df["Username"] == current_user["username"]]
+payment_export_df = payment_goals_df if current_user["role"] == "admin" else payment_goals_df[payment_goals_df["Username"] == current_user["username"]]
+
+excel_data = download_combined_excel(sales_export_df, payment_export_df, current_user)
+st.download_button("📂 Download Combined Report (Excel)", data=excel_data,
+                   file_name="sales_payment_goals.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+    
+-------------------------------------payemnt collection logic-----------------------------------
+
+if nav == "💰 Payment Collection Tracker":
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown("<h3>💰 Payment Collection Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
+
+    TARGET_YEAR = 2025
+    current_quarter_display = get_quarter_str_for_year(TARGET_YEAR, for_current_display=True)
+    status_options = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
+
+    if current_user["role"] == "admin":
+        st.markdown("<h4>Admin: Set & Track Payment Collection Goals</h4>", unsafe_allow_html=True)
+        admin_action = st.radio(
+            "Action:",
+            ["View Team Progress", f"Set/Edit Collection Target for {TARGET_YEAR}"],
+            key="admin_payment_action_2025",
+            horizontal=True
+        )
+
+        if admin_action == "View Team Progress":
+            st.markdown(f"<h5>Team Payment Progress - {current_quarter_display}</h5>", unsafe_allow_html=True)
+            employees = [u for u, d in USERS.items() if d["role"] == "employee"]
+            summary = []
+            for emp in employees:
+                user_data = USERS.get(emp, {})
+                record = payment_goals_df[
+                    (payment_goals_df["Username"] == emp) &
+                    (payment_goals_df["MonthYear"] == current_quarter_display)
+                ]
+                if not record.empty:
+                    rec = record.iloc[0]
+                    tgt = float(pd.to_numeric(rec["TargetAmount"], errors="coerce") or 0.0)
+                    ach = float(pd.to_numeric(rec["AchievedAmount"], errors="coerce") or 0.0)
+                    prog = min(ach / tgt, 1.0) if tgt > 0 else 0.0
+                    summary.append({
+                        "Employee": emp,
+                        "Position": user_data.get("position", ""),
+                        "Target": tgt,
+                        "Collected": ach,
+                        "Progress": prog,
+                        "Status": rec.get("Status", "N/A")
+                    })
+            if summary:
+                st.dataframe(pd.DataFrame(summary), use_container_width=True,
+                             column_config={
+                                 "Target": st.column_config.NumberColumn("Target (₹)", format="%.0f"),
+                                 "Collected": st.column_config.NumberColumn("Collected (₹)", format="%.0f"),
+                                 "Progress": st.column_config.ProgressColumn("Progress", format="%.0f%%", min_value=0, max_value=1)
+                             })
+            else:
+                st.info("No goals set for current quarter.")
+        
+        elif admin_action == f"Set/Edit Collection Target for {TARGET_YEAR}":
+            st.markdown(f"<h5>Set or Update Collection Goal ({TARGET_YEAR} - Quarterly)</h5>", unsafe_allow_html=True)
+            employees = [u for u, d in USERS.items() if d["role"] == "employee"]
+            selected_emp = st.radio("Select Employee:", employees, key="payment_emp_radio_2025", horizontal=True)
+            quarters = [f"{TARGET_YEAR}-Q{i}" for i in range(1, 5)]
+            selected_period = st.radio("Quarter:", quarters, key="payment_period_radio_2025", horizontal=True)
+
+            existing = payment_goals_df[
+                (payment_goals_df["Username"] == selected_emp) &
+                (payment_goals_df["MonthYear"] == selected_period)
+            ]
+            desc, tgt, ach, stat = "", 0.0, 0.0, "Not Started"
+            if not existing.empty:
+                g = existing.iloc[0]
+                desc = g.get("GoalDescription", "")
+                tgt = float(pd.to_numeric(g.get("TargetAmount", 0.0), errors="coerce") or 0.0)
+                ach = float(pd.to_numeric(g.get("AchievedAmount", 0.0), errors="coerce") or 0.0)
+                stat = g.get("Status", "Not Started")
+
+            with st.form(f"form_payment_{selected_emp}_{selected_period}"):
+                new_desc = st.text_input("Collection Goal Description", value=desc)
+                new_tgt = st.number_input("Target Collection (INR)", value=tgt, min_value=0.0, step=1000.0)
+                new_ach = st.number_input("Collected Amount (INR)", value=ach, min_value=0.0, step=500.0)
+                new_status = st.selectbox("Status", status_options, index=status_options.index(stat))
+                submitted = st.form_submit_button("Save Goal")
+
+            if submitted:
+                if not new_desc.strip():
+                    st.warning("Goal description is required.")
+                elif new_tgt <= 0 and new_status not in ["Cancelled", "Not Started"]:
+                    st.warning("Target must be greater than 0.")
+                else:
+                    if not existing.empty:
+                        payment_goals_df.loc[existing.index[0]] = [selected_emp, selected_period, new_desc, new_tgt, new_ach, new_status]
+                        msg = "updated"
+                    else:
+                        new_row = {
+                            "Username": selected_emp,
+                            "MonthYear": selected_period,
+                            "GoalDescription": new_desc,
+                            "TargetAmount": new_tgt,
+                            "AchievedAmount": new_ach,
+                            "Status": new_status
+                        }
+                        payment_goals_df = pd.concat([payment_goals_df, pd.DataFrame([new_row])], ignore_index=True)
+                        msg = "set"
+
+                    try:
+                        payment_goals_df.to_csv(PAYMENT_GOALS_FILE, index=False)
+                        st.success(f"Payment goal {msg} for {selected_emp} ({selected_period})")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error saving data: {e}")
+
+    else:
+        # Employee side
+        st.markdown("<h4>My Payment Collection Goals (2025)</h4>", unsafe_allow_html=True)
+        user_goals = payment_goals_df[payment_goals_df["Username"] == current_user["username"]].copy()
+        user_goals[["TargetAmount", "AchievedAmount"]] = user_goals[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce").fillna(0.0)
+
+        current = user_goals[user_goals["MonthYear"] == current_quarter_display]
+        st.markdown(f"<h5>Current Quarter: {current_quarter_display}</h5>", unsafe_allow_html=True)
+
+        if not current.empty:
+            g = current.iloc[0]
+            tgt = g["TargetAmount"]
+            ach = g["AchievedAmount"]
+            prog = min(ach / tgt, 1.0) if tgt > 0 else 0.0
+
+            st.markdown(f"**Goal:** {g.get('GoalDescription', '')}")
+            st.metric("Target", f"₹{tgt:,.0f}")
+            st.metric("Collected", f"₹{ach:,.0f}")
+            st.progress(prog)
+            st.caption(f"{prog * 100:.1f}% Complete")
+
+            with st.form(key=f"update_collection_{current_user['username']}_{current_quarter_display}"):
+                new_ach = st.number_input("Update Collected Amount (INR):", value=ach, min_value=0.0, step=500.0)
+                submit = st.form_submit_button("Update Collection")
+            if submit:
+                idx = current.index[0]
+                payment_goals_df.loc[idx, "AchievedAmount"] = new_ach
+                payment_goals_df.loc[idx, "Status"] = "Achieved" if new_ach >= tgt and tgt > 0 else "In Progress"
+                try:
+                    payment_goals_df.to_csv(PAYMENT_GOALS_FILE, index=False)
+                    st.success("Collection updated.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error saving update: {e}")
+        else:
+            st.info(f"No collection goal set for {current_quarter_display}.")
+
+        # Past performance
+        st.markdown("<h5>Past Quarters</h5>", unsafe_allow_html=True)
+        past = user_goals[user_goals["MonthYear"] != current_quarter_display]
+        if not past.empty:
+            st.dataframe(past[["MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]],
+                         use_container_width=True)
+        else:
+            st.info("No past collection goals found.")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+status_badge = f"<span class='badge {badge_color}'>{status}</span>"
+st.markdown(f"Status: {status_badge}", unsafe_allow_html=True)
+
+badge_color = "green" if status == "Achieved" else "orange" if status == "In Progress" else "red"
+
+
