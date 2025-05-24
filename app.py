@@ -879,6 +879,13 @@ if nav == "💰 Payment Collection Tracker":
 
     st.markdown('</div>', unsafe_allow_html=True)
 
+status = "Achieved"  # Or "In Progress", or "Pending"
+badge_color = "green" if status == "Achieved" else "orange" if status == "In Progress" else "red"
+status_badge = f"<span class='badge {badge_color}'>{status}</span>"
+st.markdown(f"Status: {status_badge}", unsafe_allow_html=True)
+
+
+
 badge_color = "green" if status == "Achieved" else "orange" if status == "In Progress" else "red"
 status_badge = f"<span class='badge {badge_color}'>{status}</span>"
 st.markdown(f"Status: {status_badge}", unsafe_allow_html=True)
