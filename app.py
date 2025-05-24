@@ -447,65 +447,72 @@ def get_quarter_str_for_year(year, for_current_display=False):
 
 
 # --- Main Goal Tracker Navigation Block ---
-if nav == "🎯 Goal Tracker":
+    if nav == "🎯 Goal Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     
-    TARGET_GOAL_YEAR = 2025 # Fixed year for goal setting
-    
-    # For displaying "current" progress, we'll use the current actual quarter mapped to TARGET_GOAL_YEAR
+    TARGET_GOAL_YEAR = 2025
     current_quarter_for_display = get_quarter_str_for_year(TARGET_GOAL_YEAR, for_current_display=True)
-    
     status_options = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
 
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: Manage & Track Employee Goals</h4>", unsafe_allow_html=True)
         admin_action = st.radio(
-            "Action:", 
-            ["View Team Progress", f"Set/Edit Goal for {TARGET_GOAL_YEAR}"], 
-            key="admin_goal_action_radio_2025_q", 
+            "Action:",
+            ["View Team Progress", f"Set/Edit Goal for {TARGET_GOAL_YEAR}"],
+            key="admin_goal_action_radio_2025_q",
             horizontal=True
         )
 
         if admin_action == "View Team Progress":
             st.markdown(f"<h5>Team Goal Progress for {current_quarter_for_display}</h5>", unsafe_allow_html=True)
             employee_users = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
-            if not employee_users: 
+            if not employee_users:
                 st.info("No employees found.")
             else:
                 summary_data = []
                 for emp_name in employee_users:
                     user_info_gt = USERS.get(emp_name, {})
                     emp_current_goal = goals_df[
-                        (goals_df["Username"].astype(str) == str(emp_name)) & 
+                        (goals_df["Username"].astype(str) == str(emp_name)) &
                         (goals_df["MonthYear"].astype(str) == str(current_quarter_for_display))
                     ]
                     target, achieved, prog_val, goal_desc, status_val = 0.0, 0.0, 0.0, "Not Set", "N/A"
                     if not emp_current_goal.empty:
                         g_data = emp_current_goal.iloc[0]
-                        target = pd.to_numeric(g_data.get("TargetAmount"), errors='coerce').fillna(0.0)
-                        achieved = pd.to_numeric(g_data.get("AchievedAmount"), errors='coerce').fillna(0.0)
+                        raw_target = g_data.get("TargetAmount")
+                        raw_achieved = g_data.get("AchievedAmount")
+                        target = pd.to_numeric(raw_target, errors='coerce') if raw_target is not None else 0.0
+                        achieved = pd.to_numeric(raw_achieved, errors='coerce') if raw_achieved is not None else 0.0
+                        target = 0.0 if pd.isna(target) else float(target)
+                        achieved = 0.0 if pd.isna(achieved) else float(achieved)
                         if target > 0: prog_val = min(achieved / target, 1.0)
                         goal_desc = g_data.get("GoalDescription", "N/A")
                         status_val = g_data.get("Status", "N/A")
                     summary_data.append({
-                        "Photo": user_info_gt.get("profile_photo",""), "Employee": emp_name, 
-                        "Position": user_info_gt.get("position","N/A"), "Goal": goal_desc, 
-                        "Target": target, "Achieved": achieved, "Progress": prog_val, "Status": status_val 
+                        "Photo": user_info_gt.get("profile_photo", ""),
+                        "Employee": emp_name,
+                        "Position": user_info_gt.get("position", "N/A"),
+                        "Goal": goal_desc,
+                        "Target": target,
+                        "Achieved": achieved,
+                        "Progress": prog_val,
+                        "Status": status_val
                     })
                 if summary_data:
-                    st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True, 
+                    st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True,
                                  column_config={
                                      "Photo": st.column_config.ImageColumn("Pic", width="small"),
                                      "Target": st.column_config.NumberColumn("Target (₹)", format="%.0f"),
                                      "Achieved": st.column_config.NumberColumn("Achieved (₹)", format="%.0f"),
                                      "Progress": st.column_config.ProgressColumn("Progress", format="%.0f%%", min_value=0, max_value=1)
                                  })
-        elif admin_action == f"Set/Edit Goal for {TARGET_GOAL_YEAR}": # Radio button text updated
+
+        elif admin_action == f"Set/Edit Goal for {TARGET_GOAL_YEAR}":
             st.markdown(f"<h5>Set or Update Employee Goal ({TARGET_GOAL_YEAR} - Quarterly)</h5>", unsafe_allow_html=True)
 
             employee_options = [u for u, d in USERS.items() if d["role"] == "employee"]
-            current_selected_employee = None 
+            current_selected_employee = None
             if not employee_options:
                 st.warning("No employees available to set goals for.")
             else:
@@ -516,27 +523,25 @@ if nav == "🎯 Goal Tracker":
                     emp_radio_idx = employee_options.index(st.session_state.goal_tracker_sel_emp_2025_q)
                 except ValueError:
                     emp_radio_idx = 0
-                    st.session_state.goal_tracker_sel_emp_2025_q = employee_options[0] if employee_options else None
-                
-                selected_emp_radio = st.radio("Select Employee:", employee_options, index=emp_radio_idx, 
+                    st.session_state.goal_tracker_sel_emp_2025_q = employee_options[0]
+
+                selected_emp_radio = st.radio("Select Employee:", employee_options, index=emp_radio_idx,
                                               key="goal_emp_radio_2025_q", horizontal=True)
                 if st.session_state.goal_tracker_sel_emp_2025_q != selected_emp_radio:
                     st.session_state.goal_tracker_sel_emp_2025_q = selected_emp_radio
                 current_selected_employee = st.session_state.goal_tracker_sel_emp_2025_q
 
-            # Quarterly Period Selection for TARGET_GOAL_YEAR (2025)
             quarter_options_for_year = [f"{TARGET_GOAL_YEAR}-Q1", f"{TARGET_GOAL_YEAR}-Q2", f"{TARGET_GOAL_YEAR}-Q3", f"{TARGET_GOAL_YEAR}-Q4"]
             current_selected_period = None
-            
-            default_period_for_setting = current_quarter_for_display # Default to current quarter of TARGET_GOAL_YEAR
+            default_period_for_setting = current_quarter_for_display
             if "goal_tracker_target_period_2025_q" not in st.session_state or \
                st.session_state.goal_tracker_target_period_2025_q not in quarter_options_for_year:
-                st.session_state.goal_tracker_target_period_2025_q = default_period_for_setting if default_period_for_setting in quarter_options_for_year else quarter_options_for_year[0]
+                st.session_state.goal_tracker_target_period_2025_q = default_period_for_setting
 
             try:
                 period_radio_idx = quarter_options_for_year.index(st.session_state.goal_tracker_target_period_2025_q)
             except ValueError:
-                period_radio_idx = quarter_options_for_year.index(default_period_for_setting) if default_period_for_setting in quarter_options_for_year else 0
+                period_radio_idx = quarter_options_for_year.index(default_period_for_setting)
                 st.session_state.goal_tracker_target_period_2025_q = quarter_options_for_year[period_radio_idx]
 
             selected_period_radio = st.radio(f"Goal Period ({TARGET_GOAL_YEAR} - Quarter):", options=quarter_options_for_year,
@@ -544,19 +549,23 @@ if nav == "🎯 Goal Tracker":
             if st.session_state.goal_tracker_target_period_2025_q != selected_period_radio:
                 st.session_state.goal_tracker_target_period_2025_q = selected_period_radio
             current_selected_period = st.session_state.goal_tracker_target_period_2025_q
-            
+
             if current_selected_employee and current_selected_period:
                 existing_g = goals_df[
-                    (goals_df["Username"].astype(str) == str(current_selected_employee)) & 
+                    (goals_df["Username"].astype(str) == str(current_selected_employee)) &
                     (goals_df["MonthYear"].astype(str) == str(current_selected_period))
                 ]
-                
-                g_desc, g_target, g_achieved, g_status_val = "", 0.0, 0.0, "Not Started" # Renamed g_status to g_status_val
+
+                g_desc, g_target, g_achieved, g_status_val = "", 0.0, 0.0, "Not Started"
                 if not existing_g.empty:
                     g_d = existing_g.iloc[0]
                     g_desc = g_d.get("GoalDescription", "")
-                    raw_target = g_d.get("TargetAmount"); g_target = 0.0 if pd.isna(raw_target) else (0.0 if pd.isna(pd.to_numeric(raw_target, errors='coerce')) else float(pd.to_numeric(raw_target, errors='coerce')))
-                    raw_achieved = g_d.get("AchievedAmount"); g_achieved = 0.0 if pd.isna(raw_achieved) else (0.0 if pd.isna(pd.to_numeric(raw_achieved, errors='coerce')) else float(pd.to_numeric(raw_achieved, errors='coerce')))
+                    raw_target = g_d.get("TargetAmount")
+                    raw_achieved = g_d.get("AchievedAmount")
+                    g_target = pd.to_numeric(raw_target, errors='coerce') if raw_target is not None else 0.0
+                    g_target = 0.0 if pd.isna(g_target) else float(g_target)
+                    g_achieved = pd.to_numeric(raw_achieved, errors='coerce') if raw_achieved is not None else 0.0
+                    g_achieved = 0.0 if pd.isna(g_achieved) else float(g_achieved)
                     g_status_val = g_d.get("Status", "Not Started")
                     st.info(f"Editing existing goal for {current_selected_employee} for {current_selected_period}.")
 
@@ -565,29 +574,35 @@ if nav == "🎯 Goal Tracker":
                     new_g_desc = st.text_area("Goal Description:", value=g_desc, key=f"desc_2025q_{current_selected_employee}_{current_selected_period}")
                     new_g_target = st.number_input("Target Sales (INR):", value=g_target, min_value=0.0, step=1000.0, format="%.2f", key=f"target_2025q_{current_selected_employee}_{current_selected_period}")
                     new_g_achieved = st.number_input("Achieved Sales (INR):", value=g_achieved, min_value=0.0, step=100.0, format="%.2f", key=f"achieved_2025q_{current_selected_employee}_{current_selected_period}")
-                    
                     status_radio_idx = status_options.index(g_status_val) if g_status_val in status_options else 0
-                    # --- MODIFIED: Status selection using st.radio ---
-                    new_g_status = st.radio("Status:", options=status_options, index=status_radio_idx, 
+                    new_g_status = st.radio("Status:", options=status_options, index=status_radio_idx,
                                             key=f"status_radio_{current_selected_employee}_{current_selected_period}", horizontal=True)
                     submitted = st.form_submit_button("Save Goal")
 
                 if submitted:
-                    if not new_g_desc.strip(): st.warning("Description needed.")
-                    elif new_g_target <= 0 and new_g_status not in ["Cancelled", "On Hold", "Not Started"]: st.warning("Target > 0 unless Cancelled/On Hold/Not Started.")
+                    if not new_g_desc.strip():
+                        st.warning("Description needed.")
+                    elif new_g_target <= 0 and new_g_status not in ["Cancelled", "On Hold", "Not Started"]:
+                        st.warning("Target > 0 unless Cancelled/On Hold/Not Started.")
                     else:
                         if not existing_g.empty:
                             goals_df.loc[existing_g.index[0]] = [current_selected_employee, current_selected_period, new_g_desc, new_g_target, new_g_achieved, new_g_status]
-                            msg_verb="updated"
+                            msg_verb = "updated"
                         else:
-                            new_g_entry_data = { "Username": current_selected_employee, "MonthYear": current_selected_period, 
-                                                 "GoalDescription": new_g_desc, "TargetAmount": new_g_target, 
-                                                 "AchievedAmount": new_g_achieved, "Status": new_g_status }
+                            new_g_entry_data = {
+                                "Username": current_selected_employee,
+                                "MonthYear": current_selected_period,
+                                "GoalDescription": new_g_desc,
+                                "TargetAmount": new_g_target,
+                                "AchievedAmount": new_g_achieved,
+                                "Status": new_g_status
+                            }
                             for col_name in GOALS_COLUMNS:
-                                if col_name not in new_g_entry_data: new_g_entry_data[col_name] = pd.NA
+                                if col_name not in new_g_entry_data:
+                                    new_g_entry_data[col_name] = pd.NA
                             new_g_entry = pd.DataFrame([new_g_entry_data], columns=GOALS_COLUMNS)
                             goals_df = pd.concat([goals_df, new_g_entry], ignore_index=True)
-                            msg_verb="set"
+                            msg_verb = "set"
                         try:
                             goals_df.to_csv(GOALS_FILE, index=False)
                             st.session_state.user_message = f"Goal for {current_selected_employee} ({current_selected_period}) {msg_verb}!"
@@ -597,6 +612,8 @@ if nav == "🎯 Goal Tracker":
                             st.session_state.user_message = f"Error saving goal: {e}"
                             st.session_state.message_type = "error"
                             st.rerun()
+
+
 
     else: # Employee View (current_user["role"] == "employee")
         st.markdown("<h4>My Sales Goals (2025 - Quarterly)</h4>", unsafe_allow_html=True)
