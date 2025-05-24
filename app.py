@@ -547,10 +547,28 @@ elif nav == "🎯 Goal Tracker":
                 g_desc, g_target, g_achieved, g_status = "", 0.0, 0.0, "Not Started"
                 if not existing_g.empty:
                     g_d = existing_g.iloc[0]
-                    g_desc = g_d.get("GoalDescription","")
-                    g_target = pd.to_numeric(g_d.get("TargetAmount"),errors='coerce').fillna(0.0)
-                    g_achieved = pd.to_numeric(g_d.get("AchievedAmount"),errors='coerce').fillna(0.0)
-                    g_status = g_d.get("Status","Not Started")
+                                    g_desc = g_d.get("GoalDescription", "") # Default to empty string if key missing
+
+                # Handle TargetAmount
+                raw_target = g_d.get("TargetAmount")
+                if pd.isna(raw_target): # Check if the raw value is None, NaN, etc.
+                    g_target = 0.0
+                else:
+                    g_target_numeric = pd.to_numeric(raw_target, errors='coerce')
+                    # Check if coercion resulted in NaN, then fill, otherwise use the number
+                    g_target = 0.0 if pd.isna(g_target_numeric) else float(g_target_numeric)
+
+                # Handle AchievedAmount
+                raw_achieved = g_d.get("AchievedAmount")
+                if pd.isna(raw_achieved): # Check if the raw value is None, NaN, etc.
+                    g_achieved = 0.0
+                else:
+                    g_achieved_numeric = pd.to_numeric(raw_achieved, errors='coerce')
+                    # Check if coercion resulted in NaN, then fill, otherwise use the number
+                    g_achieved = 0.0 if pd.isna(g_achieved_numeric) else float(g_achieved_numeric)
+                
+                g_status = g_d.get("Status", "Not Started") # Default to "Not Started"
+
                     st.info(f"Editing existing goal for {current_selected_employee} for {current_selected_month}.")
 
                 form_key = f"set_goal_form_{current_selected_employee}_{current_selected_month}_main_v4" # New form key
