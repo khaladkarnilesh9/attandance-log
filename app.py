@@ -447,7 +447,7 @@ def get_quarter_str_for_year(year, for_current_display=False):
 
 
 # --- Main Goal Tracker Navigation Block ---
-elif nav == "🎯 Goal Tracker":
+if nav == "🎯 Goal Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     
