@@ -3,6 +3,8 @@ import pandas as pd
 from datetime import datetime, timezone, timedelta
 import os
 import pytz
+import sys
+
 # from streamlit_geolocation import streamlit_geolocation # Geolocation is disabled
 
 # --- Pillow for placeholder image generation (optional) --
