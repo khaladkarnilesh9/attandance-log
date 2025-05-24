@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime, timezone, timedelta
 import os
 import pytz
+# from streamlit_geolocation import streamlit_geolocation # Geolocation is disabled
 
 # --- Pillow for placeholder image generation (optional) --
 try:
@@ -141,10 +142,6 @@ st.markdown(html_css, unsafe_allow_html=True)
 USERS = {
     "Geetali": {"password": "Geetali123", "role": "employee", "position": "Software Engineer", "profile_photo": "images/geetali.png"},
     "Nilesh": {"password": "Nilesh123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/nilesh.png"},
-    "Santosh": {"password": "Santosh123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/Santosh.png"},
-    "Shiva": {"password": "Shiva123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/Shiva.png"},
-    "Deepak": {"password": "Deepak123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/deepak.png"},
-    "Rahul": {"password": "Rahul123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/rahul.png"},
     "admin": {"password": "admin123", "role": "admin", "position": "System Administrator", "profile_photo": "images/admin.png"}
 }
 
@@ -163,18 +160,18 @@ if PILLOW_INSTALLED:
                 try:
                     font = ImageFont.truetype("arial.ttf", 40)
                 except IOError:
-                    font = ImageFont.load_default() # Load default font if Arial not found
+                    font = ImageFont.load_default()
 
                 text = user_key[:2].upper()
-                if hasattr(draw, 'textbbox'): # Pillow 9.2.0+
+                if hasattr(draw, 'textbbox'):
                     bbox = draw.textbbox((0,0), text, font=font)
                     text_width, text_height = bbox[2] - bbox[0], bbox[3] - bbox[1]
                     text_x, text_y = (120 - text_width) / 2, (120 - text_height) / 2 - bbox[1]
-                elif hasattr(draw, 'textsize'): # Older Pillow
+                elif hasattr(draw, 'textsize'):
                     text_width, text_height = draw.textsize(text, font=font)
                     text_x, text_y = (120 - text_width) / 2, (120 - text_height) / 2
                 else:
-                    text_x, text_y = 30,30 # Basic fallback
+                    text_x, text_y = 30,30
                 draw.text((text_x, text_y), text, fill=(28, 78, 128), font=font)
                 img.save(img_path)
             except Exception: pass
@@ -210,12 +207,12 @@ def load_data(path, columns):
             else: return pd.DataFrame(columns=columns)
         except pd.errors.EmptyDataError: return pd.DataFrame(columns=columns)
         except Exception as e:
-            st.error(f"Error loading {path}: {e}. Empty DataFrame returned.")
+            st.error(f"Error loading {path}: {e}. Empty DataFrame returned.") # This will show on page
             return pd.DataFrame(columns=columns)
     else:
         df = pd.DataFrame(columns=columns)
         try: df.to_csv(path, index=False)
-        except Exception as e: st.warning(f"Could not create {path}: {e}")
+        except Exception as e: st.warning(f"Could not create {path}: {e}") # This will show on page
         return df
 
 ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude"]
@@ -238,8 +235,10 @@ if not st.session_state.auth["logged_in"]:
         user_creds = USERS.get(uname)
         if user_creds and user_creds["password"] == pwd:
             st.session_state.auth = {"logged_in": True, "username": uname, "role": user_creds["role"]}
-            st.success("Login successful!"); st.rerun()
-        else: st.error("Invalid username or password.")
+            st.toast("Login successful!", icon="✅") # MODIFIED
+            st.rerun()
+        else:
+            st.error("Invalid username or password.") # This st.error will show as it's not followed by rerun
     st.markdown('</div>', unsafe_allow_html=True); st.stop()
 
 st.title("👨‍💼 HR Dashboard")
@@ -256,67 +255,54 @@ with st.sidebar:
     st.markdown("---")
     if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
-        st.success("Logged out successfully."); st.rerun()
+        st.toast("Logged out successfully.", icon="🔒") # MODIFIED
+        st.rerun()
 
 if nav == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
 
-    # --- GEOLOCATION REMOVED ---
-    # No call to streamlit_geolocation
-    # lat and lon will be treated as unavailable
     lat, lon = None, None 
     st.info("📍 Location services are currently disabled for attendance.", icon="ℹ️")
-    # You can remove the st.info line if you don't want any message about location.
 
     st.markdown("---")
     st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
 
-    # common_data will now always have pd.NA for Latitude and Longitude
     common_data = {
         "Username": current_user["username"],
-        "Latitude": pd.NA, # Explicitly set to NA as location is disabled
-        "Longitude": pd.NA # Explicitly set to NA as location is disabled
+        "Latitude": pd.NA,
+        "Longitude": pd.NA
     }
 
     with col1:
         if st.button("✅ Check In", key="check_in_btn_main", use_container_width=True):
             now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
             new_entry_data = {"Type": "Check-In", "Timestamp": now_str, **common_data}
-            
-            # Ensure all columns are present before creating DataFrame
             for col_name in ATTENDANCE_COLUMNS:
-                if col_name not in new_entry_data:
-                    new_entry_data[col_name] = pd.NA 
-            
+                if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA 
             new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
-            # Ensure attendance_df is the global one or reassigned if modified in a function
             attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
             try:
                 attendance_df.to_csv(ATTENDANCE_FILE, index=False)
-                st.success(f"Checked in at {now_str} (Location not recorded).")
+                st.toast(f"Checked in at {now_str} (Location not recorded).", icon="✅") # MODIFIED
                 st.rerun()
             except Exception as e:
-                st.error(f"Error saving attendance: {e}")
+                st.toast(f"Error saving attendance: {e}", icon="🚨") # MODIFIED
     with col2:
         if st.button("🚪 Check Out", key="check_out_btn_main", use_container_width=True):
             now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
             new_entry_data = {"Type": "Check-Out", "Timestamp": now_str, **common_data}
-
             for col_name in ATTENDANCE_COLUMNS:
-                if col_name not in new_entry_data:
-                    new_entry_data[col_name] = pd.NA
-
+                if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA
             new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
-            # Ensure attendance_df is the global one or reassigned
             attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
             try:
                 attendance_df.to_csv(ATTENDANCE_FILE, index=False)
-                st.success(f"Checked out at {now_str} (Location not recorded).")
+                st.toast(f"Checked out at {now_str} (Location not recorded).", icon="🚪") # MODIFIED
                 st.rerun()
             except Exception as e:
-                st.error(f"Error saving attendance: {e}")
+                st.toast(f"Error saving attendance: {e}", icon="🚨") # MODIFIED
     st.markdown('</div></div>', unsafe_allow_html=True)
 
 elif nav == "🧾 Allowance":
@@ -332,9 +318,14 @@ elif nav == "🧾 Allowance":
             new_entry_data = {"Username": current_user["username"], "Type": a_type, "Amount": amount, "Reason": reason, "Date": date_str}
             new_entry = pd.DataFrame([new_entry_data], columns=ALLOWANCE_COLUMNS)
             allowance_df = pd.concat([allowance_df, new_entry], ignore_index=True)
-            try: allowance_df.to_csv(ALLOWANCE_FILE, index=False); st.success(f"Allowance for ₹{amount:.2f} submitted."); st.rerun()
-            except Exception as e: st.error(f"Error saving: {e}")
-        else: st.warning("Please complete all fields with valid values.")
+            try:
+                allowance_df.to_csv(ALLOWANCE_FILE, index=False)
+                st.toast(f"Allowance for ₹{amount:.2f} submitted.", icon="💰") # MODIFIED
+                st.rerun()
+            except Exception as e:
+                st.toast(f"Error saving allowance: {e}", icon="🚨") # MODIFIED
+        else:
+            st.warning("Please complete all fields with valid values.") # This will show
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif nav == "🎯 Goal Tracker":
@@ -356,7 +347,7 @@ elif nav == "🎯 Goal Tracker":
                 for emp_name in employee_users:
                     user_info_gt = USERS.get(emp_name, {})
                     emp_current_goal = goals_df[(goals_df["Username"] == emp_name) & (goals_df["MonthYear"] == current_month_year)]
-                    target, achieved, prog_val, goal_desc, status_val = 0.0, 0.0, 0.0, "Not Set", "N/A" # Renamed 'status' to 'status_val'
+                    target, achieved, prog_val, goal_desc, status_val = 0.0, 0.0, 0.0, "Not Set", "N/A"
                     if not emp_current_goal.empty:
                         g_data = emp_current_goal.iloc[0]
                         target = pd.to_numeric(g_data.get("TargetAmount"), errors='coerce').fillna(0.0)
@@ -365,7 +356,7 @@ elif nav == "🎯 Goal Tracker":
                         goal_desc, status_val = g_data.get("GoalDescription", "N/A"), g_data.get("Status", "N/A")
                     summary_data.append({
                         "Photo": user_info_gt.get("profile_photo",""), "Employee": emp_name, "Position": user_info_gt.get("position","N/A"),
-                        "Goal": goal_desc, "Target": target, "Achieved": achieved, "Progress": prog_val, "Status": status_val }) # Use status_val
+                        "Goal": goal_desc, "Target": target, "Achieved": achieved, "Progress": prog_val, "Status": status_val })
                 if summary_data:
                     st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True, column_config={
                         "Photo": st.column_config.ImageColumn("Pic", width="small"),
@@ -408,8 +399,12 @@ elif nav == "🎯 Goal Tracker":
                         new_g_entry = pd.DataFrame([{"Username":sel_emp, "MonthYear":target_m_y, "GoalDescription":new_g_desc, "TargetAmount":new_g_target, "AchievedAmount":new_g_achieved, "Status":new_g_status}], columns=GOALS_COLUMNS)
                         goals_df = pd.concat([goals_df, new_g_entry], ignore_index=True)
                         msg="set"
-                    try: goals_df.to_csv(GOALS_FILE, index=False); st.success(f"Goal for {sel_emp} ({target_m_y}) {msg}!"); st.rerun()
-                    except Exception as e: st.error(f"Error saving: {e}")
+                    try:
+                        goals_df.to_csv(GOALS_FILE, index=False)
+                        st.toast(f"Goal for {sel_emp} ({target_m_y}) {msg}!", icon="🎯") # MODIFIED
+                        st.rerun()
+                    except Exception as e:
+                        st.toast(f"Error saving goal: {e}", icon="🚨") # MODIFIED
     else: # Employee View
         st.markdown("<h4>My Sales Goals</h4>", unsafe_allow_html=True)
         my_all_goals = goals_df[goals_df["Username"] == current_user["username"]].copy()
@@ -435,8 +430,12 @@ elif nav == "🎯 Goal Tracker":
                 idx_to_update = current_g.index[0]
                 goals_df.loc[idx_to_update, "AchievedAmount"] = new_ach_val
                 goals_df.loc[idx_to_update, "Status"] = "Achieved" if new_ach_val >= target_amt and target_amt > 0 else "In Progress"
-                try: goals_df.to_csv(GOALS_FILE, index=False); st.success("Achievement updated!"); st.rerun()
-                except Exception as e: st.error(f"Error updating: {e}")
+                try:
+                    goals_df.to_csv(GOALS_FILE, index=False)
+                    st.toast("Achievement updated!", icon="📈") # MODIFIED
+                    st.rerun()
+                except Exception as e:
+                    st.toast(f"Error updating achievement: {e}", icon="🚨") # MODIFIED
         else: st.info(f"No goal set for you for {current_month_year}. Contact admin.")
         st.markdown("---")
         st.markdown("<h5>My Past Goals History</h5>", unsafe_allow_html=True)
@@ -478,7 +477,10 @@ elif nav == "📊 View Logs":
                     st.dataframe(admin_att_display, use_container_width=True, hide_index=True)
                     st.markdown("<h6 class='allowance-summary-header'>🗺️ Attendance Locations Map:</h6>", unsafe_allow_html=True)
                     map_data_admin = emp_attendance.dropna(subset=['Latitude', 'Longitude']).copy()
-                    if not map_data_admin.empty: st.map(map_data_admin.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'}))
+                    if not map_data_admin.empty:
+                        # Ensure columns are named 'latitude' and 'longitude' for st.map
+                        map_df_renamed = map_data_admin.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'})
+                        st.map(map_df_renamed[['latitude', 'longitude']])
                     else: st.caption(f"No valid location data for map for {emp_name}.")
                 else: st.caption(f"No attendance records for {emp_name}.")
 
@@ -488,7 +490,7 @@ elif nav == "📊 View Logs":
                     emp_allowances['Amount'] = pd.to_numeric(emp_allowances['Amount'], errors='coerce').fillna(0.0)
                     st.metric(label=f"Grand Total Allowance for {emp_name}", value=f"₹{emp_allowances['Amount'].sum():,.2f}")
                     st.markdown("<h6 class='allowance-summary-header'>📅 Monthly Allowance Summary:</h6>", unsafe_allow_html=True)
-                    emp_allow_sum = emp_allowances.dropna(subset=['Amount']).copy() # Process only valid amounts
+                    emp_allow_sum = emp_allowances.dropna(subset=['Amount']).copy()
                     if 'Date' in emp_allow_sum.columns:
                         emp_allow_sum['Date'] = pd.to_datetime(emp_allow_sum['Date'], errors='coerce')
                         emp_allow_sum.dropna(subset=['Date'], inplace=True)
@@ -516,8 +518,8 @@ elif nav == "📊 View Logs":
 
         st.markdown("<h4 class='record-type-header'>📅 My Attendance History</h4>", unsafe_allow_html=True)
         my_att_raw = attendance_df[attendance_df["Username"] == current_user["username"]].copy()
-        final_display_df = pd.DataFrame() # Initialize to ensure it's always defined
-        my_att_proc = pd.DataFrame() # Initialize for map
+        final_display_df = pd.DataFrame()
+        my_att_proc = pd.DataFrame()
 
         if not my_att_raw.empty:
             my_att_proc = my_att_raw.copy()
@@ -549,23 +551,21 @@ elif nav == "📊 View Logs":
                     if 'DateOnly' in df_sel.columns and not df_sel.empty:
                         df_sel['DateOnly'] = pd.to_datetime(df_sel['DateOnly']).dt.date
                 
-                # CORRECTED INDENTATION STARTS HERE
                 if not first_check_ins_sel.empty and not last_check_outs_sel.empty:
                     combined_df = pd.merge(first_check_ins_sel, last_check_outs_sel, on='DateOnly', how='outer')
                 elif not first_check_ins_sel.empty:
                     combined_df = first_check_ins_sel.copy()
-                    for col in last_check_out_cols[1:]: # Skip 'DateOnly'
+                    for col in last_check_out_cols[1:]:
                         if 'Time' in col: combined_df[col] = pd.NaT
                         else: combined_df[col] = pd.NA
                 elif not last_check_outs_sel.empty:
                     combined_df = last_check_outs_sel.copy()
-                    for col in first_check_in_cols[1:]: # Skip 'DateOnly'
+                    for col in first_check_in_cols[1:]:
                         if 'Time' in col: combined_df[col] = pd.NaT
                         else: combined_df[col] = pd.NA
                 else:
-                    all_combined_cols = list(dict.fromkeys(first_check_in_cols + last_check_out_cols)) # Unique columns
+                    all_combined_cols = list(dict.fromkeys(first_check_in_cols + last_check_out_cols))
                     combined_df = pd.DataFrame(columns=all_combined_cols)
-                # CORRECTED INDENTATION ENDS HERE
 
                 if not combined_df.empty:
                     combined_df = combined_df.sort_values(by='DateOnly', ascending=False, ignore_index=True)
@@ -590,9 +590,11 @@ elif nav == "📊 View Logs":
         else: st.info("No processed attendance data (check timestamp formats).")
 
         st.markdown("<h6 class='allowance-summary-header'>🗺️ My Attendance Locations Map:</h6>", unsafe_allow_html=True)
-        if not my_att_proc.empty: # Use the cleaned my_att_proc
+        if not my_att_proc.empty:
             my_map_data = my_att_proc.dropna(subset=['Latitude', 'Longitude']).copy()
-            if not my_map_data.empty: st.map(my_map_data.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'}))
+            if not my_map_data.empty:
+                map_df_renamed_my = my_map_data.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'})
+                st.map(map_df_renamed_my[['latitude', 'longitude']])
             else: st.info("No valid location data for map.")
         elif my_att_raw.empty: st.info("No attendance records for map.")
         else: st.info("No valid attendance data with locations for map.")
