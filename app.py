@@ -3,7 +3,6 @@ import pandas as pd
 from datetime import datetime, timezone, timedelta
 import os
 import pytz
-from streamlit_geolocation import streamlit_geolocation
 
 # --- Pillow for placeholder image generation (optional) --
 try:
