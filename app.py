@@ -706,7 +706,7 @@ if nav == "🎯 Goal Tracker":
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-from io import BytesIO
+# from io import BytesIO
 
 # def download_combined_excel(sales_df, payment_df, current_user):
 #     output = BytesIO()
