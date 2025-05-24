@@ -658,8 +658,15 @@ if nav == "🎯 Goal Tracker":
 
 elif nav == "📊 View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    if current_user and current_user.get("role") == "admin":
+    if current_user["role"] == "admin":
     st.markdown("<h4>Admin: Manage & Track Employee Goals</h4>", unsafe_allow_html=True)
+    admin_action = st.radio(
+        "Action:", 
+        ["View Team Progress", f"Set/Edit Goal for {TARGET_GOAL_YEAR}"], 
+        key="admin_goal_action_radio_2025_q", 
+        horizontal=True
+    )
+
     
     try:
         admin_action = st.radio(
