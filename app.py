@@ -452,6 +452,87 @@ if nav == "📆 Attendance":
                 st.session_state.message_type = "error"
                 st.rerun()
     st.markdown('</div></div>', unsafe_allow_html=True)
+#---------------------------------end section------------------------
+# ... other code before this
+
+if selected_sub_option == "View Logs":
+    for emp_name in employee_names:
+        st.markdown(f"--- PROCESSING {emp_name.upper()} ---", unsafe_allow_html=True)  # More visible separator
+        user_info = USERS.get(emp_name, {})
+
+        # --- Profile Info ---
+        st.write(f"DEBUG ({emp_name}): Displaying profile info.")
+        profile_col1, profile_col2 = st.columns([1, 4])
+        with profile_col1:
+            if user_info.get("profile_photo") and os.path.exists(user_info.get("profile_photo")):
+                st.image(user_info.get("profile_photo"), width=80)
+                st.write(f"DEBUG ({emp_name}): Photo displayed.")
+            else:
+                st.write(f"DEBUG ({emp_name}): No photo found or path invalid.")
+        with profile_col2:
+            st.markdown(f"<h4 class='employee-section-header' style='margin-bottom: 5px; margin-top:0px; border-bottom: none; font-size: 1.2em;'>👤 {emp_name}</h4>", unsafe_allow_html=True)
+            st.markdown(f"**Position:** {user_info.get('position', 'N/A')}")
+            st.write(f"DEBUG ({emp_name}): Name and Position displayed.")
+        st.markdown("---")
+
+        # --- Attendance ---
+        st.markdown("<h5 class='record-type-header'>🕒 Attendance Records:</h5>", unsafe_allow_html=True)
+        emp_attendance = attendance_df[attendance_df["Username"].astype(str) == str(emp_name)].copy()
+        st.write(f"DEBUG ({emp_name}): emp_attendance empty? {emp_attendance.empty}. Shape: {emp_attendance.shape if not emp_attendance.empty else 'N/A'}")
+        if not emp_attendance.empty:
+            display_cols_att = [col for col in ATTENDANCE_COLUMNS if col != 'Username']
+            admin_att_display = emp_attendance[display_cols_att].copy()
+            st.write(f"DEBUG ({emp_name}): admin_att_display for st.dataframe (Attendance):")
+            st.dataframe(admin_att_display, use_container_width=True, hide_index=True)
+        else:
+            st.caption(f"No attendance records for {emp_name}.")
+            st.write(f"DEBUG ({emp_name}): Displayed 'No attendance records' caption.")
+
+        # --- Allowances ---
+        st.markdown("<h5 class='record-type-header' style='margin-top:25px;'>💰 Allowance Section:</h5>", unsafe_allow_html=True)
+        emp_allowances = allowance_df[allowance_df["Username"].astype(str) == str(emp_name)].copy()
+        st.write(f"DEBUG ({emp_name}): emp_allowances empty? {emp_allowances.empty}. Shape: {emp_allowances.shape if not emp_allowances.empty else 'N/A'}")
+        if not emp_allowances.empty:
+            st.write(f"DEBUG ({emp_name}): Displaying allowance metric and dataframes.")
+            st.metric(label=f"Grand Total Allowance for {emp_name}", value=f"₹{pd.to_numeric(emp_allowances['Amount'], errors='coerce').fillna(0.0).sum():,.2f}")
+            st.dataframe(emp_allowances[[c for c in ALLOWANCE_COLUMNS if c != 'Username']], use_container_width=True, hide_index=True)
+        else:
+            st.caption(f"No allowance requests for {emp_name}.")
+            st.write(f"DEBUG ({emp_name}): Displayed 'No allowance requests' caption.")
+
+        # --- Sales Goals ---
+        st.markdown("<h5 class='record-type-header' style='margin-top:25px;'>🎯 Sales Goal History (2025):</h5>", unsafe_allow_html=True)
+        emp_sales_goals_all = goals_df[(goals_df["Username"].astype(str) == str(emp_name)) & (goals_df["MonthYear"].astype(str).str.startswith(str(TARGET_SALES_GOAL_YEAR)))].copy()
+        st.write(f"DEBUG ({emp_name}): emp_sales_goals_all empty? {emp_sales_goals_all.empty}. Shape: {emp_sales_goals_all.shape if not emp_sales_goals_all.empty else 'N/A'}")
+        if not emp_sales_goals_all.empty:
+            st.write(f"DEBUG ({emp_name}): Displaying sales goals dataframe and chart.")
+            st.dataframe(emp_sales_goals_all[["MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]], hide_index=True, use_container_width=True,
+                         column_config={"TargetAmount":st.column_config.NumberColumn(format="₹%.0f"), "AchievedAmount":st.column_config.NumberColumn(format="%.0f")})
+            render_goal_chart(emp_sales_goals_all, f"{emp_name}'s Sales Goals vs Achievement {TARGET_SALES_GOAL_YEAR}")
+        else:
+            st.caption(f"No sales goals found for {emp_name} for {TARGET_SALES_GOAL_YEAR}.")
+            st.write(f"DEBUG ({emp_name}): Displayed 'No sales goals' caption.")
+
+        # --- Payment Collection Goals ---
+        st.markdown("<h5 class='record-type-header' style='margin-top:25px;'>💰 Payment Collection Goal History (2025):</h5>", unsafe_allow_html=True)
+        emp_payment_goals_all = payment_goals_df[(payment_goals_df["Username"].astype(str) == str(emp_name)) & (payment_goals_df["MonthYear"].astype(str).str.startswith(str(TARGET_PAYMENT_YEAR)))].copy()
+        st.write(f"DEBUG ({emp_name}): emp_payment_goals_all empty? {emp_payment_goals_all.empty}. Shape: {emp_payment_goals_all.shape if not emp_payment_goals_all.empty else 'N/A'}")
+        if not emp_payment_goals_all.empty:
+            st.write(f"DEBUG ({emp_name}): Displaying payment goals dataframe and chart.")
+            st.dataframe(emp_payment_goals_all[["MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]], hide_index=True, use_container_width=True,
+                         column_config={"TargetAmount":st.column_config.NumberColumn("Target Coll. (₹)", format="%.0f"), "AchievedAmount":st.column_config.NumberColumn("Amt. Collected (₹)", format="%.0f")})
+            render_goal_chart(emp_payment_goals_all, f"{emp_name}'s Payment Collection vs Target {TARGET_PAYMENT_YEAR}")
+        else:
+            st.caption(f"No payment collection goals found for {emp_name} for {TARGET_PAYMENT_YEAR}.")
+            st.write(f"DEBUG ({emp_name}): Displayed 'No payment collection goals' caption.")
+
+        if emp_name != employee_names[-1]:
+            st.markdown("<hr style='margin-top: 25px; margin-bottom:10px;'>", unsafe_allow_html=True)
+
+#--------------------------------------------------------------------end-viewlog---------------------------------------------
+
+
+
 #--------------------allowence section start--------------------------
 
 elif nav == "🧾 Allowance":
