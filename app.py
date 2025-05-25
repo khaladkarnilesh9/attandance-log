@@ -19,33 +19,36 @@ try:
 except ImportError:
     PILLOW_INSTALLED = False
 
-# --- Function to render Altair bar chart (existing for past goals) ---
-# --- Function to render Altair bar chart (existing for past goals) ---
+# --- Function to render Altair bar chart (for past goals) ---
 def render_goal_chart(df: pd.DataFrame, title: str):
     if df.empty:
         st.warning("No data available to plot.")
         return
     df = df.copy()
-    # Ensure columns are numeric, coercing errors to NaN, then fill NaN with 0 for plotting
     df[["TargetAmount", "AchievedAmount"]] = df[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce").fillna(0)
-    df = df.sort_values(by="MonthYear")
+    # No need to sort by MonthYear here as Altair will handle categorical ordering
 
     long_df = df.melt(id_vars=["MonthYear"], value_vars=["TargetAmount", "AchievedAmount"],
                       var_name="Metric", value_name="Amount")
 
+    # Ensure MonthYear is treated as a nominal type for proper grouping
+    # And Metric is also nominal for distinct bars
     chart = alt.Chart(long_df).mark_bar().encode(
-        x=alt.X('MonthYear:N', title="Quarter", axis=alt.Axis(labelAngle=0)), # Keep labels horizontal
-        y=alt.Y('Amount:Q', title="Amount (INR)"),
-        color=alt.Color('Metric:N', scale=alt.Scale(domain=['TargetAmount', 'AchievedAmount'], range=["#3498db", "#2ecc71"])),
-        tooltip=["MonthYear", "Metric", "Amount"],
-        # --- Add xOffset for grouped bar chart ---
-        xOffset='Metric:N' 
+        alt.X('Metric:N', title=None, axis=alt.Axis(labels=True, ticks=False, domain=False)), # X-axis is now Metric
+        alt.Y('Amount:Q', title="Amount (INR)"),
+        alt.Color('Metric:N', scale=alt.Scale(domain=['TargetAmount', 'AchievedAmount'], range=["#3498db", "#2ecc71"])),
+        alt.Column('MonthYear:N', title="Quarter", header=alt.Header(labelOrient='bottom', titleOrient='bottom', labelPadding=5)), # Facet by MonthYear
+        tooltip=["MonthYear", "Metric", "Amount"]
     ).properties(
-        title=title,
-        width="container" # Use Altair's container width or a specific pixel value
+        title=title
+        # width="container" # Width is tricky with column facets, let Altair manage or set specific step width
+    ).configure_facet(
+        spacing=10 # Adjust spacing between faceted columns
+    ).configure_view(
+        stroke=None # Remove border around each facet
     )
-    st.altair_chart(chart, use_container_width=True)
 
+    st.altair_chart(chart, use_container_width=True)
 
 # --- Function to create Matplotlib Donut Chart ---
 def create_donut_chart(progress_percentage, chart_title="Progress", achieved_color='#2ecc71', remaining_color='#f0f0f0', center_text_color=None):
