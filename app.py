@@ -453,8 +453,6 @@ if nav == "📆 Attendance":
                 st.rerun()
     st.markdown('</div></div>', unsafe_allow_html=True)
 #--------------------------------------------------------------------start-viewlog---------------------------------------------
-
-# ... (inside admin view of View Logs)
             for emp_name in employee_names:
                 st.markdown(f"--- PROCESSING {emp_name.upper()} ---", unsafe_allow_html=True) # More visible separator
                 user_info = USERS.get(emp_name, {})
