@@ -889,212 +889,49 @@ badge_color = "green" if status == "Achieved" else "orange" if status == "In Pro
 status_badge = f"<span class='badge {badge_color}'>{status}</span>"
 st.markdown(f"Status: {status_badge}", unsafe_allow_html=True)
 
-
 elif nav == "📊 View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📊 View Logs</h3>", unsafe_allow_html=True)
     
     if current_user["role"] == "admin":
-        # Admin view - can see all records
         st.markdown("<h4>All Employee Records</h4>", unsafe_allow_html=True)
-        
-        # Select employee to view
         employee_options = list(USERS.keys())
-        selected_employee = st.selectbox("Select Employee:", employee_options, key="employee_select_view_logs")
-        
-        # Display employee info
-        user_info = USERS.get(selected_employee, {})
-        if user_info.get("profile_photo") and os.path.exists(user_info["profile_photo"]):
-            st.image(user_info["profile_photo"], width=80)
-        st.markdown(f"<p><strong>Position:</strong> {user_info.get('position', 'N/A')}</p>", unsafe_allow_html=True)
+        selected_employee = st.selectbox("Select Employee:", employee_options)
         
         # Display attendance records
-        st.markdown("<h5 class='employee-section-header'>Attendance Records</h5>", unsafe_allow_html=True)
-        emp_attendance = attendance_df[attendance_df["Username"] == selected_employee].copy()
-        
+        st.markdown("<h5>Attendance Records</h5>", unsafe_allow_html=True)
+        emp_attendance = attendance_df[attendance_df["Username"] == selected_employee]
         if not emp_attendance.empty:
-            emp_attendance["Date"] = pd.to_datetime(emp_attendance["Timestamp"]).dt.date
-            emp_attendance["Time"] = pd.to_datetime(emp_attendance["Timestamp"]).dt.time
-            
-            # Show summary metrics
-            col1, col2 = st.columns(2)
-            last_check_in = emp_attendance[emp_attendance["Type"] == "Check-In"]["Timestamp"].max()
-            last_check_out = emp_attendance[emp_attendance["Type"] == "Check-Out"]["Timestamp"].max()
-            
-            col1.metric("Last Check-In", last_check_in if pd.notna(last_check_in) else "N/A")
-            col2.metric("Last Check-Out", last_check_out if pd.notna(last_check_out) else "N/A")
-            
-            # Show detailed records
-            st.dataframe(
-                emp_attendance[["Date", "Time", "Type"]],
-                column_config={
-                    "Date": "Date",
-                    "Time": "Time",
-                    "Type": "Type"
-                },
-                hide_index=True,
-                use_container_width=True
-            )
-            
-            # Download button
-            csv = emp_attendance.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                "Download Attendance Data",
-                data=csv,
-                file_name=f"{selected_employee}_attendance.csv",
-                mime="text/csv"
-            )
+            st.dataframe(emp_attendance, use_container_width=True)
         else:
-            st.info("No attendance records found for this employee.")
+            st.info("No attendance records found")
         
         # Display allowance records
-        st.markdown("<h5 class='employee-section-header'>Allowance Records</h5>", unsafe_allow_html=True)
-        emp_allowance = allowance_df[allowance_df["Username"] == selected_employee].copy()
-        
+        st.markdown("<h5>Allowance Records</h5>", unsafe_allow_html=True)
+        emp_allowance = allowance_df[allowance_df["Username"] == selected_employee]
         if not emp_allowance.empty:
-            # Calculate total allowances
-            total_allowance = emp_allowance["Amount"].sum()
-            st.metric("Total Allowances", f"₹{total_allowance:,.2f}")
-            
-            # Show detailed records
-            st.dataframe(
-                emp_allowance[["Date", "Type", "Amount", "Reason"]],
-                column_config={
-                    "Date": "Date",
-                    "Type": "Type",
-                    "Amount": st.column_config.NumberColumn("Amount (₹)", format="%.2f"),
-                    "Reason": "Reason"
-                },
-                hide_index=True,
-                use_container_width=True
-            )
-            
-            # Download button
-            csv = emp_allowance.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                "Download Allowance Data",
-                data=csv,
-                file_name=f"{selected_employee}_allowances.csv",
-                mime="text/csv"
-            )
+            st.dataframe(emp_allowance, use_container_width=True)
         else:
-            st.info("No allowance records found for this employee.")
-            
+            st.info("No allowance records found")
     else:
-        # Employee view - can only see their own records
+        # Employee view
         st.markdown("<h4>My Records</h4>", unsafe_allow_html=True)
         
-        # Display attendance records
-        st.markdown("<h5 class='employee-section-header'>My Attendance</h5>", unsafe_allow_html=True)
-        my_attendance = attendance_df[attendance_df["Username"] == current_user["username"]].copy()
-        
+        # Display my attendance
+        st.markdown("<h5>My Attendance</h5>", unsafe_allow_html=True)
+        my_attendance = attendance_df[attendance_df["Username"] == current_user["username"]]
         if not my_attendance.empty:
-            my_attendance["Date"] = pd.to_datetime(my_attendance["Timestamp"]).dt.date
-            my_attendance["Time"] = pd.to_datetime(my_attendance["Timestamp"]).dt.time
-            
-            # Show summary metrics
-            col1, col2 = st.columns(2)
-            last_check_in = my_attendance[my_attendance["Type"] == "Check-In"]["Timestamp"].max()
-            last_check_out = my_attendance[my_attendance["Type"] == "Check-Out"]["Timestamp"].max()
-            
-            col1.metric("Last Check-In", last_check_in if pd.notna(last_check_in) else "N/A")
-            col2.metric("Last Check-Out", last_check_out if pd.notna(last_check_out) else "N/A")
-            
-            # Filter by date range
-            min_date = pd.to_datetime(my_attendance["Date"]).min().date()
-            max_date = pd.to_datetime(my_attendance["Date"]).max().date()
-            
-            date_range = st.date_input(
-                "Filter by date range:",
-                value=(min_date, max_date),
-                min_value=min_date,
-                max_value=max_date,
-                key="attendance_date_filter"
-            )
-            
-            if len(date_range) == 2:
-                filtered_attendance = my_attendance[
-                    (pd.to_datetime(my_attendance["Date"]) >= pd.to_datetime(date_range[0])) &
-                    (pd.to_datetime(my_attendance["Date"]) <= pd.to_datetime(date_range[1]))
-                ]
-            else:
-                filtered_attendance = my_attendance
-            
-            # Show filtered records
-            st.dataframe(
-                filtered_attendance[["Date", "Time", "Type"]],
-                column_config={
-                    "Date": "Date",
-                    "Time": "Time",
-                    "Type": "Type"
-                },
-                hide_index=True,
-                use_container_width=True
-            )
-            
-            # Download button
-            csv = filtered_attendance.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                "Download My Attendance",
-                data=csv,
-                file_name=f"{current_user['username']}_attendance.csv",
-                mime="text/csv"
-            )
+            st.dataframe(my_attendance, use_container_width=True)
         else:
-            st.info("No attendance records found for you.")
+            st.info("No attendance records found")
         
-        # Display allowance records
-        st.markdown("<h5 class='employee-section-header'>My Allowances</h5>", unsafe_allow_html=True)
-        my_allowance = allowance_df[allowance_df["Username"] == current_user["username"]].copy()
-        
+        # Display my allowances
+        st.markdown("<h5>My Allowances</h5>", unsafe_allow_html=True)
+        my_allowance = allowance_df[allowance_df["Username"] == current_user["username"]]
         if not my_allowance.empty:
-            # Calculate total allowances
-            total_allowance = my_allowance["Amount"].sum()
-            st.metric("Total Allowances", f"₹{total_allowance:,.2f}")
-            
-            # Filter by date range
-            min_date = pd.to_datetime(my_allowance["Date"]).min().date()
-            max_date = pd.to_datetime(my_allowance["Date"]).max().date()
-            
-            date_range = st.date_input(
-                "Filter by date range:",
-                value=(min_date, max_date),
-                min_value=min_date,
-                max_value=max_date,
-                key="allowance_date_filter"
-            )
-            
-            if len(date_range) == 2:
-                filtered_allowance = my_allowance[
-                    (pd.to_datetime(my_allowance["Date"]) >= pd.to_datetime(date_range[0])) &
-                    (pd.to_datetime(my_allowance["Date"]) <= pd.to_datetime(date_range[1]))
-                ]
-            else:
-                filtered_allowance = my_allowance
-            
-            # Show filtered records
-            st.dataframe(
-                filtered_allowance[["Date", "Type", "Amount", "Reason"]],
-                column_config={
-                    "Date": "Date",
-                    "Type": "Type",
-                    "Amount": st.column_config.NumberColumn("Amount (₹)", format="%.2f"),
-                    "Reason": "Reason"
-                },
-                hide_index=True,
-                use_container_width=True
-            )
-            
-            # Download button
-            csv = filtered_allowance.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                "Download My Allowances",
-                data=csv,
-                file_name=f"{current_user['username']}_allowances.csv",
-                mime="text/csv"
-            )
+            st.dataframe(my_allowance, use_container_width=True)
         else:
-            st.info("No allowance records found for you.")
+            st.info("No allowance records found")
     
     st.markdown('</div>', unsafe_allow_html=True)
 
