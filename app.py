@@ -454,7 +454,12 @@ if nav == "📆 Attendance":
     st.markdown('</div></div>', unsafe_allow_html=True)
 #---------------------------------end section------------------------
 
-selected_sub_option = st.sidebar.selectbox("Choose an option", ["View Logs", "Add Attendance", "Add Allowance"])
+# After login check and user role
+if current_user["role"] == "admin":
+    selected_sub_option = st.sidebar.selectbox("Admin Options", ["View Logs", "Manage Users", "Upload Data"])
+    if selected_sub_option == "View Logs":
+        # your View Logs code here...
+
 
 if selected_sub_option == "View Logs":
     for emp_name in employee_names:
