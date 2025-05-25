@@ -7,7 +7,7 @@ import pytz
 import plotly.express as px
 
 
-# --- Matplotlib Configuration ---
+# --- Matplotlib Configuration --
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
