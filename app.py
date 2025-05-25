@@ -123,33 +123,47 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
 
 html_css = """
 
-    
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'); /* IMPORT INTER */
+html_css = """
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'); /* Using Inter as per your preference */
 
     :root {
         --primary-color: #1c4e80; /* Dark Blue */
-        /* ... other variables ... */
+        --secondary-color: #2070c0; /* Medium Blue */
+        --accent-color: #70a1d7; /* Light Blue */
+        --success-color: #28a745; /* Green */
+        --danger-color: #dc3545; /* Red */
+        --warning-color: #ffc107; /* Yellow */
+        --info-color: #17a2b8; /* Teal */
 
-        /* UPDATED FONT STACK */
+        --body-bg-color: #f4f6f9; 
+        --card-bg-color: #ffffff;
+        --text-color: #343a40; 
+        --text-muted-color: #6c757d; 
+        --border-color: #dee2e6; 
+        --input-border-color: #ced4da;
+
+        /* UPDATED FONT STACK to Inter */
         --font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-        /* ... other variables ... */
+        --border-radius: 0.375rem; 
+        --border-radius-lg: 0.5rem; 
+        --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075);
+        --box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     }
 
-    /* --- General --- */
     body {
-        font-family: var(--font-family-sans-serif); /* This will now use Inter first */
+        font-family: var(--font-family-sans-serif);
         background-color: var(--body-bg-color);
         color: var(--text-color);
         line-height: 1.6;
-        font-weight: 400; /* Default weight for Inter */
+        font-weight: 400; /* Base weight for Inter */
     }
-    /* You might want to set specific weights for headings if using Inter */
+
     h1, h2, h3, h4, h5, h6 {
         color: var(--primary-color);
-        font-weight: 600; /* Example: A common boldish weight for headings */
+        font-weight: 600; /* Consistent heading weight */
     }
-.main .block-container > div:first-child > div:first-child > div:first-child > h1 {
+    .main .block-container > div:first-child > div:first-child > div:first-child > h1 {
         text-align: center;
         font-size: 2.6em;
         font-weight: 700;
@@ -174,7 +188,6 @@ html_css = """
         padding-bottom: 15px;
         margin-bottom: 25px;
         font-size: 1.75em;
-        font-weight: 600;
     }
     .card h4 {
         color: var(--secondary-color);
@@ -189,9 +202,18 @@ html_css = """
         color: var(--text-color);
         margin-top: 25px;
         margin-bottom: 12px;
-        font-weight: 600;
     }
-    .card h6 {
+    .card h6 { /* Adjusted this for less aggressive uppercase and more subtitle like */
+        font-size: 0.95em; /* Smaller for subtitle under h5 */
+        color: var(--text-muted-color);
+        margin-top: 0px; /* Reduced top margin if it's under an h5 */
+        margin-bottom: 15px; /* Space before content */
+        font-weight: 500;
+        /* text-transform: uppercase; REMOVED for less shouty subtitles */
+        /* letter-spacing: 0.5px; */
+    }
+    /* Specifically for "Select Allowance Type" kind of labels */
+    .form-field-label h6 {
         font-size: 1em;
         color: var(--text-muted-color);
         margin-top: 20px;
@@ -201,23 +223,33 @@ html_css = """
         letter-spacing: 0.5px;
     }
 
+
+    /* --- Login Container --- */
     .login-container {
         max-width: 480px; 
         margin: 60px auto;
         border-top: 5px solid var(--secondary-color); 
     }
-    .login-container .stButton button {
+    /* --- CORRECTED LOGIN BUTTON --- */
+    .login-container .stButton button { 
         width: 100%;
-        background-color: var(--secondary-color);
+        background-color: var(--secondary-color) !important; 
+        color: white !important; 
         font-size: 1.1em;
         padding: 12px 20px; 
         border-radius: var(--border-radius);
+        border: none !important; 
+        font-weight: 600 !important; /* Make login button text bolder */
+        box-shadow: var(--box-shadow-sm) !important;
     }
     .login-container .stButton button:hover {
-        background-color: var(--primary-color);
+        background-color: var(--primary-color) !important; 
+        color: white !important;
+        box-shadow: var(--box-shadow) !important;
     }
 
-    .stButton button {
+    /* --- General Streamlit Button Styling (NOT LOGIN BUTTON) --- */
+    .stButton:not(.login-container .stButton) button { /* Exclude login button from this general rule */
         background-color: var(--success-color);
         color: white;
         padding: 10px 24px; 
@@ -229,23 +261,27 @@ html_css = """
         box-shadow: var(--box-shadow-sm);
         cursor: pointer;
     }
-    .stButton button:hover {
+    .stButton:not(.login-container .stButton) button:hover {
         background-color: #218838; 
         transform: translateY(-2px);
         box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);
     }
-    .stButton button:active {
+    .stButton:not(.login-container .stButton) button:active {
         transform: translateY(0px);
         box-shadow: var(--box-shadow-sm);
     }
+    /* Sidebar Logout Button (already specific enough) */
     .stButton button[id*="logout_button_sidebar"] { 
         background-color: var(--danger-color) !important;
-        border: 1px solid var(--danger-color) !important;
+        border: 1px solid var(--danger-color) !important; /* Keep border for this one if desired */
+        color: white !important; /* Ensure text is white */
+        font-weight: 500 !important;
     }
     .stButton button[id*="logout_button_sidebar"]:hover {
         background-color: #c82333 !important; 
         border-color: #c82333 !important;
     }
+
 
     .stTextInput input,
     .stNumberInput input,
@@ -280,46 +316,44 @@ html_css = """
         box-shadow: 0 0 0 0.2rem rgba(32, 112, 192, 0.25) !important; 
     }
 
-    /* --- Sidebar --- */
+    /* --- Sidebar (Using Option 1: Light Blue Unselected Text, White Selected Text) --- */
     [data-testid="stSidebar"] {
-        background-color: var(--primary-color);
+        background-color: var(--primary-color); /* Dark Blue Background */
         padding: 25px !important;
         box-shadow: 0.25rem 0 1rem rgba(0,0,0,0.1);
     }
     [data-testid="stSidebar"] .sidebar-content {
         padding-top: 10px;
     }
-    /* General text color for p, h1-h3, and generic divs within the sidebar */
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3,
-    [data-testid="stSidebar"] div:not([data-testid="stRadio"]) { /* Target divs NOT part of radio group */
-        color: #e9ecef !important; /* Lighter text for general content */
+    [data-testid="stSidebar"] div:not([data-testid="stRadio"]) { 
+        color: #e9ecef !important; 
     }
-
-    /* Specific styling for Radio Button LABELS in the sidebar */
-    [data-testid="stSidebar"] .stRadio > label > div > p { /* Target the <p> inside the radio label structure */
+    /* UNSELECTED Radio Button Text */
+    [data-testid="stSidebar"] .stRadio > label > div > p { 
         font-size: 1.05em !important;
-        color: var(--accent-color) !important; /* Light Blue for UNSELECTED radio labels */
+        color: var(--accent-color) !important; /* Light Blue Text (e.g., #70a1d7) */
         padding: 0; 
         margin: 0; 
     }
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p { /* Selected Sidebar Radio Label Text */
-        color: var(--card-bg-color) !important; /* Bright White for SELECTED radio label text */
+    /* SELECTED Radio Button Text */
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p { 
+        color: var(--card-bg-color) !important; /* White Text */
         font-weight: 600;
     }
-
-    /* Styling for the radio button's clickable area (background on hover/selection) */
+    /* Radio Button Clickable Area Styling */
     [data-testid="stSidebar"] .stRadio > label {
         padding: 10px 15px; 
         border-radius: var(--border-radius);
         margin-bottom: 6px;
         transition: background-color 0.2s ease; 
     }
-    [data-testid="stSidebar"] .stRadio > label:hover {
-        background-color: rgba(255, 255, 255, 0.08);
+    [data-testid="stSidebar"] .stRadio > label:hover { 
+        background-color: rgba(255, 255, 255, 0.08); 
     }
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label { /* Background for selected radio */
-        background-color: rgba(255, 255, 255, 0.15);
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label { 
+        background-color: rgba(255, 255, 255, 0.15); 
     }
     .welcome-text {
         font-size: 1.4em;
@@ -386,7 +420,6 @@ html_css = """
         margin-bottom: 5px;
         font-size: 1em;
         color: var(--primary-color);
-        font-weight: 600;
     }
     .employee-progress-item p { 
         font-size: 0.85em;
@@ -401,14 +434,14 @@ html_css = """
         width: 100%;
     }
 
-    div[role="radiogroup"] {
+    div[role="radiogroup"] { /* Main content horizontal radios */
         display: flex;
         flex-wrap: wrap;
         gap: 10px; 
         margin-bottom: 25px;
     }
     div[role="radiogroup"] > label { 
-        background-color: #668aad;
+        background-color: #e9ecef;
         color: var(--text-muted-color);
         padding: 10px 18px;
         border-radius: var(--border-radius);
@@ -419,7 +452,7 @@ html_css = """
         font-weight: 500;
     }
     div[role="radiogroup"] > label:hover {
-        background-color: #0f3c67;
+        background-color: #dde2e6;
         border-color: #adb5bd;
         color: var(--text-color);
     }
@@ -433,12 +466,10 @@ html_css = """
     .employee-section-header {
         color: var(--secondary-color); margin-top: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 1.35em;
     }
-    .record-type-header {
-        font-size: 1.1em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px; font-weight: 600;
+    .record-type-header { /* e.g. "My Attendance" */
+        font-size: 1.2em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px; font-weight: 600;
     }
-    .allowance-summary-header {
-        font-size: 1.0em; color: var(--text-muted-color); margin-top: 18px; margin-bottom: 10px; font-weight: 500;
-    }
+    /* .allowance-summary-header used for map titles, not general h6 */
 
     div[data-testid="stImage"] > img { 
         border-radius: var(--border-radius-lg);
@@ -507,6 +538,7 @@ html_css = """
 
 </style>
 """
+
 st.markdown(html_css, unsafe_allow_html=True)
 
 # --- Credentials & User Info ---
