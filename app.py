@@ -38,202 +38,386 @@ except ImportError:
     PILLOW_INSTALLED = False
 
 html_css = """
+html_css = """
 <style>
+    :root {
+        --primary-color: #1c4e80; /* Dark Blue */
+        --secondary-color: #2070c0; /* Medium Blue */
+        --accent-color: #70a1d7; /* Light Blue */
+        --success-color: #28a745; /* Green */
+        --danger-color: #dc3545; /* Red */
+        --warning-color: #ffc107; /* Yellow */
+        --info-color: #17a2b8; /* Teal */
+
+        --body-bg-color: #f4f6f9; /* Slightly lighter gray for body */
+        --card-bg-color: #ffffff;
+        --text-color: #343a40; /* Darker gray for text */
+        --text-muted-color: #6c757d; /* Lighter gray for muted text */
+        --border-color: #dee2e6; /* Standard border color */
+        --input-border-color: #ced4da;
+
+        --font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        --border-radius: 0.375rem; /* 6px */
+        --border-radius-lg: 0.5rem; /* 8px */
+        --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075);
+        --box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
     /* --- General --- */
     body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f0f2f5; /* Light gray background */
-        color: #333;
+        font-family: var(--font-family-sans-serif);
+        background-color: var(--body-bg-color);
+        color: var(--text-color);
+        line-height: 1.6;
     }
+
     /* --- Titles & Headers --- */
-    h1, h2 { /* Global H1, H2 */
-        color: #1c4e80; /* Dark blue for headers */
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--primary-color);
+        font-weight: 600;
     }
     .main .block-container > div:first-child > div:first-child > div:first-child > h1 { /* Main page title */
         text-align: center;
-        font-size: 2.5em;
-        padding-bottom: 20px;
-        border-bottom: 2px solid #70a1d7;
-        margin-bottom: 30px;
+        font-size: 2.6em;
+        font-weight: 700;
+        padding-bottom: 25px;
+        border-bottom: 3px solid var(--accent-color);
+        margin-bottom: 40px;
+        letter-spacing: -0.5px;
     }
+
     /* --- Card Styling --- */
     .card {
-        background-color: #ffffff;
-        padding: 25px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        margin-bottom: 30px;
+        background-color: var(--card-bg-color);
+        padding: 30px; /* Increased padding */
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--box-shadow);
+        margin-bottom: 35px;
+        border: 1px solid var(--border-color);
     }
-    .card h3 { /* Page subheader inside card, e.g., "Digital Attendance" */
+    .card h3 { /* Page subheader inside card */
         margin-top: 0;
-        color: #1c4e80;
-        border-bottom: 1px solid #e0e0e0;
-        padding-bottom: 10px;
-        margin-bottom: 20px;
-        font-size: 1.5em;
-    }
-    .card h4 { /* Section headers inside card, e.g., "Admin: Manage Goals", "My Sales Goals" */
-        color: #2070c0;
-        margin-top: 25px;
-        margin-bottom: 15px;
-        font-size: 1.25em;
-        padding-bottom: 5px;
-        border-bottom: 1px dashed #d0d0d0;
-    }
-     .card h5 { /* Sub-section headers, e.g., "Team Goal Progress", "Attendance Records:" */
-        font-size: 1.1em;
-        color: #333;
-        margin-top: 20px; /* Increased top margin slightly */
-        margin-bottom: 10px;
+        color: var(--primary-color);
+        border-bottom: 2px solid #e9ecef; /* Lighter, thicker border */
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+        font-size: 1.75em;
         font-weight: 600;
     }
-    .card h6 { /* Small text headers, e.g., for radio groups, map titles */
-        font-size: 0.95em; /* Slightly larger for better readability */
-        color: #495057;
-        margin-top: 15px; /* Added top margin */
-        margin-bottom: 8px;
+    .card h4 { /* Section headers inside card */
+        color: var(--secondary-color);
+        margin-top: 30px;
+        margin-bottom: 20px;
+        font-size: 1.4em;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e0e0e0; /* Solid, lighter border */
+    }
+     .card h5 { /* Sub-section headers */
+        font-size: 1.15em;
+        color: var(--text-color);
+        margin-top: 25px;
+        margin-bottom: 12px;
+        font-weight: 600;
+    }
+    .card h6 { /* Small text headers / labels */
+        font-size: 1em;
+        color: var(--text-muted-color);
+        margin-top: 20px;
+        margin-bottom: 10px;
         font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
+
     /* --- Login Container --- */
-    .login-container { max-width: 450px; margin: 50px auto; }
-    .login-container .stButton button { width: 100%; background-color: #2070c0; font-size: 1.1em; }
-    .login-container .stButton button:hover { background-color: #1c4e80; }
+    .login-container {
+        max-width: 480px; /* Slightly wider */
+        margin: 60px auto;
+        border-top: 5px solid var(--secondary-color); /* Accent border top */
+    }
+    .login-container .stButton button {
+        width: 100%;
+        background-color: var(--secondary-color);
+        font-size: 1.1em;
+        padding: 12px 20px; /* Larger padding */
+        border-radius: var(--border-radius);
+    }
+    .login-container .stButton button:hover {
+        background-color: var(--primary-color);
+    }
 
-    /* --- Streamlit Button Styling --- */
+    /* --- Streamlit Button Styling (General) --- */
     .stButton button {
-        background-color: #28a745; color: white; padding: 10px 20px; border: none;
-        border-radius: 5px; font-size: 1em; font-weight: bold;
-        transition: background-color 0.3s ease, transform 0.1s ease;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer;
+        background-color: var(--success-color);
+        color: white;
+        padding: 10px 24px; /* Adjusted padding */
+        border: none;
+        border-radius: var(--border-radius);
+        font-size: 1.05em; /* Slightly larger font */
+        font-weight: 500; /* Medium weight */
+        transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+        box-shadow: var(--box-shadow-sm);
+        cursor: pointer;
     }
-    .stButton button:hover { background-color: #218838; transform: translateY(-1px); }
-    .stButton button:active { transform: translateY(0px); }
-    .stButton button[id*="logout_button_sidebar"] { background-color: #dc3545 !important; }
-    .stButton button[id*="logout_button_sidebar"]:hover { background-color: #c82333 !important; }
+    .stButton button:hover {
+        background-color: #218838; /* Darker green on hover */
+        transform: translateY(-2px);
+        box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);
+    }
+    .stButton button:active {
+        transform: translateY(0px);
+        box-shadow: var(--box-shadow-sm);
+    }
+    .stButton button[id*="logout_button_sidebar"] { /* Sidebar logout */
+        background-color: var(--danger-color) !important;
+        border: 1px solid var(--danger-color) !important;
+    }
+    .stButton button[id*="logout_button_sidebar"]:hover {
+        background-color: #c82333 !important; /* Darker red on hover */
+        border-color: #c82333 !important;
+    }
 
-    /* --- Input Fields (MODIFIED SECTION) --- */
-    .stTextInput input, 
-    .stNumberInput input, 
-    .stTextArea textarea, 
-    .stSelectbox div[data-baseweb="select"] > div { /* General selectbox styling for consistency */
-        border-radius: 5px !important; 
-        border: 1px solid #ced4da !important;
-        padding: 10px !important; 
-        font-size: 1em !important; 
-        color: #212529 !important;      /* Ensure dark text color */
-        background-color: #fff !important; /* Ensure white background */
+    /* --- Input Fields --- */
+    .stTextInput input,
+    .stNumberInput input,
+    .stTextArea textarea,
+    .stDateInput input,
+    .stTimeInput input,
+    .stSelectbox div[data-baseweb="select"] > div {
+        border-radius: var(--border-radius) !important;
+        border: 1px solid var(--input-border-color) !important;
+        padding: 10px 12px !important; /* Consistent padding */
+        font-size: 1em !important;
+        color: var(--text-color) !important;
+        background-color: var(--card-bg-color) !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    /* Ensure placeholder text is also visible if it was an issue */
     .stTextInput input::placeholder,
     .stNumberInput input::placeholder,
     .stTextArea textarea::placeholder {
-        color: #6c757d !important; /* A standard placeholder color */
-        opacity: 1; /* Ensure it's not transparent */
+        color: var(--text-muted-color) !important;
+        opacity: 1;
     }
+    .stTextArea textarea {
+        min-height: 120px; /* Slightly taller */
+    }
+    /* Focus States for Inputs */
+    .stTextInput input:focus,
+    .stNumberInput input:focus,
+    .stTextArea textarea:focus,
+    .stDateInput input:focus,
+    .stTimeInput input:focus,
+    .stSelectbox div[data-baseweb="select"] > div:focus-within { /* More reliable for selectbox */
+        border-color: var(--secondary-color) !important;
+        box-shadow: 0 0 0 0.2rem rgba(var(--rgb-secondary-color, 32, 112, 192), 0.25) !important; /* Using RGB values for secondary color if available or fallback */
+    }
+    /* Helper for box-shadow with variable - define secondary color in RGB if needed */
+    :root { --rgb-secondary-color: 32, 112, 192; } /* Example for #2070c0 */
 
-    .stTextArea textarea { 
-        min-height: 100px;
-        /* The color and background should be inherited from the rule above */
-    }
-
-    /* If inputs are specifically within a card and need more specific overriding: */
-    .card .stTextInput input,
-    .card .stNumberInput input,
-    .card .stTextArea textarea {
-        color: #212529 !important; 
-        background-color: #fff !important;
-    }
-    /* --- END OF MODIFIED INPUT FIELDS SECTION --- */
 
     /* --- Sidebar --- */
-    [data-testid="stSidebar"] { background-color: #1c4e80; padding: 20px !important; }
-    [data-testid="stSidebar"] .sidebar-content { padding-top: 20px; }
+    [data-testid="stSidebar"] {
+        background-color: var(--primary-color);
+        padding: 25px !important;
+        box-shadow: 0.25rem 0 1rem rgba(0,0,0,0.1); /* Shadow on the right */
+    }
+    [data-testid="stSidebar"] .sidebar-content {
+        padding-top: 10px; /* Reduced top padding */
+    }
     [data-testid="stSidebar"] p, [data-testid="stSidebar"] div, [data-testid="stSidebar"] label,
-    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 { color: #ffffff !important; }
-    [data-testid="stSidebar"] .stRadio > label { font-size: 1.1em !important; color: #a9d6e5 !important; padding-bottom: 8px; }
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] > label { color: #ffffff !important; font-weight: bold; }
-    .welcome-text { font-size: 1.3em; font-weight: bold; margin-bottom: 25px; text-align: center; color: #ffffff; border-bottom: 1px solid #70a1d7; padding-bottom: 15px;}
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+        color: #e9ecef !important; /* Lighter text for contrast */
+    }
+    [data-testid="stSidebar"] .stRadio > label { /* Sidebar Radio Label */
+        font-size: 1.05em !important;
+        color: #ced4da !important; /* Muted white */
+        padding: 10px 15px;
+        border-radius: var(--border-radius);
+        margin-bottom: 6px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label { /* Selected Sidebar Radio */
+        color: var(--card-bg-color) !important;
+        font-weight: 600;
+        background-color: rgba(255, 255, 255, 0.15); /* Subtle highlight */
+    }
+    [data-testid="stSidebar"] .stRadio > label:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+        color: #f8f9fa !important;
+    }
+    .welcome-text {
+        font-size: 1.4em; /* Larger welcome text */
+        font-weight: 600;
+        margin-bottom: 25px;
+        text-align: center;
+        color: var(--card-bg-color) !important;
+        border-bottom: 1px solid var(--accent-color);
+        padding-bottom: 20px;
+    }
+    [data-testid="stSidebar"] [data-testid="stImage"] > img {
+        border-radius: 50%; /* Circular profile photo */
+        border: 3px solid var(--accent-color);
+        margin: 0 auto 10px auto; /* Center image */
+        display: block;
+    }
+
 
     /* --- Dataframe Styling --- */
-    .stDataFrame { width: 100%; border: 1px solid #d1d9e1; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.06); margin-bottom: 20px; }
-    .stDataFrame table { width: 100%; border-collapse: collapse; }
-    .stDataFrame table thead th { background-color: #f0f2f5; color: #1c4e80; font-weight: 600; text-align: left; padding: 12px 15px; border-bottom: 2px solid #c5cdd5; font-size: 0.9em; }
-    .stDataFrame table tbody td { padding: 10px 15px; border-bottom: 1px solid #e7eaf0; vertical-align: middle; color: #333; font-size: 0.875em; }
-    .stDataFrame table tbody tr:last-child td { border-bottom: none; }
-    .stDataFrame table tbody tr:hover { background-color: #e9ecef; }
+    .stDataFrame {
+        width: 100%;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        box-shadow: var(--box-shadow-sm);
+        margin-bottom: 25px;
+    }
+    .stDataFrame table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .stDataFrame table thead th {
+        background-color: #e9ecef; /* Lighter, neutral header */
+        color: var(--primary-color);
+        font-weight: 600;
+        text-align: left;
+        padding: 14px 18px; /* Increased padding */
+        border-bottom: 2px solid var(--border-color);
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .stDataFrame table tbody td {
+        padding: 12px 18px; /* Increased padding */
+        border-bottom: 1px solid #f1f3f5; /* Softer internal borders */
+        vertical-align: middle;
+        color: var(--text-color);
+        font-size: 0.9em;
+    }
+    .stDataFrame table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .stDataFrame table tbody tr:hover {
+        background-color: #f8f9fa; /* Subtle hover */
+    }
 
     /* --- Columns for buttons --- */
-    .button-column-container > div[data-testid="stHorizontalBlock"] { gap: 15px; }
-    .button-column-container .stButton button { width: 100%; }
-
-    /* Horizontal Radio Buttons */
-    div[role="radiogroup"] { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
-    div[role="radiogroup"] > label { background-color: #86a7c7; padding: 8px 15px; border-radius: 20px; border: 1px solid #ced4da; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; font-size: 0.95em; }
-    div[role="radiogroup"] > label:hover { background-color: #dde2e6; border-color: #adb5bd; }
-    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label { background-color: #2070c0 !important; color: white !important; border-color: #1c4e80 !important; font-weight: 500; }
-
-    /* --- Employee/Record Specific Headers (used in View Logs and Goal Tracker) --- */
-    .employee-section-header { /* For Admin view: "Records for: Employee Name" */
-        color: #2070c0; margin-top: 30px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; font-size: 1.3em;
+    .button-column-container > div[data-testid="stHorizontalBlock"] {
+        gap: 20px; /* Increased gap */
     }
-    .record-type-header { /* For "Attendance Records:", "Allowance Section:" */
-        font-size: 1.1em; color: #333; margin-top: 20px; margin-bottom: 10px; font-weight: 600;
+    .button-column-container .stButton button {
+        width: 100%;
     }
-    .allowance-summary-header { /* For map titles, "Monthly Allowance Summary" */
-        font-size: 1.0em; color: #495057; margin-top: 15px; margin-bottom: 8px; font-weight: 550;
-    }
-    div[data-testid="stImage"] > img { border-radius: 8px; border: 2px solid #e0e0e0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .stProgress > div > div { background-color: #2070c0 !important; }
-    div[data-testid="stMetricLabel"] { font-size: 0.9em !important; color: #555 !important; }
 
-    /* --- Custom Notification Styling --- */
-    .custom-notification {
-        padding: 10px 15px;
-        border-radius: 5px;
-        margin-bottom: 15px;
+    /* Horizontal Radio Buttons (Main Content) */
+    div[role="radiogroup"] {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px; /* Slightly reduced gap for tighter look if many options */
+        margin-bottom: 25px;
+    }
+    div[role="radiogroup"] > label { /* Unselected radio button */
+        background-color: #e9ecef;
+        color: var(--text-muted-color);
+        padding: 10px 18px;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--input-border-color);
+        cursor: pointer;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
         font-size: 0.95em;
-        border-left: 5px solid;
+        font-weight: 500;
+    }
+    div[role="radiogroup"] > label:hover {
+        background-color: #dde2e6;
+        border-color: #adb5bd;
+        color: var(--text-color);
+    }
+    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label { /* Selected radio button */
+        background-color: var(--secondary-color) !important;
+        color: white !important;
+        border-color: var(--secondary-color) !important;
+        font-weight: 500;
+    }
+
+    /* --- Specific Section Headers (already well-defined, minor tweaks) --- */
+    .employee-section-header {
+        color: var(--secondary-color); margin-top: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 1.35em;
+    }
+    .record-type-header {
+        font-size: 1.1em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px; font-weight: 600;
+    }
+    .allowance-summary-header {
+        font-size: 1.0em; color: var(--text-muted-color); margin-top: 18px; margin-bottom: 10px; font-weight: 500;
+    }
+
+    /* --- Image & Progress Bar --- */
+    div[data-testid="stImage"] > img { /* General images, not sidebar one */
+        border-radius: var(--border-radius-lg);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--box-shadow-sm);
+    }
+    .stProgress > div > div { /* Progress bar fill */
+        background-color: var(--secondary-color) !important;
+        border-radius: var(--border-radius);
+    }
+    .stProgress { /* Progress bar container */
+        border-radius: var(--border-radius);
+        background-color: #e9ecef;
+    }
+    div[data-testid="stMetricLabel"] {
+        font-size: 0.95em !important;
+        color: var(--text-muted-color) !important;
+        font-weight: 500;
+    }
+    div[data-testid="stMetricValue"] {
+        font-size: 1.8em !important; /* Larger metric value */
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+
+    /* --- Custom Notification Styling (Enhanced) --- */
+    .custom-notification {
+        padding: 15px 20px;
+        border-radius: var(--border-radius);
+        margin-bottom: 20px;
+        font-size: 1em;
+        border-left-width: 5px;
+        border-left-style: solid;
+        display: flex; /* For icon alignment if you add one */
+        align-items: center;
     }
     .custom-notification.success {
-        background-color: #d4edda; /* Light green */
-        color: #155724; /* Dark green */
-        border-left-color: #28a745; /* Green accent */
+        background-color: #d1e7dd; color: #0f5132; border-left-color: var(--success-color);
     }
     .custom-notification.error {
-        background-color: #f8d7da; /* Light red */
-        color: #721c24; /* Dark red */
-        border-left-color: #dc3545; /* Red accent */
+        background-color: #f8d7da; color: #842029; border-left-color: var(--danger-color);
     }
     .custom-notification.warning {
-        background-color: #fff3cd; /* Light yellow */
-        color: #856404; /* Dark yellow */
-        border-left-color: #ffc107; /* Yellow accent */
+        background-color: #fff3cd; color: #664d03; border-left-color: var(--warning-color);
     }
-     .custom-notification.info {
-        background-color: #d1ecf1; /* Light blue */
-        color: #0c5460; /* Dark blue */
-        border-left-color: #17a2b8; /* Blue accent */
+    .custom-notification.info {
+        background-color: #cff4fc; color: #055160; border-left-color: var(--info-color);
     }
 
-
-        .card { /* This .card definition might be redundant or conflict if not careful. The earlier one is more comprehensive. */
-        background-color: #f9f9f9; /* A slightly different background than the main .card style */
-        padding: 1.5rem;
-        border-radius: 1rem;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        margin-bottom: 2rem;
-    }
+    /* --- Badge Styling --- */
     .badge {
         display: inline-block;
-        padding: 0.25rem 0.5rem;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: bold;
-        color: white;
+        padding: 0.35em 0.65em; /* Slightly larger padding */
+        font-size: 0.85em; /* Slightly larger font */
+        font-weight: 600; /* Bolder */
+        line-height: 1;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: var(--border-radius); /* Consistent border-radius */
     }
-    .badge.green { background-color: #2ecc71; }
-    .badge.red { background-color: #e74c3c; }
-    .badge.orange { background-color: #f39c12; }
+    .badge.green { background-color: var(--success-color); }
+    .badge.red { background-color: var(--danger-color); }
+    .badge.orange { background-color: var(--warning-color); }
+    .badge.blue { background-color: var(--secondary-color); } /* Added a blue badge */
+    .badge.grey { background-color: var(--text-muted-color); } /* Added a grey badge */
+
 </style>
 """
 st.markdown(html_css, unsafe_allow_html=True)
