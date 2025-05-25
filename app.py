@@ -5,6 +5,8 @@ import os
 import pytz
 import sys
 import altair as alt
+import matplotlib.pyplot as plt
+
 
 def render_goal_chart(df: pd.DataFrame, title: str):
     if df.empty:
@@ -789,6 +791,7 @@ elif nav == "🎯 Goal Tracker":
         else: st.info(f"No past goal records found for {TARGET_GOAL_YEAR}.")
     st.markdown("</div>", unsafe_allow_html=True)
 
+#----------------------------------------------------------collectiontrakerstart---------------------------
 
 elif nav == "💰 Payment Collection Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -913,6 +916,61 @@ elif nav == "💰 Payment Collection Tracker":
             st.dataframe(past_payment_goals[["MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]], use_container_width=True)
         else: st.info("No past collection goals found.")
     st.markdown('</div>', unsafe_allow_html=True)
+
+    import matplotlib.pyplot as plt
+
+# Visualization: Bar Chart and Circle Plot for Admins
+if summary_payment:
+    df_plot = pd.DataFrame(summary_payment)
+
+    # Bar Chart for Team Collection
+    fig_bar, ax_bar = plt.subplots(figsize=(8, 5))
+    bar_width = 0.35
+    x = range(len(df_plot))
+
+    ax_bar.bar(x, df_plot["Target"], width=bar_width, label="Target", color="#FFD700")
+    ax_bar.bar([i + bar_width for i in x], df_plot["Collected"], width=bar_width, label="Collected", color="#90EE90")
+    ax_bar.set_xticks([i + bar_width / 2 for i in x])
+    ax_bar.set_xticklabels(df_plot["Employee"], rotation=45, ha="right")
+    ax_bar.set_ylabel("Amount (₹)")
+    ax_bar.set_title("Payment Collection Comparison")
+    ax_bar.legend()
+    st.pyplot(fig_bar)
+
+    # Circle Chart (Pie of achievement %)
+    fig_pie, ax_pie = plt.subplots(figsize=(6, 6))
+    achieved_total = df_plot["Collected"].sum()
+    target_total = df_plot["Target"].sum()
+    remaining = max(target_total - achieved_total, 0)
+
+    ax_pie.pie([achieved_total, remaining],
+               labels=["Collected", "Remaining"],
+               colors=["#00C49F", "#FFB6C1"],
+               autopct="%1.1f%%",
+               startangle=90,
+               wedgeprops=dict(width=0.4))
+    ax_pie.set_title("Overall Team Collection Achievement")
+    st.pyplot(fig_pie)
+
+    st.progress(prog_pay)
+st.caption(f"{prog_pay * 100:.1f}% Complete")
+
+# Pie Chart for Individual Achievement
+fig_user_pie, ax_user_pie = plt.subplots(figsize=(4, 4))
+collected_amt = ach_pay
+remaining_amt = max(tgt_pay - ach_pay, 0)
+
+ax_user_pie.pie([collected_amt, remaining_amt],
+                labels=["Collected", "Remaining"],
+                colors=["#32CD32", "#FFB6C1"],
+                autopct="%1.1f%%",
+                startangle=90,
+                wedgeprops=dict(width=0.4))
+ax_user_pie.set_title("My Collection Progress")
+st.pyplot(fig_user_pie)
+
+#-----------------------------end collection---------------------------------------------
+
 
 
 elif nav == "📊 View Logs":
