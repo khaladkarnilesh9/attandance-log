@@ -656,7 +656,7 @@ if not st.session_state.auth["logged_in"]:
     st.markdown('</div>', unsafe_allow_html=True); st.stop()
 
 # --- Main Application ---
-st.title("👨‍💼 HR Dashboard")
+st.title("👨‍💼 GoalLedger")
 current_user = st.session_state.auth
 
 message_placeholder = st.empty()
@@ -667,7 +667,7 @@ if st.session_state.user_message:
 # --- Sidebar ---
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
-    nav_options = ["📆 Attendance", "🧾 Allowance", "🎯 Goal Tracker","💰 Payment Collection Tracker", "📊 View Logs"]
+    nav_options = ["📆 Attendance", "🧾 Allowance", "🎯 Goal Tracker","💰 Payment Collection", "📊 View Logs"]
     nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
