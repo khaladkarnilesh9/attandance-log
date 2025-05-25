@@ -888,6 +888,7 @@ status = "Achieved"  # Or "In Progress", or "Pending"
 badge_color = "green" if status == "Achieved" else "orange" if status == "In Progress" else "red"
 status_badge = f"<span class='badge {badge_color}'>{status}</span>"
 st.markdown(f"Status: {status_badge}", unsafe_allow_html=True)
+#---------------------------------------------------------payemnt collection logic------------------------------
 
 elif nav == "📊 View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -898,43 +899,127 @@ elif nav == "📊 View Logs":
         employee_options = list(USERS.keys())
         selected_employee = st.selectbox("Select Employee:", employee_options)
         
+        # Display employee info
+        user_info = USERS.get(selected_employee, {})
+        if user_info.get("profile_photo") and os.path.exists(user_info["profile_photo"]):
+            st.image(user_info["profile_photo"], width=80)
+        st.markdown(f"<p><strong>Position:</strong> {user_info.get('position', 'N/A')}</p>", unsafe_allow_html=True)
+        
         # Display attendance records
-        st.markdown("<h5>Attendance Records</h5>", unsafe_allow_html=True)
-        emp_attendance = attendance_df[attendance_df["Username"] == selected_employee]
+        st.markdown("<h5 class='employee-section-header'>Attendance Records</h5>", unsafe_allow_html=True)
+        emp_attendance = attendance_df[attendance_df["Username"] == selected_employee].copy()
+        
         if not emp_attendance.empty:
-            st.dataframe(emp_attendance, use_container_width=True)
+            emp_attendance["Date"] = pd.to_datetime(emp_attendance["Timestamp"]).dt.date
+            emp_attendance["Time"] = pd.to_datetime(emp_attendance["Timestamp"]).dt.time
+            
+            # Show summary metrics
+            col1, col2 = st.columns(2)
+            last_check_in = emp_attendance[emp_attendance["Type"] == "Check-In"]["Timestamp"].max()
+            last_check_out = emp_attendance[emp_attendance["Type"] == "Check-Out"]["Timestamp"].max()
+            
+            col1.metric("Last Check-In", last_check_in if pd.notna(last_check_in) else "N/A")
+            col2.metric("Last Check-Out", last_check_out if pd.notna(last_check_out) else "N/A")
+            
+            # Show detailed records
+            st.dataframe(
+                emp_attendance[["Date", "Time", "Type"]],
+                column_config={
+                    "Date": "Date",
+                    "Time": "Time",
+                    "Type": "Type"
+                },
+                hide_index=True,
+                use_container_width=True
+            )
         else:
-            st.info("No attendance records found")
+            st.info("No attendance records found for this employee.")
         
         # Display allowance records
-        st.markdown("<h5>Allowance Records</h5>", unsafe_allow_html=True)
-        emp_allowance = allowance_df[allowance_df["Username"] == selected_employee]
+        st.markdown("<h5 class='employee-section-header'>Allowance Records</h5>", unsafe_allow_html=True)
+        emp_allowance = allowance_df[allowance_df["Username"] == selected_employee].copy()
+        
         if not emp_allowance.empty:
-            st.dataframe(emp_allowance, use_container_width=True)
+            # Calculate total allowances
+            total_allowance = emp_allowance["Amount"].sum()
+            st.metric("Total Allowances", f"₹{total_allowance:,.2f}")
+            
+            # Show detailed records
+            st.dataframe(
+                emp_allowance[["Date", "Type", "Amount", "Reason"]],
+                column_config={
+                    "Date": "Date",
+                    "Type": "Type",
+                    "Amount": st.column_config.NumberColumn("Amount (₹)", format="%.2f"),
+                    "Reason": "Reason"
+                },
+                hide_index=True,
+                use_container_width=True
+            )
         else:
-            st.info("No allowance records found")
+            st.info("No allowance records found for this employee.")
+            
     else:
         # Employee view
         st.markdown("<h4>My Records</h4>", unsafe_allow_html=True)
         
         # Display my attendance
-        st.markdown("<h5>My Attendance</h5>", unsafe_allow_html=True)
-        my_attendance = attendance_df[attendance_df["Username"] == current_user["username"]]
+        st.markdown("<h5 class='employee-section-header'>My Attendance</h5>", unsafe_allow_html=True)
+        my_attendance = attendance_df[attendance_df["Username"] == current_user["username"]].copy()
+        
         if not my_attendance.empty:
-            st.dataframe(my_attendance, use_container_width=True)
+            my_attendance["Date"] = pd.to_datetime(my_attendance["Timestamp"]).dt.date
+            my_attendance["Time"] = pd.to_datetime(my_attendance["Timestamp"]).dt.time
+            
+            # Show summary metrics
+            col1, col2 = st.columns(2)
+            last_check_in = my_attendance[my_attendance["Type"] == "Check-In"]["Timestamp"].max()
+            last_check_out = my_attendance[my_attendance["Type"] == "Check-Out"]["Timestamp"].max()
+            
+            col1.metric("Last Check-In", last_check_in if pd.notna(last_check_in) else "N/A")
+            col2.metric("Last Check-Out", last_check_out if pd.notna(last_check_out) else "N/A")
+            
+            # Show detailed records
+            st.dataframe(
+                my_attendance[["Date", "Time", "Type"]],
+                column_config={
+                    "Date": "Date",
+                    "Time": "Time",
+                    "Type": "Type"
+                },
+                hide_index=True,
+                use_container_width=True
+            )
         else:
-            st.info("No attendance records found")
+            st.info("No attendance records found for you.")
         
         # Display my allowances
-        st.markdown("<h5>My Allowances</h5>", unsafe_allow_html=True)
-        my_allowance = allowance_df[allowance_df["Username"] == current_user["username"]]
+        st.markdown("<h5 class='employee-section-header'>My Allowances</h5>", unsafe_allow_html=True)
+        my_allowance = allowance_df[allowance_df["Username"] == current_user["username"]].copy()
+        
         if not my_allowance.empty:
-            st.dataframe(my_allowance, use_container_width=True)
+            # Calculate total allowances
+            total_allowance = my_allowance["Amount"].sum()
+            st.metric("Total Allowances", f"₹{total_allowance:,.2f}")
+            
+            # Show detailed records
+            st.dataframe(
+                my_allowance[["Date", "Type", "Amount", "Reason"]],
+                column_config={
+                    "Date": "Date",
+                    "Type": "Type",
+                    "Amount": st.column_config.NumberColumn("Amount (₹)", format="%.2f"),
+                    "Reason": "Reason"
+                },
+                hide_index=True,
+                use_container_width=True
+            )
         else:
-            st.info("No allowance records found")
+            st.info("No allowance records found for you.")
     
     st.markdown('</div>', unsafe_allow_html=True)
 
+# Remove the duplicate status badges at the end of the file
 
 badge_color = "green" if status == "Achieved" else "orange" if status == "In Progress" else "red"
 status_badge = f"<span class='badge {badge_color}'>{status}</span>"
