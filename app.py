@@ -122,42 +122,34 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     return fig
 
 html_css = """
-<style>
+
+    
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'); /* IMPORT INTER */
+
     :root {
         --primary-color: #1c4e80; /* Dark Blue */
-        --secondary-color: #2070c0; /* Medium Blue */
-        --accent-color: #70a1d7; /* Light Blue */
-        --success-color: #28a745; /* Green */
-        --danger-color: #dc3545; /* Red */
-        --warning-color: #ffc107; /* Yellow */
-        --info-color: #17a2b8; /* Teal */
+        /* ... other variables ... */
 
-        --body-bg-color: #f4f6f9; 
-        --card-bg-color: #ffffff;
-        --text-color: #343a40; 
-        --text-muted-color: #6c757d; 
-        --border-color: #dee2e6; 
-        --input-border-color: #ced4da;
-
-        --font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-        --border-radius: 0.375rem; 
-        --border-radius-lg: 0.5rem; 
-        --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075);
-        --box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        /* UPDATED FONT STACK */
+        --font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        /* ... other variables ... */
     }
 
+    /* --- General --- */
     body {
-        font-family: var(--font-family-sans-serif);
+        font-family: var(--font-family-sans-serif); /* This will now use Inter first */
         background-color: var(--body-bg-color);
         color: var(--text-color);
         line-height: 1.6;
+        font-weight: 400; /* Default weight for Inter */
     }
-
+    /* You might want to set specific weights for headings if using Inter */
     h1, h2, h3, h4, h5, h6 {
         color: var(--primary-color);
-        font-weight: 600;
+        font-weight: 600; /* Example: A common boldish weight for headings */
     }
-    .main .block-container > div:first-child > div:first-child > div:first-child > h1 {
+.main .block-container > div:first-child > div:first-child > div:first-child > h1 {
         text-align: center;
         font-size: 2.6em;
         font-weight: 700;
