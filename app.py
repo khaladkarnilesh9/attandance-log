@@ -487,7 +487,7 @@ elif nav == "📊 View Logs":
         # ...
 
     st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown("DEBUG: Exiting 'View Logs' section.", unsafe_allow_html=True) # Prominent debug
+    st.markdown("DEBUG: Exiting 'View Logs' section.", unsafe_allow_html=True) # Prominent debuge
 
 #--------------------------------------------------------------------end-viewlog---------------------------------------------
 
