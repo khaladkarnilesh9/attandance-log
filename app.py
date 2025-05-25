@@ -498,22 +498,50 @@ elif nav == "💰 Payment Collection Tracker":
                     new_ach_payment=st.number_input("Collected Amount (INR)",value=ach_payment_val,min_value=0.0,step=500.0,key=f"achieved_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
                     new_status_payment=st.selectbox("Status",status_options_payment,index=status_options_payment.index(stat_payment),key=f"status_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
                     submitted_payment=st.form_submit_button("Save Goal")
-                if submitted_payment:
-                    if not new_desc_payment.strip(): st.warning("Description required.")
-                    elif new_tgt_payment <= 0 and new_status_payment not in ["Cancelled","Not Started"]: st.warning("Target > 0 required.")
-                    else:
-                        editable_payment_goals_df=payment_goals_df.copy(); existing_pg_indices=editable_payment_goals_df[(editable_payment_goals_df["Username"]==selected_emp_payment)&(editable_payment_goals_df["MonthYear"]==selected_period_payment)].index
-                        if not existing_pg_indices.empty: editable_payment_goals_df.loc[existing_pg_indices[0]]=[selected_emp_payment,selected_period_payment,new_desc_payment,new_tgt_payment,new_ach_payment,new_status_payment]; msg_payment="updated"
-                        else:
-                            new_row_data_p={"Username":selected_emp_payment,"MonthYear":selected_period_payment,"GoalDescription":new_desc_payment,"TargetAmount":new_tgt_payment,"AchievedAmount":new_ach_payment,"Status":new_status_payment}
-                            for col_name in PAYMENT_GOALS_COLUMNS:
-                                if col_name not in new_row_data_p: new_row_data_p[col_name]=pd.NA
-                            new_row_df_p=pd.DataFrame([new_row_data_p],columns=PAYMENT_GOALS_COLUMNS); editable_payment_goals_df=pd.concat([editable_payment_goals_df,new_row_df_p],ignore_index=True); msg_payment="set"
-                        try:
-                            editable_payment_goals_df.to_csv(PAYMENT_GOALS_FILE,index=False)
-                            payment_goals_df=load_data(PAYMENT_GOALS_FILE,PAYMENT_GOALS_COLUMNS) # Update global df
-                            st.session_state.user_message=f"Payment goal {msg_payment} for {selected_emp_payment} ({selected_period_payment})"; st.session_state.message_type="success"; st.rerun()
-                        except Exception as e: st.error(f"Error saving data: {e}")
+                    if submitted_payment:
+    if not new_desc_payment.strip():
+        st.warning("Goal description is required.")
+    elif new_tgt_payment <= 0 and new_status_payment not in ["Cancelled", "Not Started"]:
+        st.warning("Target must be greater than 0.")
+    else:
+        if not existing_payment_goal.empty:
+            payment_goals_df.loc[existing_payment_goal.index[0]] = [
+                selected_emp_payment,
+                selected_period_payment,
+                new_desc_payment,
+                new_tgt_payment,
+                new_ach_payment,
+                new_status_payment
+            ]
+            msg_payment = "updated"
+        else:
+            new_row_payment = {
+                "Username": selected_emp_payment,
+                "MonthYear": selected_period_payment,
+                "GoalDescription": new_desc_payment,
+                "TargetAmount": new_tgt_payment,
+                "AchievedAmount": new_ach_payment,
+                "Status": new_status_payment
+            }
+            for col in PAYMENT_GOALS_COLUMNS:
+                new_row_payment.setdefault(col, pd.NA)
+            payment_goals_df = pd.concat(
+                [payment_goals_df, pd.DataFrame([new_row_payment], columns=PAYMENT_GOALS_COLUMNS)],
+                ignore_index=True
+            )
+            msg_payment = "set"
+        try:
+            payment_goals_df.to_csv(PAYMENT_GOALS_FILE, index=False)
+            st.success(f"Payment goal {msg_payment} for {selected_emp_payment} ({selected_period_payment})")
+            
+            # Reload the updated data
+            payment_goals_df = pd.read_csv(PAYMENT_GOALS_FILE)
+            
+            # Trigger a rerun to refresh the state
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error saving payment data: {e}")
+
     else: # Employee View
         st.markdown("<h4>My Payment Collection Goals (2025)</h4>", unsafe_allow_html=True)
         user_goals_payment = payment_goals_df[payment_goals_df["Username"]==current_user["username"]].copy() # Use updated global df
