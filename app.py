@@ -124,29 +124,29 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
 html_css = """
 
 html_css = """
+html_css = """
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'); /* Using Inter as per your preference */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
     :root {
-        --primary-color: #1c4e80; /* Dark Blue */
-        --secondary-color: #2070c0; /* Medium Blue */
-        --accent-color: #70a1d7; /* Light Blue */
-        --success-color: #28a745; /* Green */
-        --danger-color: #dc3545; /* Red */
-        --warning-color: #ffc107; /* Yellow */
-        --info-color: #17a2b8; /* Teal */
+        --primary-color: #1c4e80;
+        --secondary-color: #2070c0;
+        --accent-color: #70a1d7;
+        --success-color: #28a745;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #17a2b8;
 
-        --body-bg-color: #f4f6f9; 
+        --body-bg-color: #f4f6f9;
         --card-bg-color: #ffffff;
-        --text-color: #343a40; 
-        --text-muted-color: #6c757d; 
-        --border-color: #dee2e6; 
+        --text-color: #343a40;
+        --text-muted-color: #6c757d;
+        --border-color: #dee2e6;
         --input-border-color: #ced4da;
 
-        /* UPDATED FONT STACK to Inter */
         --font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-        --border-radius: 0.375rem; 
-        --border-radius-lg: 0.5rem; 
+        --border-radius: 0.375rem;
+        --border-radius-lg: 0.5rem;
         --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075);
         --box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     }
@@ -156,12 +156,12 @@ html_css = """
         background-color: var(--body-bg-color);
         color: var(--text-color);
         line-height: 1.6;
-        font-weight: 400; /* Base weight for Inter */
+        font-weight: 400;
     }
 
     h1, h2, h3, h4, h5, h6 {
         color: var(--primary-color);
-        font-weight: 600; /* Consistent heading weight */
+        font-weight: 600;
     }
     .main .block-container > div:first-child > div:first-child > div:first-child > h1 {
         text-align: center;
@@ -175,7 +175,7 @@ html_css = """
 
     .card {
         background-color: var(--card-bg-color);
-        padding: 30px; 
+        padding: 30px;
         border-radius: var(--border-radius-lg);
         box-shadow: var(--box-shadow);
         margin-bottom: 35px;
@@ -184,7 +184,7 @@ html_css = """
     .card h3 {
         margin-top: 0;
         color: var(--primary-color);
-        border-bottom: 2px solid #e9ecef; 
+        border-bottom: 2px solid #e9ecef;
         padding-bottom: 15px;
         margin-bottom: 25px;
         font-size: 1.75em;
@@ -195,7 +195,7 @@ html_css = """
         margin-bottom: 20px;
         font-size: 1.4em;
         padding-bottom: 8px;
-        border-bottom: 1px solid #e0e0e0; 
+        border-bottom: 1px solid #e0e0e0;
     }
      .card h5 {
         font-size: 1.15em;
@@ -203,16 +203,13 @@ html_css = """
         margin-top: 25px;
         margin-bottom: 12px;
     }
-    .card h6 { /* Adjusted this for less aggressive uppercase and more subtitle like */
-        font-size: 0.95em; /* Smaller for subtitle under h5 */
+    .card h6 {
+        font-size: 0.95em;
         color: var(--text-muted-color);
-        margin-top: 0px; /* Reduced top margin if it's under an h5 */
-        margin-bottom: 15px; /* Space before content */
+        margin-top: 0px;
+        margin-bottom: 15px;
         font-weight: 500;
-        /* text-transform: uppercase; REMOVED for less shouty subtitles */
-        /* letter-spacing: 0.5px; */
     }
-    /* Specifically for "Select Allowance Type" kind of labels */
     .form-field-label h6 {
         font-size: 1em;
         color: var(--text-muted-color);
@@ -223,46 +220,42 @@ html_css = """
         letter-spacing: 0.5px;
     }
 
-
-    /* --- Login Container --- */
     .login-container {
-        max-width: 480px; 
+        max-width: 480px;
         margin: 60px auto;
-        border-top: 5px solid var(--secondary-color); 
+        border-top: 5px solid var(--secondary-color);
     }
-    /* --- CORRECTED LOGIN BUTTON --- */
-    .login-container .stButton button { 
+    .login-container .stButton button {
         width: 100%;
-        background-color: var(--secondary-color) !important; 
-        color: white !important; 
+        background-color: var(--secondary-color) !important;
+        color: white !important;
         font-size: 1.1em;
-        padding: 12px 20px; 
+        padding: 12px 20px;
         border-radius: var(--border-radius);
-        border: none !important; 
-        font-weight: 600 !important; /* Make login button text bolder */
+        border: none !important;
+        font-weight: 600 !important;
         box-shadow: var(--box-shadow-sm) !important;
     }
     .login-container .stButton button:hover {
-        background-color: var(--primary-color) !important; 
+        background-color: var(--primary-color) !important;
         color: white !important;
         box-shadow: var(--box-shadow) !important;
     }
 
-    /* --- General Streamlit Button Styling (NOT LOGIN BUTTON) --- */
-    .stButton:not(.login-container .stButton) button { /* Exclude login button from this general rule */
+    .stButton:not(.login-container .stButton) button {
         background-color: var(--success-color);
         color: white;
-        padding: 10px 24px; 
+        padding: 10px 24px;
         border: none;
         border-radius: var(--border-radius);
-        font-size: 1.05em; 
-        font-weight: 500; 
+        font-size: 1.05em;
+        font-weight: 500;
         transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
         box-shadow: var(--box-shadow-sm);
         cursor: pointer;
     }
     .stButton:not(.login-container .stButton) button:hover {
-        background-color: #218838; 
+        background-color: #218838;
         transform: translateY(-2px);
         box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);
     }
@@ -270,18 +263,16 @@ html_css = """
         transform: translateY(0px);
         box-shadow: var(--box-shadow-sm);
     }
-    /* Sidebar Logout Button (already specific enough) */
-    .stButton button[id*="logout_button_sidebar"] { 
+    .stButton button[id*="logout_button_sidebar"] {
         background-color: var(--danger-color) !important;
-        border: 1px solid var(--danger-color) !important; /* Keep border for this one if desired */
-        color: white !important; /* Ensure text is white */
+        border: 1px solid var(--danger-color) !important;
+        color: white !important;
         font-weight: 500 !important;
     }
     .stButton button[id*="logout_button_sidebar"]:hover {
-        background-color: #c82333 !important; 
+        background-color: #c82333 !important;
         border-color: #c82333 !important;
     }
-
 
     .stTextInput input,
     .stNumberInput input,
@@ -291,7 +282,7 @@ html_css = """
     .stSelectbox div[data-baseweb="select"] > div {
         border-radius: var(--border-radius) !important;
         border: 1px solid var(--input-border-color) !important;
-        padding: 10px 12px !important; 
+        padding: 10px 12px !important;
         font-size: 1em !important;
         color: var(--text-color) !important;
         background-color: var(--card-bg-color) !important;
@@ -304,21 +295,20 @@ html_css = """
         opacity: 1;
     }
     .stTextArea textarea {
-        min-height: 120px; 
+        min-height: 120px;
     }
     .stTextInput input:focus,
     .stNumberInput input:focus,
     .stTextArea textarea:focus,
     .stDateInput input:focus,
     .stTimeInput input:focus,
-    .stSelectbox div[data-baseweb="select"] > div:focus-within { 
+    .stSelectbox div[data-baseweb="select"] > div:focus-within {
         border-color: var(--secondary-color) !important;
-        box-shadow: 0 0 0 0.2rem rgba(32, 112, 192, 0.25) !important; 
+        box-shadow: 0 0 0 0.2rem rgba(32, 112, 192, 0.25) !important;
     }
 
-    /* --- Sidebar (Using Option 1: Light Blue Unselected Text, White Selected Text) --- */
     [data-testid="stSidebar"] {
-        background-color: var(--primary-color); /* Dark Blue Background */
+        background-color: var(--primary-color);
         padding: 25px !important;
         box-shadow: 0.25rem 0 1rem rgba(0,0,0,0.1);
     }
@@ -327,33 +317,30 @@ html_css = """
     }
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3,
-    [data-testid="stSidebar"] div:not([data-testid="stRadio"]) { 
-        color: #e9ecef !important; 
+    [data-testid="stSidebar"] div:not([data-testid="stRadio"]) {
+        color: #e9ecef !important;
     }
-    /* UNSELECTED Radio Button Text */
-    [data-testid="stSidebar"] .stRadio > label > div > p { 
+    [data-testid="stSidebar"] .stRadio > label > div > p {
         font-size: 1.05em !important;
-        color: var(--accent-color) !important; /* Light Blue Text (e.g., #70a1d7) */
-        padding: 0; 
-        margin: 0; 
+        color: var(--accent-color) !important;
+        padding: 0;
+        margin: 0;
     }
-    /* SELECTED Radio Button Text */
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p { 
-        color: var(--card-bg-color) !important; /* White Text */
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
+        color: var(--card-bg-color) !important;
         font-weight: 600;
     }
-    /* Radio Button Clickable Area Styling */
     [data-testid="stSidebar"] .stRadio > label {
-        padding: 10px 15px; 
+        padding: 10px 15px;
         border-radius: var(--border-radius);
         margin-bottom: 6px;
-        transition: background-color 0.2s ease; 
+        transition: background-color 0.2s ease;
     }
-    [data-testid="stSidebar"] .stRadio > label:hover { 
-        background-color: rgba(255, 255, 255, 0.08); 
+    [data-testid="stSidebar"] .stRadio > label:hover {
+        background-color: rgba(255, 255, 255, 0.08);
     }
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label { 
-        background-color: rgba(255, 255, 255, 0.15); 
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {
+        background-color: rgba(255, 255, 255, 0.15);
     }
     .welcome-text {
         font-size: 1.4em;
@@ -384,19 +371,19 @@ html_css = """
         border-collapse: collapse;
     }
     .stDataFrame table thead th {
-        background-color: #e9ecef; 
+        background-color: #e9ecef;
         color: var(--primary-color);
         font-weight: 600;
         text-align: left;
-        padding: 14px 18px; 
+        padding: 14px 18px;
         border-bottom: 2px solid var(--border-color);
         font-size: 0.9em;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
     .stDataFrame table tbody td {
-        padding: 12px 18px; 
-        border-bottom: 1px solid #f1f3f5; 
+        padding: 12px 18px;
+        border-bottom: 1px solid #f1f3f5;
         vertical-align: middle;
         color: var(--text-color);
         font-size: 0.9em;
@@ -405,42 +392,42 @@ html_css = """
         border-bottom: none;
     }
     .stDataFrame table tbody tr:hover {
-        background-color: #f8f9fa; 
+        background-color: #f8f9fa;
     }
     .employee-progress-item {
         border: 1px solid var(--border-color);
         border-radius: var(--border-radius);
         padding: 15px;
         text-align: center;
-        background-color: #fdfdfd; 
-        margin-bottom: 10px; 
+        background-color: #fdfdfd;
+        margin-bottom: 10px;
     }
-    .employee-progress-item h6 { 
+    .employee-progress-item h6 {
         margin-top: 0;
         margin-bottom: 5px;
         font-size: 1em;
         color: var(--primary-color);
     }
-    .employee-progress-item p { 
+    .employee-progress-item p {
         font-size: 0.85em;
         color: var(--text-muted-color);
         margin-bottom: 8px;
     }
 
     .button-column-container > div[data-testid="stHorizontalBlock"] {
-        gap: 20px; 
+        gap: 20px;
     }
     .button-column-container .stButton button {
         width: 100%;
     }
 
-    div[role="radiogroup"] { /* Main content horizontal radios */
+    div[role="radiogroup"] {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px; 
+        gap: 10px;
         margin-bottom: 25px;
     }
-    div[role="radiogroup"] > label { 
+    div[role="radiogroup"] > label {
         background-color: #e9ecef;
         color: var(--text-muted-color);
         padding: 10px 18px;
@@ -456,7 +443,7 @@ html_css = """
         border-color: #adb5bd;
         color: var(--text-color);
     }
-    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label { 
+    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
         background-color: var(--secondary-color) !important;
         color: white !important;
         border-color: var(--secondary-color) !important;
@@ -466,21 +453,20 @@ html_css = """
     .employee-section-header {
         color: var(--secondary-color); margin-top: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 1.35em;
     }
-    .record-type-header { /* e.g. "My Attendance" */
+    .record-type-header {
         font-size: 1.2em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px; font-weight: 600;
     }
-    /* .allowance-summary-header used for map titles, not general h6 */
 
-    div[data-testid="stImage"] > img { 
+    div[data-testid="stImage"] > img {
         border-radius: var(--border-radius-lg);
         border: 1px solid var(--border-color);
         box-shadow: var(--box-shadow-sm);
     }
-    .stProgress > div > div { 
+    .stProgress > div > div {
         background-color: var(--secondary-color) !important;
         border-radius: var(--border-radius);
     }
-    .stProgress { 
+    .stProgress {
         border-radius: var(--border-radius);
         background-color: #e9ecef;
     }
@@ -490,7 +476,7 @@ html_css = """
         font-weight: 500;
     }
     div[data-testid="stMetricValue"] {
-        font-size: 1.8em !important; 
+        font-size: 1.8em !important;
         font-weight: 600;
         color: var(--primary-color);
     }
@@ -502,7 +488,7 @@ html_css = """
         font-size: 1em;
         border-left-width: 5px;
         border-left-style: solid;
-        display: flex; 
+        display: flex;
         align-items: center;
     }
     .custom-notification.success {
@@ -520,25 +506,25 @@ html_css = """
 
     .badge {
         display: inline-block;
-        padding: 0.35em 0.65em; 
-        font-size: 0.85em; 
-        font-weight: 600; 
+        padding: 0.35em 0.65em;
+        font-size: 0.85em;
+        font-weight: 600;
         line-height: 1;
         color: #fff;
         text-align: center;
         white-space: nowrap;
         vertical-align: baseline;
-        border-radius: var(--border-radius); 
+        border-radius: var(--border-radius);
     }
     .badge.green { background-color: var(--success-color); }
     .badge.red { background-color: var(--danger-color); }
     .badge.orange { background-color: var(--warning-color); }
-    .badge.blue { background-color: var(--secondary-color); } 
-    .badge.grey { background-color: var(--text-muted-color); } 
+    .badge.blue { background-color: var(--secondary-color); }
+    .badge.grey { background-color: var(--text-muted-color); }
 
 </style>
 """
-
+# --- (The rest of your Python script from the USERS dictionary onwards) ---
 st.markdown(html_css, unsafe_allow_html=True)
 
 # --- Credentials & User Info ---
