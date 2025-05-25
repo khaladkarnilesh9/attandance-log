@@ -296,37 +296,51 @@ html_css = """
     }
 
     /* --- Sidebar --- */
+
+        /* --- Sidebar --- */
     [data-testid="stSidebar"] {
         background-color: var(--primary-color);
         padding: 25px !important;
-        box-shadow: 0.25rem 0 1rem rgba(0,0,0,0.1); /* Shadow on the right */
+        box-shadow: 0.25rem 0 1rem rgba(0,0,0,0.1);
     }
     [data-testid="stSidebar"] .sidebar-content {
-        padding-top: 10px; /* Reduced top padding */
+        padding-top: 10px;
     }
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] div, [data-testid="stSidebar"] label,
-    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
-        color: #e9ecef !important; /* Lighter text for contrast */
+    /* General text color for p, h1-h3, and generic divs within the sidebar */
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] div:not([data-testid="stRadio"]) { /* Target divs NOT part of radio group */
+        color: #e9ecef !important; /* Lighter text for general content */
     }
-    [data-testid="stSidebar"] .stRadio > label { /* Sidebar Radio Label */
+
+    /* Specific styling for Radio Button LABELS in the sidebar */
+    [data-testid="stSidebar"] .stRadio > label > div > p { /* Target the <p> inside the radio label structure */
         font-size: 1.05em !important;
-        color: #ced4da !important; /* Muted white */
-        padding: 10px 15px;
+        color: #a9d6e5 !important; /* Light Blue (accent color) for UNSELECTED radio labels */
+        padding: 0; /* Reset padding as it might be inherited */
+        margin: 0; /* Reset margin */
+    }
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p { /* Selected Sidebar Radio Label Text */
+        color: var(--card-bg-color) !important; /* Bright White for SELECTED radio label text */
+        font-weight: 600;
+    }
+
+    /* Styling for the radio button's clickable area (background on hover/selection) */
+    [data-testid="stSidebar"] .stRadio > label {
+        padding: 10px 15px; /* Padding for the clickable area */
         border-radius: var(--border-radius);
         margin-bottom: 6px;
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label { /* Selected Sidebar Radio */
-        color: var(--card-bg-color) !important;
-        font-weight: 600;
-        background-color: rgba(255, 255, 255, 0.15); /* Subtle highlight */
+        transition: background-color 0.2s ease; /* Only transition background */
     }
     [data-testid="stSidebar"] .stRadio > label:hover {
         background-color: rgba(255, 255, 255, 0.08);
-        color: #f8f9fa !important;
     }
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label { /* Background for selected radio */
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+
     .welcome-text {
-        font-size: 1.4em; /* Larger welcome text */
+        font-size: 1.4em;
         font-weight: 600;
         margin-bottom: 25px;
         text-align: center;
@@ -335,12 +349,11 @@ html_css = """
         padding-bottom: 20px;
     }
     [data-testid="stSidebar"] [data-testid="stImage"] > img {
-        border-radius: 50%; /* Circular profile photo */
+        border-radius: 50%;
         border: 3px solid var(--accent-color);
-        margin: 0 auto 10px auto; /* Center image */
+        margin: 0 auto 10px auto;
         display: block;
     }
-
 
     /* --- Dataframe Styling --- */
     .stDataFrame {
