@@ -20,26 +20,32 @@ except ImportError:
     PILLOW_INSTALLED = False
 
 # --- Function to render Altair bar chart (existing for past goals) ---
+# --- Function to render Altair bar chart (existing for past goals) ---
 def render_goal_chart(df: pd.DataFrame, title: str):
     if df.empty:
         st.warning("No data available to plot.")
         return
     df = df.copy()
-    df[["TargetAmount", "AchievedAmount"]] = df[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce")
+    # Ensure columns are numeric, coercing errors to NaN, then fill NaN with 0 for plotting
+    df[["TargetAmount", "AchievedAmount"]] = df[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce").fillna(0)
     df = df.sort_values(by="MonthYear")
 
     long_df = df.melt(id_vars=["MonthYear"], value_vars=["TargetAmount", "AchievedAmount"],
                       var_name="Metric", value_name="Amount")
+
     chart = alt.Chart(long_df).mark_bar().encode(
-        x=alt.X('MonthYear:N', title="Quarter"),
+        x=alt.X('MonthYear:N', title="Quarter", axis=alt.Axis(labelAngle=0)), # Keep labels horizontal
         y=alt.Y('Amount:Q', title="Amount (INR)"),
-        color=alt.Color('Metric:N', scale=alt.Scale(domain=['TargetAmount', 'AchievedAmount'], range=["#3498db", "#2ecc71"])), # Explicit domain
-        tooltip=["MonthYear", "Metric", "Amount"]
+        color=alt.Color('Metric:N', scale=alt.Scale(domain=['TargetAmount', 'AchievedAmount'], range=["#3498db", "#2ecc71"])),
+        tooltip=["MonthYear", "Metric", "Amount"],
+        # --- Add xOffset for grouped bar chart ---
+        xOffset='Metric:N' 
     ).properties(
         title=title,
-        width="container"
+        width="container" # Use Altair's container width or a specific pixel value
     )
     st.altair_chart(chart, use_container_width=True)
+
 
 # --- Function to create Matplotlib Donut Chart ---
 def create_donut_chart(progress_percentage, chart_title="Progress", achieved_color='#2ecc71', remaining_color='#f0f0f0', center_text_color=None):
