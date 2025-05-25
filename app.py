@@ -93,7 +93,7 @@ html_css = """
     h1, h2, h3, h4, h5, h6 {color: var(--primary-color); font-weight: 600;}
     .main .block-container > div:first-child > div:first-child > div:first-child > h1 {text-align: center; font-size: 2.6em; font-weight: 700; padding-bottom: 25px; border-bottom: 3px solid var(--accent-color); margin-bottom: 40px; letter-spacing: -0.5px;}
     .card {background-color: var(--card-bg-color); padding: 30px; border-radius: var(--border-radius-lg); box-shadow: var(--box-shadow); margin-bottom: 35px; border: 1px solid var(--border-color);}
-    .card h3 {margin-top: 0; color: var(--primary-color); border-bottom: 2px solid #e9ecef; padding-bottom: 15px; margin-bottom: 25px; font-size: 1.75em;}
+    .card h3 {margin-top: 0; color: var(--primary-color); border-bottom: 2px solid #2b5d8f; padding-bottom: 15px; margin-bottom: 25px; font-size: 1.75em;}
     .card h4 {color: var(--secondary-color); margin-top: 30px; margin-bottom: 20px; font-size: 1.4em; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;}
     .card h5 {font-size: 1.15em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px;}
     .card h6 {font-size: 0.95em; color: var(--text-muted-color); margin-top: 0px; margin-bottom: 15px; font-weight: 500;}
@@ -112,7 +112,7 @@ html_css = """
     .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus, .stDateInput input:focus, .stTimeInput input:focus, .stSelectbox div[data-baseweb="select"] > div:focus-within {border-color: var(--secondary-color) !important; box-shadow: 0 0 0 0.2rem rgba(32, 112, 192, 0.25) !important;}
     [data-testid="stSidebar"] {background-color: var(--primary-color); padding: 25px !important; box-shadow: 0.25rem 0 1rem rgba(0,0,0,0.1);}
     [data-testid="stSidebar"] .sidebar-content {padding-top: 10px;}
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] div:not([data-testid="stRadio"]) {color: #e9ecef !important;}
+    [data-testid="stSidebar"] p, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] div:not([data-testid="stRadio"]) {color: #2b5d8f !important;}
     [data-testid="stSidebar"] .stRadio > label > div > p {font-size: 1.05em !important; color: var(--accent-color) !important; padding: 0; margin: 0;}
     [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {color: var(--card-bg-color) !important; font-weight: 600;}
     [data-testid="stSidebar"] .stRadio > label {padding: 10px 15px; border-radius: var(--border-radius); margin-bottom: 6px; transition: background-color 0.2s ease;}
@@ -122,7 +122,7 @@ html_css = """
     [data-testid="stSidebar"] [data-testid="stImage"] > img {border-radius: 50%; border: 3px solid var(--accent-color); margin: 0 auto 10px auto; display: block;}
     .stDataFrame {width: 100%; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--box-shadow-sm); margin-bottom: 25px;}
     .stDataFrame table {width: 100%; border-collapse: collapse;}
-    .stDataFrame table thead th {background-color: #e9ecef; color: var(--primary-color); font-weight: 600; text-align: left; padding: 14px 18px; border-bottom: 2px solid var(--border-color); font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px;}
+    .stDataFrame table thead th {background-color: #2b5d8f; color: var(--primary-color); font-weight: 600; text-align: left; padding: 14px 18px; border-bottom: 2px solid var(--border-color); font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px;}
     .stDataFrame table tbody td {padding: 12px 18px; border-bottom: 1px solid #f1f3f5; vertical-align: middle; color: var(--text-color); font-size: 0.9em;}
     .stDataFrame table tbody tr:last-child td {border-bottom: none;}
     .stDataFrame table tbody tr:hover {background-color: #f8f9fa;}
@@ -139,7 +139,7 @@ html_css = """
     .record-type-header {font-size: 1.2em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px; font-weight: 600;}
     div[data-testid="stImage"] > img {border-radius: var(--border-radius-lg); border: 1px solid var(--border-color); box-shadow: var(--box-shadow-sm);}
     .stProgress > div > div {background-color: var(--secondary-color) !important; border-radius: var(--border-radius);}
-    .stProgress {border-radius: var(--border-radius); background-color: #e9ecef;}
+    .stProgress {border-radius: var(--border-radius); background-color: #2b5d8f;}
     div[data-testid="stMetricLabel"] {font-size: 0.95em !important; color: var(--text-muted-color) !important; font-weight: 500;}
     div[data-testid="stMetricValue"] {font-size: 1.8em !important; font-weight: 600; color: var(--primary-color);}
     .custom-notification {padding: 15px 20px; border-radius: var(--border-radius); margin-bottom: 20px; font-size: 1em; border-left-width: 5px; border-left-style: solid; display: flex; align-items: center;}
