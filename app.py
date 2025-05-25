@@ -1021,6 +1021,12 @@ elif nav == "📊 View Logs":
 
 # Remove the duplicate status badges at the end of the file
 
+elif nav == "📊 View Logs":
+    st.write("DEBUG: View Logs section reached")
+    st.write(f"Current user: {current_user['username']}")
+    st.write("Attendance data:", attendance_df)
+    st.write("Allowance data:", allowance_df)
+
 badge_color = "green" if status == "Achieved" else "orange" if status == "In Progress" else "red"
 status_badge = f"<span class='badge {badge_color}'>{status}</span>"
 st.markdown(f"Status: {status_badge}", unsafe_allow_html=True)
