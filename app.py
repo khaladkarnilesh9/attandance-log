@@ -63,46 +63,43 @@ def create_donut_chart(progress_percentage, chart_title="Progress", achieved_col
         slice_colors = [achieved_color, remaining_color]
         actual_progress_display = progress_percentage
     
-    # ax.set_title(chart_title, fontsize=9, color='#555', pad=10) # Optional title on chart
-
     wedges, texts = ax.pie(sizes, colors=slice_colors, startangle=90, counterclock=False,
-                           wedgeprops=dict(width=0.4, edgecolor='white')) # Slightly wider donut hole
+                           wedgeprops=dict(width=0.4, edgecolor='white')) 
 
-    centre_circle = plt.Circle((0,0),0.60,fc='white') # Match wedgeprops width for hole size
+    centre_circle = plt.Circle((0,0),0.60,fc='white') 
     fig.gca().add_artist(centre_circle)
     
     text_color_to_use = center_text_color if center_text_color else (achieved_color if actual_progress_display > 0 else '#4A4A4A')
     
-    ax.text(0, 0, f"{actual_progress_display:.0f}%", # No decimal for cleaner look
+    ax.text(0, 0, f"{actual_progress_display:.0f}%", 
             ha='center', va='center', 
             fontsize=12, fontweight='bold', 
             color=text_color_to_use)
     
     ax.axis('equal')
-    plt.subplots_adjust(left=0, right=1, top=1, bottom=0) # Maximize space usage
+    plt.subplots_adjust(left=0, right=1, top=1, bottom=0) 
     return fig
 
 # --- Function to create Matplotlib Grouped Bar Chart for Team Progress ---
 def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col="Target", achieved_col="Achieved", user_col="Employee"):
     if summary_df.empty:
-        # st.info(f"No data to plot for {title}") # Handled before calling
         return None
 
     labels = summary_df[user_col].tolist()
     target_amounts = summary_df[target_col].fillna(0).tolist()
     achieved_amounts = summary_df[achieved_col].fillna(0).tolist()
 
-    x = np.arange(len(labels))  # the label locations
-    width = 0.35  # the width of the bars
+    x = np.arange(len(labels))  
+    width = 0.35  
 
-    fig, ax = plt.subplots(figsize=(max(6, len(labels) * 0.8), 5), dpi=100) # Dynamic width
+    fig, ax = plt.subplots(figsize=(max(6, len(labels) * 0.8), 5), dpi=100) 
     rects1 = ax.bar(x - width/2, target_amounts, width, label='Target', color='#3498db', alpha=0.8)
     rects2 = ax.bar(x + width/2, achieved_amounts, width, label='Achieved', color='#2ecc71', alpha=0.8)
 
     ax.set_ylabel('Amount (INR)', fontsize=10)
     ax.set_title(title, fontsize=12, fontweight='bold', pad=15)
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=9) # Rotate labels if many
+    ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=9) 
     ax.legend(fontsize=9)
 
     ax.spines['top'].set_visible(False)
@@ -112,10 +109,10 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     def autolabel(rects):
         for rect in rects:
             height = rect.get_height()
-            if height > 0: # Only label if value is > 0
-                ax.annotate(f'{height:,.0f}', # Formatted number
+            if height > 0: 
+                ax.annotate(f'{height:,.0f}', 
                             xy=(rect.get_x() + rect.get_width() / 2, height),
-                            xytext=(0, 3),  # 3 points vertical offset
+                            xytext=(0, 3),  
                             textcoords="offset points",
                             ha='center', va='bottom', fontsize=7, color='#333')
     autolabel(rects1)
@@ -124,7 +121,6 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     fig.tight_layout(pad=1.5)
     return fig
 
-# --- [Existing HTML_CSS, USERS, Image Placeholder, File Paths, Timezone, load_data remain the same] ---
 html_css = """
 <style>
     :root {
@@ -383,19 +379,14 @@ html_css = """
     .stDataFrame table tbody tr:hover {
         background-color: #f8f9fa; /* Subtle hover */
     }
-     /* --- Custom styling for admin team progress view with donut charts --- */
-    .admin-team-progress-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive columns */
-        gap: 20px;
-        margin-bottom: 20px;
-    }
+    /* --- Styling for admin individual progress items in columns --- */
     .employee-progress-item {
         border: 1px solid var(--border-color);
         border-radius: var(--border-radius);
         padding: 15px;
         text-align: center;
         background-color: #fdfdfd; /* Slightly off-white */
+        margin-bottom: 10px; /* Space below each item before the next row starts implicitly via st.columns */
     }
     .employee-progress-item h6 { /* Employee name title */
         margin-top: 0;
@@ -558,14 +549,14 @@ if PILLOW_INSTALLED:
                     font = ImageFont.load_default()
 
                 text = user_key[:2].upper()
-                if hasattr(draw, 'textbbox'): # Preferred method
+                if hasattr(draw, 'textbbox'): 
                     bbox = draw.textbbox((0,0), text, font=font)
                     text_width, text_height = bbox[2] - bbox[0], bbox[3] - bbox[1]
                     text_x, text_y = (120 - text_width) / 2, (120 - text_height) / 2 - bbox[1] 
-                elif hasattr(draw, 'textsize'): # Fallback for older Pillow
+                elif hasattr(draw, 'textsize'): 
                     text_width, text_height = draw.textsize(text, font=font)
                     text_x, text_y = (120 - text_width) / 2, (120 - text_height) / 2
-                else: # Basic fallback
+                else: 
                     text_x, text_y = 30,30 
                 draw.text((text_x, text_y), text, fill=(28, 78, 128), font=font)
                 img.save(img_path)
@@ -776,7 +767,6 @@ elif nav == "🎯 Goal Tracker":
             else:
                 summary_list_sales = []
                 for emp_name in employee_users:
-                    # user_info_gt = USERS.get(emp_name, {}) # Not directly used for chart data here
                     emp_current_goal = goals_df[(goals_df["Username"].astype(str) == str(emp_name)) & (goals_df["MonthYear"].astype(str) == str(current_quarter_for_display))]
                     target, achieved, status_val = 0.0, 0.0, "Not Set"
                     if not emp_current_goal.empty:
@@ -789,14 +779,18 @@ elif nav == "🎯 Goal Tracker":
                 summary_df_sales = pd.DataFrame(summary_list_sales)
 
                 if not summary_df_sales.empty:
-                    # Display individual donut charts in a grid
                     st.markdown("<h6>Individual Sales Progress:</h6>", unsafe_allow_html=True)
-                    st.markdown('<div class="admin-team-progress-grid">', unsafe_allow_html=True)
+                    num_cols_sales = 3 
+                    cols_sales = st.columns(num_cols_sales)
+                    col_idx_sales = 0
+
                     for index, row in summary_df_sales.iterrows():
                         progress_percent = (row['Achieved'] / row['Target'] * 100) if row['Target'] > 0 else 0
-                        donut_fig = create_donut_chart(progress_percent, achieved_color='var(--success-color)') # Use CSS var if possible, else hex
+                        # Use actual hex for Matplotlib if var() not working directly
+                        donut_fig = create_donut_chart(progress_percent, achieved_color='#28a745') 
                         
-                        with st.container(): # Use st.container for each item if you want border via class
+                        current_col_sales = cols_sales[col_idx_sales % num_cols_sales]
+                        with current_col_sales:
                             st.markdown(f"""
                             <div class="employee-progress-item">
                                 <h6>{row['Employee']}</h6>
@@ -804,10 +798,11 @@ elif nav == "🎯 Goal Tracker":
                             </div>
                             """, unsafe_allow_html=True)
                             st.pyplot(donut_fig, use_container_width=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
-                    st.markdown("<hr>", unsafe_allow_html=True)
+                            st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True) 
+                        col_idx_sales += 1
+                    
+                    st.markdown("<hr style='margin-top: 10px; margin-bottom:25px;'>", unsafe_allow_html=True)
 
-                    # Display Team Bar Chart
                     st.markdown("<h6>Overall Team Sales Performance:</h6>", unsafe_allow_html=True)
                     team_bar_fig_sales = create_team_progress_bar_chart(summary_df_sales, title="Team Sales Target vs. Achieved", target_col="Target", achieved_col="Achieved")
                     if team_bar_fig_sales:
@@ -817,9 +812,7 @@ elif nav == "🎯 Goal Tracker":
                 else:
                     st.info(f"No sales goals data found for {current_quarter_for_display} to display team progress.")
 
-
         elif admin_action == f"Set/Edit Goal for {TARGET_GOAL_YEAR}":
-            # ... (Set/Edit Goal logic - no changes here for charts) ...
             st.markdown(f"<h5>Set or Update Employee Goal ({TARGET_GOAL_YEAR} - Quarterly)</h5>", unsafe_allow_html=True)
             employee_options = [u for u, d in USERS.items() if d["role"] == "employee"]
             if not employee_options: st.warning("No employees available to set goals for.")
@@ -850,7 +843,7 @@ elif nav == "🎯 Goal Tracker":
                             goals_df = pd.concat([goals_df, pd.DataFrame([new_row], columns=GOALS_COLUMNS)], ignore_index=True); msg_verb = "set"
                         try: goals_df.to_csv(GOALS_FILE, index=False); st.success(f"Goal for {selected_emp} ({selected_period}) {msg_verb}!"); st.rerun()
                         except Exception as e: st.error(f"Error saving goal: {e}")
-    else: # Employee View for Sales Goals (Donut chart already here)
+    else: 
         st.markdown("<h4>My Sales Goals (2025 - Quarterly)</h4>", unsafe_allow_html=True)
         my_goals = goals_df[goals_df["Username"].astype(str) == str(current_user["username"])].copy()
         for col in ["TargetAmount", "AchievedAmount"]: my_goals[col] = pd.to_numeric(my_goals[col], errors="coerce").fillna(0.0)
@@ -866,11 +859,11 @@ elif nav == "🎯 Goal Tracker":
                 sub_col1, sub_col2 = st.columns(2)
                 sub_col1.metric("Target", f"₹{target_amt:,.0f}")
                 sub_col2.metric("Achieved", f"₹{achieved_amt:,.0f}")
-                st.metric("Status", g.get("Status", "In Progress"), label_visibility="labeled") # Corrected from Labeled
+                st.metric("Status", g.get("Status", "In Progress"), label_visibility="labeled")
             with col_chart_sales:
                 progress_percent_sales = (achieved_amt / target_amt * 100) if target_amt > 0 else 0.0
                 st.markdown(f"<h6 style='text-align: center; margin-bottom: 0px; margin-top: -15px;'>Sales Progress</h6>", unsafe_allow_html=True)
-                donut_fig_sales = create_donut_chart(progress_percent_sales, "Sales Progress", achieved_color='var(--success-color)')
+                donut_fig_sales = create_donut_chart(progress_percent_sales, "Sales Progress", achieved_color='#28a745')
                 st.pyplot(donut_fig_sales, use_container_width=True)
             st.markdown("---") 
             with st.form(key=f"update_achievement_{current_user['username']}_{current_quarter_for_display}"):
@@ -888,7 +881,6 @@ elif nav == "🎯 Goal Tracker":
         st.markdown("<h5>My Past Goals (2025)</h5>", unsafe_allow_html=True)
         past_goals = my_goals[(my_goals["MonthYear"].astype(str).str.startswith(str(TARGET_GOAL_YEAR))) & (my_goals["MonthYear"].astype(str) != current_quarter_for_display)]
         if not past_goals.empty:
-            # Using Altair for past goals as it was previously
             render_goal_chart(past_goals, "Past Sales Goal Performance") 
         else: st.info(f"No past goal records found for {TARGET_GOAL_YEAR}.")
     st.markdown("</div>", unsafe_allow_html=True)
@@ -924,14 +916,17 @@ elif nav == "💰 Payment Collection Tracker":
                 summary_df_payment = pd.DataFrame(summary_list_payment)
 
                 if not summary_df_payment.empty:
-                     # Display individual donut charts in a grid
                     st.markdown("<h6>Individual Collection Progress:</h6>", unsafe_allow_html=True)
-                    st.markdown('<div class="admin-team-progress-grid">', unsafe_allow_html=True)
+                    num_cols_payment = 3
+                    cols_payment = st.columns(num_cols_payment)
+                    col_idx_payment = 0
+
                     for index, row in summary_df_payment.iterrows():
                         progress_percent_p = (row['Achieved'] / row['Target'] * 100) if row['Target'] > 0 else 0
-                        donut_fig_p = create_donut_chart(progress_percent_p, achieved_color='var(--secondary-color)') # Blue for collection
+                        donut_fig_p = create_donut_chart(progress_percent_p, achieved_color='#2070c0') # Blue
                         
-                        with st.container():
+                        current_col_p = cols_payment[col_idx_payment % num_cols_payment]
+                        with current_col_p:
                             st.markdown(f"""
                             <div class="employee-progress-item">
                                 <h6>{row['Employee']}</h6>
@@ -939,13 +934,20 @@ elif nav == "💰 Payment Collection Tracker":
                             </div>
                             """, unsafe_allow_html=True)
                             st.pyplot(donut_fig_p, use_container_width=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
-                    st.markdown("<hr>", unsafe_allow_html=True)
+                            st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True) 
+                        col_idx_payment += 1
+                    
+                    st.markdown("<hr style='margin-top: 10px; margin-bottom:25px;'>", unsafe_allow_html=True)
 
-                    # Display Team Bar Chart
                     st.markdown("<h6>Overall Team Collection Performance:</h6>", unsafe_allow_html=True)
+                    # For payment, let's use the secondary color for "Achieved" in the bar chart too
                     team_bar_fig_payment = create_team_progress_bar_chart(summary_df_payment, title="Team Collection Target vs. Achieved", target_col="Target", achieved_col="Achieved")
                     if team_bar_fig_payment:
+                         # Modify colors for payment bar chart if desired
+                        for bar_group in team_bar_fig_payment.axes[0].containers:
+                            if bar_group.get_label() == 'Achieved':
+                                for bar in bar_group:
+                                    bar.set_color('#2070c0') # Blue for achieved payments
                         st.pyplot(team_bar_fig_payment, use_container_width=True)
                     else:
                         st.info("No collection data to plot for the team bar chart.")
@@ -953,7 +955,6 @@ elif nav == "💰 Payment Collection Tracker":
                     st.info(f"No payment collection data found for {current_quarter_display_payment} to display team progress.")
 
         elif admin_action_payment == f"Set/Edit Collection Target for {TARGET_YEAR_PAYMENT}":
-            # ... (Set/Edit Collection Target logic - no changes here for charts) ...
             st.markdown(f"<h5>Set or Update Collection Goal ({TARGET_YEAR_PAYMENT} - Quarterly)</h5>", unsafe_allow_html=True)
             employees_for_payment_goal = [u for u, d in USERS.items() if d["role"] == "employee"]
             selected_emp_payment = st.radio("Select Employee:", employees_for_payment_goal, key="payment_emp_radio_2025", horizontal=True)
@@ -963,9 +964,9 @@ elif nav == "💰 Payment Collection Tracker":
             desc_payment, tgt_payment_val, ach_payment_val, stat_payment = "", 0.0, 0.0, "Not Started"
             if not existing_payment_goal.empty:
                 g_payment = existing_payment_goal.iloc[0]
-                desc_payment = g_payment.get("GoalDescription", ""); tgt_payment_val = float(pd.to_numeric(g_payment.get("TargetAmount", 0.0), errors="coerce") or 0.0)
-                ach_payment_val = float(pd.to_numeric(g_payment.get("AchievedAmount", 0.0), errors="coerce") or 0.0); stat_payment = g_payment.get("Status", "Not Started")
-            with st.form(f"form_payment_{selected_emp_payment}_{selected_period_payment}"): # Unique form key
+                desc_payment = g_payment.get("GoalDescription", ""); tgt_payment_val = float(pd.to_numeric(g_payment.get("TargetAmount", 0.0), errors='coerce') or 0.0)
+                ach_payment_val = float(pd.to_numeric(g_payment.get("AchievedAmount", 0.0), errors='coerce') or 0.0); stat_payment = g_payment.get("Status", "Not Started")
+            with st.form(f"form_payment_{selected_emp_payment}_{selected_period_payment}"): 
                 new_desc_payment = st.text_input("Collection Goal Description", value=desc_payment); new_tgt_payment = st.number_input("Target Collection (INR)", value=tgt_payment_val, min_value=0.0, step=1000.0)
                 new_ach_payment = st.number_input("Collected Amount (INR)", value=ach_payment_val, min_value=0.0, step=500.0); new_status_payment = st.selectbox("Status", status_options_payment, index=status_options_payment.index(stat_payment))
                 submitted_payment = st.form_submit_button("Save Goal")
@@ -981,7 +982,7 @@ elif nav == "💰 Payment Collection Tracker":
                         payment_goals_df = pd.concat([payment_goals_df, pd.DataFrame([new_row_payment], columns=PAYMENT_GOALS_COLUMNS)], ignore_index=True); msg_payment = "set"
                     try: payment_goals_df.to_csv(PAYMENT_GOALS_FILE, index=False); st.success(f"Payment goal {msg_payment} for {selected_emp_payment} ({selected_period_payment})"); st.rerun()
                     except Exception as e: st.error(f"Error saving payment data: {e}")
-    else: # Employee side for payment collection (Donut chart already here)
+    else: 
         st.markdown("<h4>My Payment Collection Goals (2025)</h4>", unsafe_allow_html=True)
         user_goals_payment = payment_goals_df[payment_goals_df["Username"] == current_user["username"]].copy()
         user_goals_payment[["TargetAmount", "AchievedAmount"]] = user_goals_payment[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce").fillna(0.0)
@@ -997,11 +998,11 @@ elif nav == "💰 Payment Collection Tracker":
                 sub_col1_pay, sub_col2_pay = st.columns(2)
                 sub_col1_pay.metric("Target", f"₹{tgt_pay:,.0f}")
                 sub_col2_pay.metric("Collected", f"₹{ach_pay:,.0f}")
-                st.metric("Status", g_pay.get("Status", "In Progress"), label_visibility="labeled") # Corrected from Labeled
+                st.metric("Status", g_pay.get("Status", "In Progress"), label_visibility="labeled")
             with col_chart_pay:
                 progress_percent_pay = (ach_pay / tgt_pay * 100) if tgt_pay > 0 else 0.0
                 st.markdown(f"<h6 style='text-align: center; margin-bottom: 0px; margin-top: -15px;'>Collection Progress</h6>", unsafe_allow_html=True)
-                donut_fig_payment = create_donut_chart(progress_percent_pay, "Collection Progress", achieved_color='var(--secondary-color)')
+                donut_fig_payment = create_donut_chart(progress_percent_pay, "Collection Progress", achieved_color='#2070c0') # Blue
                 st.pyplot(donut_fig_payment, use_container_width=True)
             st.markdown("---") 
             with st.form(key=f"update_collection_{current_user['username']}_{current_quarter_display_payment}"): 
@@ -1017,7 +1018,6 @@ elif nav == "💰 Payment Collection Tracker":
         st.markdown("<h5>Past Quarters</h5>", unsafe_allow_html=True)
         past_payment_goals = user_goals_payment[user_goals_payment["MonthYear"] != current_quarter_display_payment]
         if not past_payment_goals.empty:
-            # Using Altair for past goals as it was previously
             render_goal_chart(past_payment_goals, "Past Collection Performance") 
         else: st.info("No past collection goals found.")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -1051,7 +1051,7 @@ elif nav == "📊 View Logs":
         if not emp_payment_goals_log.empty: st.dataframe(emp_payment_goals_log, use_container_width=True)
         else: st.warning("No payment collection goals records found")
             
-    else:  # Regular employee view
+    else:  
         st.markdown("<h4>My Records</h4>", unsafe_allow_html=True)
         st.markdown("<h5>My Attendance</h5>", unsafe_allow_html=True)
         my_attendance_log = attendance_df[attendance_df["Username"] == current_user["username"]]
