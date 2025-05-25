@@ -453,42 +453,88 @@ if nav == "📆 Attendance":
                 st.rerun()
     st.markdown('</div></div>', unsafe_allow_html=True)
 #--------------------------------------------------------------------start-viewlog---------------------------------------------
-elif nav == "📊 View Logs":
-    st.markdown("DEBUG: Entered 'View Logs' section.", unsafe_allow_html=True) # Prominent debug
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    
-    st.write(f"DEBUG: current_user['role'] = {current_user['role']}") # Check role
 
-    if current_user["role"] == "admin":
-        st.markdown("DEBUG: Admin view for Logs.", unsafe_allow_html=True) # Prominent debug
-        st.markdown("<h3>📊 Employee Data Logs</h3>", unsafe_allow_html=True)
-        employee_names = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
-        
-        st.write(f"DEBUG: Admin view - employee_names = {employee_names}") # Check employee list
-
-        if not employee_names: 
-            st.info("No employees found or no employee data to display.")
-            st.write("DEBUG: Admin view - No employee names, showing info message.")
-        else:
-            st.write("DEBUG: Admin view - Processing employees...")
-            # ... (rest of your admin log display code) ...
+# ... (inside admin view of View Logs)
             for emp_name in employee_names:
-                st.write(f"DEBUG: Admin view - Processing logs for {emp_name}")
-                # ...
-    else: # Employee's Own View
-        st.markdown("DEBUG: Employee view for Logs.", unsafe_allow_html=True) # Prominent debug
-        st.markdown("<h3>📊 My Profile & Logs</h3>", unsafe_allow_html=True)
-        my_user_info = USERS.get(current_user["username"], {})
-        # ... (rest of your employee log display code) ...
-        my_att_raw = attendance_df[attendance_df["Username"].astype(str) == str(current_user["username"])].copy()
-        st.write(f"DEBUG: Employee view - my_att_raw empty? {my_att_raw.empty}")
-        if my_att_raw.empty:
-            st.write("DEBUG: Employee view - Attendance raw data is empty.")
-        # ...
+                st.markdown(f"--- PROCESSING {emp_name.upper()} ---", unsafe_allow_html=True) # More visible separator
+                user_info = USERS.get(emp_name, {})
+                
+                # --- Profile Info ---
+                st.write(f"DEBUG ({emp_name}): Displaying profile info.")
+                # ... your profile columns and st.image/st.markdown for position ...
+                profile_col1, profile_col2 = st.columns([1, 4])
+                with profile_col1:
+                    if user_info.get("profile_photo") and os.path.exists(user_info.get("profile_photo")):
+                        st.image(user_info.get("profile_photo"), width=80)
+                        st.write(f"DEBUG ({emp_name}): Photo displayed.")
+                    else:
+                        st.write(f"DEBUG ({emp_name}): No photo found or path invalid.")
+                with profile_col2:
+                    st.markdown(f"<h4 class='employee-section-header' style='margin-bottom: 5px; margin-top:0px; border-bottom: none; font-size: 1.2em;'>👤 {emp_name}</h4>", unsafe_allow_html=True)
+                    st.markdown(f"**Position:** {user_info.get('position', 'N/A')}")
+                    st.write(f"DEBUG ({emp_name}): Name and Position displayed.")
+                st.markdown("---")
 
-    st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown("DEBUG: Exiting 'View Logs' section.", unsafe_allow_html=True) # Prominent debuge
 
+                # --- Attendance ---
+                st.markdown("<h5 class='record-type-header'>🕒 Attendance Records:</h5>", unsafe_allow_html=True)
+                emp_attendance = attendance_df[attendance_df["Username"].astype(str) == str(emp_name)].copy()
+                st.write(f"DEBUG ({emp_name}): emp_attendance empty? {emp_attendance.empty}. Shape: {emp_attendance.shape if not emp_attendance.empty else 'N/A'}")
+                if not emp_attendance.empty:
+                    # ... (your existing processing for admin_att_display) ...
+                    display_cols_att = [col for col in ATTENDANCE_COLUMNS if col != 'Username']
+                    admin_att_display = emp_attendance[display_cols_att].copy()
+                    # ... (formatting lat/lon) ...
+                    st.write(f"DEBUG ({emp_name}): admin_att_display for st.dataframe (Attendance):")
+                    st.dataframe(admin_att_display, use_container_width=True, hide_index=True) # Check if this renders
+                else: 
+                    st.caption(f"No attendance records for {emp_name}.")
+                    st.write(f"DEBUG ({emp_name}): Displayed 'No attendance records' caption.")
+
+                # --- Allowances ---
+                st.markdown("<h5 class='record-type-header' style='margin-top:25px;'>💰 Allowance Section:</h5>", unsafe_allow_html=True)
+                emp_allowances = allowance_df[allowance_df["Username"].astype(str) == str(emp_name)].copy()
+                st.write(f"DEBUG ({emp_name}): emp_allowances empty? {emp_allowances.empty}. Shape: {emp_allowances.shape if not emp_allowances.empty else 'N/A'}")
+                if not emp_allowances.empty:
+                    # ... (your existing processing for allowances) ...
+                    st.write(f"DEBUG ({emp_name}): Displaying allowance metric and dataframes.")
+                    st.metric(label=f"Grand Total Allowance for {emp_name}", value=f"₹{pd.to_numeric(emp_allowances['Amount'], errors='coerce').fillna(0.0).sum():,.2f}")
+                    # ... (monthly summary and detailed requests dataframes) ...
+                    st.dataframe(emp_allowances[[c for c in ALLOWANCE_COLUMNS if c != 'Username']], use_container_width=True, hide_index=True)
+                else: 
+                    st.caption(f"No allowance requests for {emp_name}.")
+                    st.write(f"DEBUG ({emp_name}): Displayed 'No allowance requests' caption.")
+
+                # --- Sales Goals ---
+                st.markdown("<h5 class='record-type-header' style='margin-top:25px;'>🎯 Sales Goal History (2025):</h5>", unsafe_allow_html=True)
+                emp_sales_goals_all = goals_df[(goals_df["Username"].astype(str) == str(emp_name)) & (goals_df["MonthYear"].astype(str).str.startswith(str(TARGET_SALES_GOAL_YEAR)))].copy()
+                st.write(f"DEBUG ({emp_name}): emp_sales_goals_all empty? {emp_sales_goals_all.empty}. Shape: {emp_sales_goals_all.shape if not emp_sales_goals_all.empty else 'N/A'}")
+                if not emp_sales_goals_all.empty:
+                    # ... (processing and dataframe) ...
+                    st.write(f"DEBUG ({emp_name}): Displaying sales goals dataframe and chart.")
+                    st.dataframe(emp_sales_goals_all[["MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]], hide_index=True, use_container_width=True,
+                                 column_config={"TargetAmount":st.column_config.NumberColumn(format="₹%.0f"), "AchievedAmount":st.column_config.NumberColumn(format="%.0f")})
+                    render_goal_chart(emp_sales_goals_all, f"{emp_name}'s Sales Goals vs Achievement {TARGET_SALES_GOAL_YEAR}")
+                else:
+                    st.caption(f"No sales goals found for {emp_name} for {TARGET_SALES_GOAL_YEAR}.")
+                    st.write(f"DEBUG ({emp_name}): Displayed 'No sales goals' caption.")
+
+                # --- Payment Collection Goals ---
+                st.markdown("<h5 class='record-type-header' style='margin-top:25px;'>💰 Payment Collection Goal History (2025):</h5>", unsafe_allow_html=True)
+                emp_payment_goals_all = payment_goals_df[(payment_goals_df["Username"].astype(str) == str(emp_name)) & (payment_goals_df["MonthYear"].astype(str).str.startswith(str(TARGET_PAYMENT_YEAR)))].copy()
+                st.write(f"DEBUG ({emp_name}): emp_payment_goals_all empty? {emp_payment_goals_all.empty}. Shape: {emp_payment_goals_all.shape if not emp_payment_goals_all.empty else 'N/A'}")
+                if not emp_payment_goals_all.empty:
+                    # ... (processing and dataframe) ...
+                    st.write(f"DEBUG ({emp_name}): Displaying payment goals dataframe and chart.")
+                    st.dataframe(emp_payment_goals_all[["MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]], hide_index=True, use_container_width=True,
+                                 column_config={"TargetAmount":st.column_config.NumberColumn("Target Coll. (₹)", format="%.0f"), "AchievedAmount":st.column_config.NumberColumn("Amt. Collected (₹)", format="%.0f")})
+                    render_goal_chart(emp_payment_goals_all, f"{emp_name}'s Payment Collection vs Target {TARGET_PAYMENT_YEAR}")
+
+                else:
+                    st.caption(f"No payment collection goals found for {emp_name} for {TARGET_PAYMENT_YEAR}.")
+                    st.write(f"DEBUG ({emp_name}): Displayed 'No payment collection goals' caption.")
+
+                if emp_name != employee_names[-1]: st.markdown("<hr style='margin-top: 25px; margin-bottom:10px;'>", unsafe_allow_html=True)
 #--------------------------------------------------------------------end-viewlog---------------------------------------------
 
 
