@@ -453,7 +453,8 @@ if nav == "📆 Attendance":
                 st.rerun()
     st.markdown('</div></div>', unsafe_allow_html=True)
 #---------------------------------end section------------------------
-# ... other code before this
+
+selected_sub_option = st.sidebar.selectbox("Choose an option", ["View Logs", "Add Attendance", "Add Allowance"])
 
 if selected_sub_option == "View Logs":
     for emp_name in employee_names:
