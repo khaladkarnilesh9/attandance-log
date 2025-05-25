@@ -408,7 +408,7 @@ html_css = """
         margin-bottom: 25px;
     }
     div[role="radiogroup"] > label { 
-        background-color: ##1c4e80;
+        background-color: #668aad;
         color: var(--text-muted-color);
         padding: 10px 18px;
         border-radius: var(--border-radius);
@@ -419,7 +419,7 @@ html_css = """
         font-weight: 500;
     }
     div[role="radiogroup"] > label:hover {
-        background-color: #000000;
+        background-color: #0f3c67;
         border-color: #adb5bd;
         color: var(--text-color);
     }
