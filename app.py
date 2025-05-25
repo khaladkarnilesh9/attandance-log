@@ -431,7 +431,7 @@ html_css = """
         margin-bottom: 25px;
     }
     div[role="radiogroup"] > label { /* Unselected radio button */
-        background-color: #e9ecef;
+        background-color: ##53687d;
         color: var(--text-muted-color);
         padding: 10px 18px;
         border-radius: var(--border-radius);
