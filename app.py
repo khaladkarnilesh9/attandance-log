@@ -7,7 +7,7 @@ import pytz
 import plotly.express as px
 
 
-# --- Matplotlib Configuration --
+# --- Matplotlib Configuration ---
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -161,10 +161,10 @@ st.markdown(html_css, unsafe_allow_html=True)
 USERS = {
     "Geetali": {"password": "Geetali123", "role": "employee", "position": "Software Engineer", "profile_photo": "images/geetali.png"},
     "Nilesh": {"password": "Nilesh123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/nilesh.png"},
-    "Vishal": {"password": "Vishal123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/nilesh.png"},
-    "Santosh": {"password": "Santosh123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/nilesh.png"},
-    "Deepak": {"password": "Deepak123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/nilesh.png"},
-    "Rahul": {"password": "Rahul123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/nilesh.png"},
+    "Vishal": {"password": "Vishal123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/vishal.png"}, # Placeholder
+    "Santosh": {"password": "Santosh123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/santosh.png"}, # Placeholder
+    "Deepak": {"password": "Deepak123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/deepak.png"}, # Placeholder
+    "Rahul": {"password": "Rahul123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/rahul.png"}, # Placeholder
     "admin": {"password": "admin123", "role": "admin", "position": "System Administrator", "profile_photo": "images/admin.png"}
 }
 
@@ -196,7 +196,7 @@ TARGET_TIMEZONE = "Asia/Kolkata"
 try: tz = pytz.timezone(TARGET_TIMEZONE)
 except pytz.exceptions.UnknownTimeZoneError: st.error(f"Invalid TARGET_TIMEZONE: '{TARGET_TIMEZONE}'."); st.stop()
 def get_current_time_in_tz(): return datetime.now(timezone.utc).astimezone(tz)
-def get_quarter_str_for_year(year, for_current_display=False): # for_current_display is not used here but kept for compatibility
+def get_quarter_str_for_year(year, for_current_display=False):
     now_month = get_current_time_in_tz().month
     if 1 <= now_month <= 3: return f"{year}-Q1"
     elif 4 <= now_month <= 6: return f"{year}-Q2"
@@ -302,7 +302,7 @@ if nav == "📆 Attendance":
             new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS); attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
             try: attendance_df.to_csv(ATTENDANCE_FILE, index=False); st.session_state.user_message = f"Checked out at {now_str}"; st.session_state.message_type = "success"; st.rerun()
             except Exception as e: st.session_state.user_message = f"Error: {e}"; st.session_state.message_type = "error"; st.rerun()
-    st.markdown('</div></div>', unsafe_allow_html=True)
+    st.markdown('</div></div>', unsafe_allow_html=True) # Close card and button-column-container
 
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -318,14 +318,14 @@ elif nav == "🧾 Allowance":
             try: allowance_df.to_csv(ALLOWANCE_FILE, index=False); st.session_state.user_message = f"Allowance for ₹{amount:.2f} submitted."; st.session_state.message_type = "success"; st.rerun()
             except Exception as e: st.session_state.user_message = f"Error: {e}"; st.session_state.message_type = "error"; st.rerun()
         else: st.warning("Please complete all fields with valid values.")
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True) # Close card
 
 elif nav == "🎯 Goal Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_GOAL_YEAR = 2025; current_quarter_for_display = get_quarter_str_for_year(TARGET_GOAL_YEAR)
     status_options = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
-    # global goals_df # REMOVED: No longer needed here as it's accessed/modified directly from global scope
+    # No 'global goals_df' needed here
 
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: Manage & Track Employee Goals</h4>", unsafe_allow_html=True)
@@ -371,7 +371,7 @@ elif nav == "🎯 Goal Tracker":
                 if not existing_g.empty:
                     g_data=existing_g.iloc[0]; g_desc=g_data.get("GoalDescription",""); g_target=float(pd.to_numeric(g_data.get("TargetAmount",0.0),errors='coerce') or 0.0)
                     g_achieved=float(pd.to_numeric(g_data.get("AchievedAmount",0.0),errors='coerce') or 0.0); g_status=g_data.get("Status","Not Started"); st.info(f"Editing goal for {selected_emp} - {selected_period}")
-                with st.form(key=f"set_goal_form_{selected_emp}_{selected_period}_admin"): # Ensure unique key from employee form
+                with st.form(key=f"set_goal_form_{selected_emp}_{selected_period}_admin"):
                     new_desc=st.text_area("Goal Description",value=g_desc,key=f"desc_{selected_emp}_{selected_period}_g_admin")
                     new_target=st.number_input("Target Sales (INR)",value=g_target,min_value=0.0,step=1000.0,format="%.2f",key=f"target_{selected_emp}_{selected_period}_g_admin")
                     new_achieved=st.number_input("Achieved Sales (INR)",value=g_achieved,min_value=0.0,step=100.0,format="%.2f",key=f"achieved_{selected_emp}_{selected_period}_g_admin")
@@ -389,16 +389,13 @@ elif nav == "🎯 Goal Tracker":
                                 if col_name not in new_row_data: new_row_data[col_name]=pd.NA
                             new_row_df=pd.DataFrame([new_row_data],columns=GOALS_COLUMNS); editable_goals_df=pd.concat([editable_goals_df,new_row_df],ignore_index=True); msg_verb="set"
                         try:
-                                editable_goals_df.to_csv(GOALS_FILE, index=False)
-                                # Reload the updated global goals_df immediately
-                                goals_df = load_data(GOALS_FILE, GOALS_COLUMNS) 
-                                st.session_state.user_message = f"Goal for {selected_emp} ({selected_period}) {msg_verb}!"
-                                st.session_state.message_type = "success"
-                                st.rerun()
+                            editable_goals_df.to_csv(GOALS_FILE,index=False)
+                            goals_df=load_data(GOALS_FILE,GOALS_COLUMNS) # Update global df
+                            st.session_state.user_message=f"Goal for {selected_emp} ({selected_period}) {msg_verb}!"; st.session_state.message_type="success"; st.rerun()
                         except Exception as e: st.error(f"Error saving goal: {e}")
     else: # Employee View
         st.markdown("<h4>My Sales Goals (2025 - Quarterly)</h4>", unsafe_allow_html=True)
-        my_goals = goals_df[goals_df["Username"].astype(str) == str(current_user["username"])].copy() # Use updated global df
+        my_goals = goals_df[goals_df["Username"].astype(str) == str(current_user["username"])].copy()
         for col in ["TargetAmount", "AchievedAmount"]: my_goals[col] = pd.to_numeric(my_goals[col], errors="coerce").fillna(0.0)
         current_g = my_goals[my_goals["MonthYear"] == current_quarter_for_display]
         st.markdown(f"<h5>Current Goal Period: {current_quarter_for_display}</h5>", unsafe_allow_html=True)
@@ -414,38 +411,35 @@ elif nav == "🎯 Goal Tracker":
                 st.markdown(f"<h6 style='text-align:center;margin-bottom:0px;margin-top:-15px;'>Sales Progress</h6>",unsafe_allow_html=True)
                 donut_fig_sales=create_donut_chart(progress_percent_sales,"Sales Progress",achieved_color='#28a745'); st.pyplot(donut_fig_sales,use_container_width=True)
             st.markdown("---")
-            with st.form(key=f"update_achievement_{current_user['username']}_{current_quarter_for_display}"): # Key for employee form
+            with st.form(key=f"update_achievement_{current_user['username']}_{current_quarter_for_display}"):
                 new_val=st.number_input("Update Achieved Amount (INR):",value=achieved_amt,min_value=0.0,step=100.0,format="%.2f")
                 submitted_ach=st.form_submit_button("Update Achievement")
-            if submitted_ach: # Logic for employee updating their own achievement
-                editable_goals_df = goals_df.copy() # Modify a copy
-                idx = editable_goals_df[
-                    (editable_goals_df["Username"] == current_user["username"]) &
-                    (editable_goals_df["MonthYear"] == current_quarter_for_display)
-                ].index
+            if submitted_ach:
+                editable_goals_df = goals_df.copy()
+                idx = editable_goals_df[(editable_goals_df["Username"] == current_user["username"]) &(editable_goals_df["MonthYear"] == current_quarter_for_display)].index
                 if not idx.empty:
                     editable_goals_df.loc[idx[0],"AchievedAmount"]=new_val
                     new_status="Achieved" if new_val >= target_amt and target_amt > 0 else "In Progress"
                     editable_goals_df.loc[idx[0],"Status"]=new_status
                     try:
                         editable_goals_df.to_csv(GOALS_FILE,index=False)
-                        goals_df = load_data(GOALS_FILE, GOALS_COLUMNS) # Update global df
+                        goals_df = load_data(GOALS_FILE, GOALS_COLUMNS)
                         st.success("Achievement updated!"); st.rerun()
                     except Exception as e: st.error(f"Error: {e}")
-                else: st.error("Could not find your current goal to update.") # Should not happen if current_g was found
+                else: st.error("Could not find your current goal to update.")
         else: st.info(f"No goal set for {current_quarter_for_display}. Contact admin.")
         st.markdown("---"); st.markdown("<h5>My Past Goals (2025)</h5>", unsafe_allow_html=True)
         past_goals = my_goals[(my_goals["MonthYear"].astype(str).str.startswith(str(TARGET_GOAL_YEAR))) & (my_goals["MonthYear"].astype(str) != current_quarter_for_display)]
         if not past_goals.empty: render_goal_chart(past_goals, "Past Sales Goal Performance")
         else: st.info(f"No past goal records for {TARGET_GOAL_YEAR}.")
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) # Close card
 
 elif nav == "💰 Payment Collection Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💰 Payment Collection Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_YEAR_PAYMENT = 2025; current_quarter_display_payment = get_quarter_str_for_year(TARGET_YEAR_PAYMENT)
     status_options_payment = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
-    # global payment_goals_df # REMOVED: No longer needed here
+    # No 'global payment_goals_df' needed here
 
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: Set & Track Payment Collection Goals</h4>", unsafe_allow_html=True)
@@ -457,7 +451,7 @@ elif nav == "💰 Payment Collection Tracker":
             else:
                 summary_list_payment = []
                 for emp_pay_name in employees_payment_list:
-                    record_payment = payment_goals_df[(payment_goals_df["Username"]==emp_pay_name)&(payment_goals_df["MonthYear"]==current_quarter_display_payment)] # Use updated global df
+                    record_payment = payment_goals_df[(payment_goals_df["Username"]==emp_pay_name)&(payment_goals_df["MonthYear"]==current_quarter_display_payment)]
                     target_p,achieved_p,status_p=0.0,0.0,"Not Set"
                     if not record_payment.empty:
                         rec_payment=record_payment.iloc[0]; target_p=float(pd.to_numeric(rec_payment["TargetAmount"],errors='coerce') or 0.0)
@@ -495,59 +489,31 @@ elif nav == "💰 Payment Collection Tracker":
                 if not existing_payment_goal.empty:
                     g_payment=existing_payment_goal.iloc[0]; desc_payment=g_payment.get("GoalDescription",""); tgt_payment_val=float(pd.to_numeric(g_payment.get("TargetAmount",0.0),errors='coerce') or 0.0)
                     ach_payment_val=float(pd.to_numeric(g_payment.get("AchievedAmount",0.0),errors='coerce') or 0.0); stat_payment=g_payment.get("Status","Not Started")
-                with st.form(f"form_payment_{selected_emp_payment}_{selected_period_payment}_admin"): # Ensure unique key
+                with st.form(f"form_payment_{selected_emp_payment}_{selected_period_payment}_admin"):
                     new_desc_payment=st.text_input("Collection Goal Description",value=desc_payment,key=f"desc_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
                     new_tgt_payment=st.number_input("Target Collection (INR)",value=tgt_payment_val,min_value=0.0,step=1000.0,key=f"target_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
                     new_ach_payment=st.number_input("Collected Amount (INR)",value=ach_payment_val,min_value=0.0,step=500.0,key=f"achieved_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
                     new_status_payment=st.selectbox("Status",status_options_payment,index=status_options_payment.index(stat_payment),key=f"status_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
                     submitted_payment=st.form_submit_button("Save Goal")
-                    if submitted_payment:
-    if not new_desc_payment.strip():
-        st.warning("Goal description is required.")
-    elif new_tgt_payment <= 0 and new_status_payment not in ["Cancelled", "Not Started"]:
-        st.warning("Target must be greater than 0.")
-    else:
-        if not existing_payment_goal.empty:
-            payment_goals_df.loc[existing_payment_goal.index[0]] = [
-                selected_emp_payment,
-                selected_period_payment,
-                new_desc_payment,
-                new_tgt_payment,
-                new_ach_payment,
-                new_status_payment
-            ]
-            msg_payment = "updated"
-        else:
-            new_row_payment = {
-                "Username": selected_emp_payment,
-                "MonthYear": selected_period_payment,
-                "GoalDescription": new_desc_payment,
-                "TargetAmount": new_tgt_payment,
-                "AchievedAmount": new_ach_payment,
-                "Status": new_status_payment
-            }
-            for col in PAYMENT_GOALS_COLUMNS:
-                new_row_payment.setdefault(col, pd.NA)
-            payment_goals_df = pd.concat(
-                [payment_goals_df, pd.DataFrame([new_row_payment], columns=PAYMENT_GOALS_COLUMNS)],
-                ignore_index=True
-            )
-            msg_payment = "set"
-        try:
-            payment_goals_df.to_csv(PAYMENT_GOALS_FILE, index=False)
-            st.success(f"Payment goal {msg_payment} for {selected_emp_payment} ({selected_period_payment})")
-            
-            # Reload the updated data
-            payment_goals_df = pd.read_csv(PAYMENT_GOALS_FILE)
-            
-            # Trigger a rerun to refresh the state
-            st.rerun()
-        except Exception as e:
-            st.error(f"Error saving payment data: {e}")
-
+                if submitted_payment:
+                    if not new_desc_payment.strip(): st.warning("Description required.")
+                    elif new_tgt_payment <= 0 and new_status_payment not in ["Cancelled","Not Started"]: st.warning("Target > 0 required.")
+                    else:
+                        editable_payment_goals_df=payment_goals_df.copy(); existing_pg_indices=editable_payment_goals_df[(editable_payment_goals_df["Username"]==selected_emp_payment)&(editable_payment_goals_df["MonthYear"]==selected_period_payment)].index
+                        if not existing_pg_indices.empty: editable_payment_goals_df.loc[existing_pg_indices[0]]=[selected_emp_payment,selected_period_payment,new_desc_payment,new_tgt_payment,new_ach_payment,new_status_payment]; msg_payment="updated"
+                        else:
+                            new_row_data_p={"Username":selected_emp_payment,"MonthYear":selected_period_payment,"GoalDescription":new_desc_payment,"TargetAmount":new_tgt_payment,"AchievedAmount":new_ach_payment,"Status":new_status_payment}
+                            for col_name in PAYMENT_GOALS_COLUMNS:
+                                if col_name not in new_row_data_p: new_row_data_p[col_name]=pd.NA
+                            new_row_df_p=pd.DataFrame([new_row_data_p],columns=PAYMENT_GOALS_COLUMNS); editable_payment_goals_df=pd.concat([editable_payment_goals_df,new_row_df_p],ignore_index=True); msg_payment="set"
+                        try:
+                            editable_payment_goals_df.to_csv(PAYMENT_GOALS_FILE,index=False)
+                            payment_goals_df=load_data(PAYMENT_GOALS_FILE,PAYMENT_GOALS_COLUMNS) # Update global df
+                            st.session_state.user_message=f"Payment goal {msg_payment} for {selected_emp_payment} ({selected_period_payment})"; st.session_state.message_type="success"; st.rerun()
+                        except Exception as e: st.error(f"Error saving data: {e}")
     else: # Employee View
         st.markdown("<h4>My Payment Collection Goals (2025)</h4>", unsafe_allow_html=True)
-        user_goals_payment = payment_goals_df[payment_goals_df["Username"]==current_user["username"]].copy() # Use updated global df
+        user_goals_payment = payment_goals_df[payment_goals_df["Username"]==current_user["username"]].copy()
         user_goals_payment[["TargetAmount","AchievedAmount"]] = user_goals_payment[["TargetAmount","AchievedAmount"]].apply(pd.to_numeric,errors="coerce").fillna(0.0)
         current_payment_goal_period = user_goals_payment[user_goals_payment["MonthYear"]==current_quarter_display_payment]
         st.markdown(f"<h5>Current Quarter: {current_quarter_display_payment}</h5>", unsafe_allow_html=True)
@@ -563,21 +529,18 @@ elif nav == "💰 Payment Collection Tracker":
                 st.markdown(f"<h6 style='text-align:center;margin-bottom:0px;margin-top:-15px;'>Collection Progress</h6>",unsafe_allow_html=True)
                 donut_fig_payment=create_donut_chart(progress_percent_pay,"Collection Progress",achieved_color='#2070c0'); st.pyplot(donut_fig_payment,use_container_width=True)
             st.markdown("---")
-            with st.form(key=f"update_collection_{current_user['username']}_{current_quarter_display_payment}"): # Key for employee form
+            with st.form(key=f"update_collection_{current_user['username']}_{current_quarter_display_payment}"):
                 new_ach_val_payment=st.number_input("Update Collected Amount (INR):",value=ach_pay,min_value=0.0,step=500.0)
                 submit_collection_update=st.form_submit_button("Update Collection")
-            if submit_collection_update: # Logic for employee updating their own collection
-                editable_payment_goals_df = payment_goals_df.copy() # Modify a copy
-                idx_pay=editable_payment_goals_df[
-                    (editable_payment_goals_df["Username"]==current_user["username"])&
-                    (editable_payment_goals_df["MonthYear"]==current_quarter_display_payment)
-                ].index
+            if submit_collection_update:
+                editable_payment_goals_df = payment_goals_df.copy()
+                idx_pay=editable_payment_goals_df[(editable_payment_goals_df["Username"]==current_user["username"])&(editable_payment_goals_df["MonthYear"]==current_quarter_display_payment)].index
                 if not idx_pay.empty:
                     editable_payment_goals_df.loc[idx_pay[0],"AchievedAmount"]=new_ach_val_payment
                     editable_payment_goals_df.loc[idx_pay[0],"Status"]="Achieved" if new_ach_val_payment >= tgt_pay and tgt_pay > 0 else "In Progress"
                     try:
                         editable_payment_goals_df.to_csv(PAYMENT_GOALS_FILE,index=False)
-                        payment_goals_df = load_data(PAYMENT_GOALS_FILE, PAYMENT_GOALS_COLUMNS) # Update global df
+                        payment_goals_df = load_data(PAYMENT_GOALS_FILE, PAYMENT_GOALS_COLUMNS)
                         st.success("Collection updated."); st.rerun()
                     except Exception as e: st.error(f"Error: {e}")
                 else: st.error("Could not find your current goal to update.")
@@ -586,7 +549,7 @@ elif nav == "💰 Payment Collection Tracker":
         past_payment_goals = user_goals_payment[user_goals_payment["MonthYear"]!=current_quarter_display_payment]
         if not past_payment_goals.empty: render_goal_chart(past_payment_goals,"Past Collection Performance")
         else: st.info("No past collection goals.")
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True) # Close card
 
 elif nav == "📊 View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -603,11 +566,11 @@ elif nav == "📊 View Logs":
         if not emp_allowance_log.empty: st.dataframe(emp_allowance_log, use_container_width=True)
         else: st.warning("No allowance records found")
         st.markdown(f"<h5>Sales Goals for {selected_employee_log}</h5>", unsafe_allow_html=True)
-        emp_goals_log = goals_df[goals_df["Username"] == selected_employee_log] # Use updated global df
+        emp_goals_log = goals_df[goals_df["Username"] == selected_employee_log]
         if not emp_goals_log.empty: st.dataframe(emp_goals_log, use_container_width=True)
         else: st.warning("No sales goals records found")
         st.markdown(f"<h5>Payment Collection Goals for {selected_employee_log}</h5>", unsafe_allow_html=True)
-        emp_payment_goals_log = payment_goals_df[payment_goals_df["Username"] == selected_employee_log] # Use updated global df
+        emp_payment_goals_log = payment_goals_df[payment_goals_df["Username"] == selected_employee_log]
         if not emp_payment_goals_log.empty: st.dataframe(emp_payment_goals_log, use_container_width=True)
         else: st.warning("No payment collection goals records found")
     else: # Employee View
@@ -621,11 +584,11 @@ elif nav == "📊 View Logs":
         if not my_allowance_log.empty: st.dataframe(my_allowance_log, use_container_width=True)
         else: st.warning("No allowance records found for you")
         st.markdown("<h5>My Sales Goals</h5>", unsafe_allow_html=True)
-        my_goals_log = goals_df[goals_df["Username"] == current_user["username"]] # Use updated global df
+        my_goals_log = goals_df[goals_df["Username"] == current_user["username"]]
         if not my_goals_log.empty: st.dataframe(my_goals_log, use_container_width=True)
         else: st.warning("No sales goals records found for you")
         st.markdown("<h5>My Payment Collection Goals</h5>", unsafe_allow_html=True)
-        my_payment_goals_log = payment_goals_df[payment_goals_df["Username"] == current_user["username"]] # Use updated global df
+        my_payment_goals_log = payment_goals_df[payment_goals_df["Username"] == current_user["username"]]
         if not my_payment_goals_log.empty: st.dataframe(my_payment_goals_log, use_container_width=True)
         else: st.warning("No payment collection goals records found for you")
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True) # Close card
