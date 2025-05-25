@@ -452,6 +452,45 @@ if nav == "📆 Attendance":
                 st.session_state.message_type = "error"
                 st.rerun()
     st.markdown('</div></div>', unsafe_allow_html=True)
+#--------------------------------------------------------------------start-viewlog---------------------------------------------
+elif nav == "📊 View Logs":
+    st.markdown("DEBUG: Entered 'View Logs' section.", unsafe_allow_html=True) # Prominent debug
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    
+    st.write(f"DEBUG: current_user['role'] = {current_user['role']}") # Check role
+
+    if current_user["role"] == "admin":
+        st.markdown("DEBUG: Admin view for Logs.", unsafe_allow_html=True) # Prominent debug
+        st.markdown("<h3>📊 Employee Data Logs</h3>", unsafe_allow_html=True)
+        employee_names = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
+        
+        st.write(f"DEBUG: Admin view - employee_names = {employee_names}") # Check employee list
+
+        if not employee_names: 
+            st.info("No employees found or no employee data to display.")
+            st.write("DEBUG: Admin view - No employee names, showing info message.")
+        else:
+            st.write("DEBUG: Admin view - Processing employees...")
+            # ... (rest of your admin log display code) ...
+            for emp_name in employee_names:
+                st.write(f"DEBUG: Admin view - Processing logs for {emp_name}")
+                # ...
+    else: # Employee's Own View
+        st.markdown("DEBUG: Employee view for Logs.", unsafe_allow_html=True) # Prominent debug
+        st.markdown("<h3>📊 My Profile & Logs</h3>", unsafe_allow_html=True)
+        my_user_info = USERS.get(current_user["username"], {})
+        # ... (rest of your employee log display code) ...
+        my_att_raw = attendance_df[attendance_df["Username"].astype(str) == str(current_user["username"])].copy()
+        st.write(f"DEBUG: Employee view - my_att_raw empty? {my_att_raw.empty}")
+        if my_att_raw.empty:
+            st.write("DEBUG: Employee view - Attendance raw data is empty.")
+        # ...
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("DEBUG: Exiting 'View Logs' section.", unsafe_allow_html=True) # Prominent debug
+
+#--------------------------------------------------------------------end-viewlog---------------------------------------------
+
 
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
