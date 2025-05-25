@@ -5,6 +5,8 @@ import os
 import pytz
 # import sys # Not used, can be removed
 import altair as alt # Keep for existing past goals chart
+import plotly.express as px # <--- ADD THIS IMPORT
+
 
 # --- Matplotlib Configuration ---
 import matplotlib
@@ -20,35 +22,49 @@ except ImportError:
     PILLOW_INSTALLED = False
 
 # --- Function to render Altair bar chart (for past goals) ---
-def render_goal_chart(df: pd.DataFrame, title: str):
+# --- Function to render Plotly Express grouped bar chart (for past goals) ---
+def render_goal_chart(df: pd.DataFrame, chart_title: str): # Renamed title to chart_title for clarity
     if df.empty:
         st.warning("No data available to plot.")
         return
-    df = df.copy()
-    df[["TargetAmount", "AchievedAmount"]] = df[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce").fillna(0)
-    # No need to sort by MonthYear here as Altair will handle categorical ordering
 
-    long_df = df.melt(id_vars=["MonthYear"], value_vars=["TargetAmount", "AchievedAmount"],
-                      var_name="Metric", value_name="Amount")
+    df_chart = df.copy()
+    # Ensure columns are numeric, coercing errors to NaN, then fill NaN with 0 for plotting
+    df_chart[["TargetAmount", "AchievedAmount"]] = df_chart[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce").fillna(0)
 
-    # Ensure MonthYear is treated as a nominal type for proper grouping
-    # And Metric is also nominal for distinct bars
-    chart = alt.Chart(long_df).mark_bar().encode(
-        alt.X('Metric:N', title=None, axis=alt.Axis(labels=True, ticks=False, domain=False)), # X-axis is now Metric
-        alt.Y('Amount:Q', title="Amount (INR)"),
-        alt.Color('Metric:N', scale=alt.Scale(domain=['TargetAmount', 'AchievedAmount'], range=["#3498db", "#2ecc71"])),
-        alt.Column('MonthYear:N', title="Quarter", header=alt.Header(labelOrient='bottom', titleOrient='bottom', labelPadding=5)), # Facet by MonthYear
-        tooltip=["MonthYear", "Metric", "Amount"]
-    ).properties(
-        title=title
-        # width="container" # Width is tricky with column facets, let Altair manage or set specific step width
-    ).configure_facet(
-        spacing=10 # Adjust spacing between faceted columns
-    ).configure_view(
-        stroke=None # Remove border around each facet
+    # Melt the DataFrame to long format, which is suitable for Plotly Express's color mapping
+    df_melted = df_chart.melt(id_vars="MonthYear",
+                              value_vars=["TargetAmount", "AchievedAmount"],
+                              var_name="Metric",
+                              value_name="Amount")
+
+    if df_melted.empty:
+        st.warning(f"No data to plot for {chart_title} after processing.")
+        return
+
+    fig = px.bar(df_melted,
+                 x="MonthYear",
+                 y="Amount",
+                 color="Metric",
+                 barmode="group",  # This creates side-by-side (parallel) bars
+                 labels={"MonthYear": "Quarter", "Amount": "Amount (INR)", "Metric": "Metric"},
+                 title=chart_title,
+                 color_discrete_map={ # Optional: customize colors
+                     'TargetAmount': '#3498db',  # Blue
+                     'AchievedAmount': '#2ecc71' # Green
+                 }
+                )
+
+    fig.update_layout(
+        height=400, # You can adjust the height
+        xaxis_title="Quarter",
+        yaxis_title="Amount (INR)",
+        legend_title_text='Metric'
     )
+    # To ensure labels like "2025-Q1" are not abbreviated if they are long
+    fig.update_xaxes(type='category') 
 
-    st.altair_chart(chart, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
 
 # --- Function to create Matplotlib Donut Chart ---
 def create_donut_chart(progress_percentage, chart_title="Progress", achieved_color='#2ecc71', remaining_color='#f0f0f0', center_text_color=None):
