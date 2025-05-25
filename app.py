@@ -216,8 +216,8 @@ html_css = """
     }
 
 
-        .card {
-        background-color: #f9f9f9;
+        .card { /* This .card definition might be redundant or conflict if not careful. The earlier one is more comprehensive. */
+        background-color: #f9f9f9; /* A slightly different background than the main .card style */
         padding: 1.5rem;
         border-radius: 1rem;
         box-shadow: 0 4px 8px rgba(0,0,0,0.05);
@@ -234,11 +234,6 @@ html_css = """
     .badge.green { background-color: #2ecc71; }
     .badge.red { background-color: #e74c3c; }
     .badge.orange { background-color: #f39c12; }
-
-
-
-
-    
 </style>
 """
 st.markdown(html_css, unsafe_allow_html=True)
@@ -286,6 +281,7 @@ if PILLOW_INSTALLED:
 ATTENDANCE_FILE = "attendance.csv"
 ALLOWANCE_FILE = "allowances.csv"
 GOALS_FILE = "goals.csv"
+PAYMENT_GOALS_FILE = "payment_goals.csv" # Added missing definition
 
 # --- Timezone Configuration ---
 TARGET_TIMEZONE = "Asia/Kolkata"
@@ -312,22 +308,25 @@ def load_data(path, columns):
             else: return pd.DataFrame(columns=columns)
         except pd.errors.EmptyDataError: return pd.DataFrame(columns=columns)
         except Exception as e:
-            # This error will be shown directly on the page, not suitable for session state message
             st.error(f"Error loading {path}: {e}. Empty DataFrame returned.")
             return pd.DataFrame(columns=columns)
     else:
         df = pd.DataFrame(columns=columns)
         try: df.to_csv(path, index=False)
-        except Exception as e: st.warning(f"Could not create {path}: {e}") # Shows directly
+        except Exception as e: st.warning(f"Could not create {path}: {e}")
         return df
 
 ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude"]
 ALLOWANCE_COLUMNS = ["Username", "Type", "Amount", "Reason", "Date"]
 GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
+PAYMENT_GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
+
 
 attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS)
 allowance_df = load_data(ALLOWANCE_FILE, ALLOWANCE_COLUMNS)
 goals_df = load_data(GOALS_FILE, GOALS_COLUMNS)
+payment_goals_df = load_data(PAYMENT_GOALS_FILE, PAYMENT_GOALS_COLUMNS) # Correctly load payment_goals_df
+
 
 # --- Initialize Session State for Notifications ---
 if "user_message" not in st.session_state:
@@ -340,11 +339,10 @@ if "auth" not in st.session_state: st.session_state.auth = {"logged_in": False, 
 
 if not st.session_state.auth["logged_in"]:
     st.title("🙂HR Dashboard Login")
-    # Display pending messages on login page too, if any (e.g., from a previous logout)
     message_placeholder_login = st.empty()
     if st.session_state.user_message:
         message_placeholder_login.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
-        st.session_state.user_message = None # Clear after displaying
+        st.session_state.user_message = None
         st.session_state.message_type = None
 
     st.markdown('<div class="login-container card">', unsafe_allow_html=True)
@@ -355,11 +353,10 @@ if not st.session_state.auth["logged_in"]:
         user_creds = USERS.get(uname)
         if user_creds and user_creds["password"] == pwd:
             st.session_state.auth = {"logged_in": True, "username": uname, "role": user_creds["role"]}
-            st.session_state.user_message = "Login successful!" # SET MESSAGE
-            st.session_state.message_type = "success"         # SET TYPE
+            st.session_state.user_message = "Login successful!"
+            st.session_state.message_type = "success"
             st.rerun()
         else:
-            # For errors on the login page, st.error is fine as no immediate rerun
             st.error("Invalid username or password.")
     st.markdown('</div>', unsafe_allow_html=True); st.stop()
 
@@ -367,21 +364,11 @@ if not st.session_state.auth["logged_in"]:
 st.title("👨‍💼 HR Dashboard")
 current_user = st.session_state.auth
 
-# --- Dedicated Message Placeholder for Main App ---
 message_placeholder = st.empty()
 if st.session_state.user_message:
     message_placeholder.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
-    st.session_state.user_message = None # Clear after displaying
+    st.session_state.user_message = None
     st.session_state.message_type = None
-#------------------------------------------------------------------------------------------------
-PAYMENT_GOALS_FILE = "payment_goals.csv"
-PAYMENT_GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
-
-if os.path.exists(PAYMENT_GOALS_FILE):
-    payment_goals_df = pd.read_csv(PAYMENT_GOALS_FILE)
-else:
-    payment_goals_df = pd.DataFrame(columns=PAYMENT_GOALS_COLUMNS)
-
 
 # --- Sidebar -------------------------------------------------------------------------
 with st.sidebar:
@@ -395,34 +382,35 @@ with st.sidebar:
     st.markdown("---")
     if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
-        st.session_state.user_message = "Logged out successfully." # SET MESSAGE
-        st.session_state.message_type = "info"                  # SET TYPE
+        st.session_state.user_message = "Logged out successfully."
+        st.session_state.message_type = "info"
         st.rerun()
+
+# --- Helper function for quarter string ---
+def get_quarter_str_for_year(year, for_current_display=False):
+    now_month = get_current_time_in_tz().month
+    if 1 <= now_month <= 3: quarter_num_str = "Q1"
+    elif 4 <= now_month <= 6: quarter_num_str = "Q2"
+    elif 7 <= now_month <= 9: quarter_num_str = "Q3"
+    else: quarter_num_str = "Q4"
+    return f"{year}-{quarter_num_str}"
 
 # --- Main Content Area ---
 if nav == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
-
-    lat, lon = None, None 
     st.info("📍 Location services are currently disabled for attendance.", icon="ℹ️")
-
     st.markdown("---")
     st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
-
-    common_data = {
-        "Username": current_user["username"],
-        "Latitude": pd.NA,
-        "Longitude": pd.NA
-    }
+    common_data = {"Username": current_user["username"], "Latitude": pd.NA, "Longitude": pd.NA}
 
     with col1:
         if st.button("✅ Check In", key="check_in_btn_main", use_container_width=True):
             now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
             new_entry_data = {"Type": "Check-In", "Timestamp": now_str, **common_data}
             for col_name in ATTENDANCE_COLUMNS:
-                if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA 
+                if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA
             new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
             attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
             try:
@@ -433,7 +421,7 @@ if nav == "📆 Attendance":
             except Exception as e:
                 st.session_state.user_message = f"Error saving attendance: {e}"
                 st.session_state.message_type = "error"
-                st.rerun() # Rerun to show the error message at the top
+                st.rerun()
     with col2:
         if st.button("🚪 Check Out", key="check_out_btn_main", use_container_width=True):
             now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
@@ -451,12 +439,7 @@ if nav == "📆 Attendance":
                 st.session_state.user_message = f"Error saving attendance: {e}"
                 st.session_state.message_type = "error"
                 st.rerun()
-    st.markdown('</div></div>', unsafe_allow_html=True)
-#---------------------------------end section------------------------
-
-
-
-#--------------------allowence section start--------------------------
+    st.markdown('</div></div>', unsafe_allow_html=True) # Closes button-column-container and card
 
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -481,35 +464,10 @@ elif nav == "🧾 Allowance":
                 st.session_state.message_type = "error"
                 st.rerun()
         else:
-            # For immediate warnings not followed by rerun, st.warning is fine
             st.warning("Please complete all fields with valid values.")
     st.markdown('</div>', unsafe_allow_html=True)
-#-----------------------------------------------------------------------------
-# Helper function to get the current quarter string for a GIVEN year
-# This is slightly different now as the target year is fixed for goal setting
-def get_quarter_str_for_year(year, for_current_display=False):
-    # If for_current_display is True, use today's month to determine the quarter for the given year.
-    # Otherwise, you might want a fixed default like Q1 of that year.
-    # For simplicity in goal setting, we often default to Q1 of the target year.
-    # For display of "current" progress, we'll use today's actual quarter but map it to the fixed year.
-    
-    now_month = get_current_time_in_tz().month # Today's actual month
-    
-    if 1 <= now_month <= 3:
-        quarter_num_str = "Q1"
-    elif 4 <= now_month <= 6:
-        quarter_num_str = "Q2"
-    elif 7 <= now_month <= 9:
-        quarter_num_str = "Q3"
-    else:  # 10 <= now_month <= 12
-        quarter_num_str = "Q4"
-        
-    return f"{year}-{quarter_num_str}"
 
-#-------------------------------------------------------
-
-# --- Main Goal Tracker Navigation Block ---
-if nav == "🎯 Goal Tracker":
+elif nav == "🎯 Goal Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
 
@@ -545,32 +503,17 @@ if nav == "🎯 Goal Tracker":
                         g_data = emp_current_goal.iloc[0]
                         raw_target = g_data.get("TargetAmount")
                         raw_achieved = g_data.get("AchievedAmount", 0.0)
-
-                        try:
-                            achieved = float(raw_achieved)
-                        except (ValueError, TypeError):
-                            achieved = 0.0
-
-                        try:
-                            target = float(raw_target)
-                        except (ValueError, TypeError):
-                            target = 0.0
-
+                        achieved = float(pd.to_numeric(raw_achieved, errors='coerce') or 0.0)
+                        target = float(pd.to_numeric(raw_target, errors='coerce') or 0.0)
                         prog_val = min(achieved / target, 1.0) if target > 0 else 0.0
                         goal_desc = g_data.get("GoalDescription", "N/A")
                         status_val = g_data.get("Status", "N/A")
 
                     summary_data.append({
-                        "Photo": user_info_gt.get("profile_photo", ""),
-                        "Employee": emp_name,
-                        "Position": user_info_gt.get("position", "N/A"),
-                        "Goal": goal_desc,
-                        "Target": target,
-                        "Achieved": achieved,
-                        "Progress": prog_val,
-                        "Status": status_val
+                        "Photo": user_info_gt.get("profile_photo", ""), "Employee": emp_name,
+                        "Position": user_info_gt.get("position", "N/A"), "Goal": goal_desc,
+                        "Target": target, "Achieved": achieved, "Progress": prog_val, "Status": status_val
                     })
-
                 if summary_data:
                     st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True,
                                  column_config={
@@ -582,26 +525,14 @@ if nav == "🎯 Goal Tracker":
 
         elif admin_action == f"Set/Edit Goal for {TARGET_GOAL_YEAR}":
             st.markdown(f"<h5>Set or Update Employee Goal ({TARGET_GOAL_YEAR} - Quarterly)</h5>", unsafe_allow_html=True)
-
             employee_options = [u for u, d in USERS.items() if d["role"] == "employee"]
             if not employee_options:
                 st.warning("No employees available to set goals for.")
             else:
-                # Maintain selected employee
-                selected_emp = st.radio("Select Employee:", employee_options,
-                                        key="goal_emp_radio_2025_q", horizontal=True)
-
-                # Maintain selected quarter
+                selected_emp = st.radio("Select Employee:", employee_options, key="goal_emp_radio_2025_q", horizontal=True)
                 quarter_options = [f"{TARGET_GOAL_YEAR}-Q{i}" for i in range(1, 5)]
-                selected_period = st.radio("Goal Period:", quarter_options,
-                                           key="goal_period_radio_2025_q", horizontal=True)
-
-                # Load existing goal if any
-                existing_g = goals_df[
-                    (goals_df["Username"].astype(str) == str(selected_emp)) &
-                    (goals_df["MonthYear"].astype(str) == str(selected_period))
-                ]
-
+                selected_period = st.radio("Goal Period:", quarter_options, key="goal_period_radio_2025_q", horizontal=True)
+                existing_g = goals_df[(goals_df["Username"].astype(str) == str(selected_emp)) & (goals_df["MonthYear"].astype(str) == str(selected_period))]
                 g_desc, g_target, g_achieved, g_status = "", 0.0, 0.0, "Not Started"
                 if not existing_g.empty:
                     g_data = existing_g.iloc[0]
@@ -615,286 +546,190 @@ if nav == "🎯 Goal Tracker":
                     new_desc = st.text_area("Goal Description", value=g_desc)
                     new_target = st.number_input("Target Sales (INR)", value=g_target, min_value=0.0, step=1000.0, format="%.2f")
                     new_achieved = st.number_input("Achieved Sales (INR)", value=g_achieved, min_value=0.0, step=100.0, format="%.2f")
-                    new_status = st.radio("Status:", status_options,
-                                          index=status_options.index(g_status), horizontal=True)
+                    new_status = st.radio("Status:", status_options, index=status_options.index(g_status), horizontal=True)
                     submitted = st.form_submit_button("Save Goal")
 
                 if submitted:
-                    if not new_desc.strip():
-                        st.warning("Description is required.")
-                    elif new_target <= 0 and new_status not in ["Cancelled", "On Hold", "Not Started"]:
-                        st.warning("Target must be > 0 unless status is Cancelled/On Hold/Not Started.")
+                    if not new_desc.strip(): st.warning("Description is required.")
+                    elif new_target <= 0 and new_status not in ["Cancelled", "On Hold", "Not Started"]: st.warning("Target must be > 0 unless status is Cancelled/On Hold/Not Started.")
                     else:
                         if not existing_g.empty:
-                            goals_df.loc[existing_g.index[0]] = [selected_emp, selected_period, new_desc,
-                                                                 new_target, new_achieved, new_status]
+                            goals_df.loc[existing_g.index[0]] = [selected_emp, selected_period, new_desc, new_target, new_achieved, new_status]
                             msg_verb = "updated"
                         else:
-                            new_row = {
-                                "Username": selected_emp,
-                                "MonthYear": selected_period,
-                                "GoalDescription": new_desc,
-                                "TargetAmount": new_target,
-                                "AchievedAmount": new_achieved,
-                                "Status": new_status
-                            }
-                            for col in GOALS_COLUMNS:
-                                new_row.setdefault(col, pd.NA)
+                            new_row = {"Username": selected_emp, "MonthYear": selected_period, "GoalDescription": new_desc,
+                                       "TargetAmount": new_target, "AchievedAmount": new_achieved, "Status": new_status}
+                            for col in GOALS_COLUMNS: new_row.setdefault(col, pd.NA)
                             goals_df = pd.concat([goals_df, pd.DataFrame([new_row])], ignore_index=True)
                             msg_verb = "set"
-
                         try:
                             goals_df.to_csv(GOALS_FILE, index=False)
                             st.success(f"Goal for {selected_emp} ({selected_period}) {msg_verb}!")
                             st.rerun()
-                        except Exception as e:
-                            st.error(f"Error saving goal: {e}")
-    else:
-        # Employee View
+                        except Exception as e: st.error(f"Error saving goal: {e}")
+    else: # Employee View
         st.markdown("<h4>My Sales Goals (2025 - Quarterly)</h4>", unsafe_allow_html=True)
         my_goals = goals_df[goals_df["Username"].astype(str) == str(current_user["username"])].copy()
-        for col in ["TargetAmount", "AchievedAmount"]:
-            my_goals[col] = pd.to_numeric(my_goals[col], errors="coerce").fillna(0.0)
-
+        for col in ["TargetAmount", "AchievedAmount"]: my_goals[col] = pd.to_numeric(my_goals[col], errors="coerce").fillna(0.0)
         current_g = my_goals[my_goals["MonthYear"] == current_quarter_for_display]
         st.markdown(f"<h5>Current Goal Period: {current_quarter_for_display}</h5>", unsafe_allow_html=True)
 
         if not current_g.empty:
             g = current_g.iloc[0]
-            target_amt = g["TargetAmount"]
-            achieved_amt = g["AchievedAmount"]
+            target_amt = g["TargetAmount"]; achieved_amt = g["AchievedAmount"]
             progress = min(achieved_amt / target_amt, 1.0) if target_amt > 0 else 0.0
-
             st.markdown(f"**Description:** {g.get('GoalDescription', 'N/A')}")
             c1, c2, c3 = st.columns(3)
-            c1.metric("Target", f"₹{target_amt:,.0f}")
-            c2.metric("Achieved", f"₹{achieved_amt:,.0f}")
-            with c3:
-                st.metric("Status", g.get("Status", "In Progress"))
-                st.progress(progress)
-                st.caption(f"{progress*100:.1f}% Complete")
-
+            c1.metric("Target", f"₹{target_amt:,.0f}"); c2.metric("Achieved", f"₹{achieved_amt:,.0f}")
+            with c3: st.metric("Status", g.get("Status", "In Progress")); st.progress(progress); st.caption(f"{progress*100:.1f}% Complete")
             st.markdown("---")
             with st.form(key=f"update_achievement_{current_user['username']}_{current_quarter_for_display}"):
                 new_val = st.number_input("Update Achieved Amount (INR):", value=achieved_amt, min_value=0.0, step=100.0, format="%.2f")
                 submitted = st.form_submit_button("Update Achievement")
-
             if submitted:
                 idx = current_g.index[0]
                 goals_df.loc[idx, "AchievedAmount"] = new_val
                 new_status = "Achieved" if new_val >= target_amt and target_amt > 0 else "In Progress"
                 goals_df.loc[idx, "Status"] = new_status
                 try:
-                    goals_df.to_csv(GOALS_FILE, index=False)
-                    st.success("Achievement updated!")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Error saving update: {e}")
-        else:
-            st.info(f"No goal set for {current_quarter_for_display}. Contact your admin.")
-
+                    goals_df.to_csv(GOALS_FILE, index=False); st.success("Achievement updated!"); st.rerun()
+                except Exception as e: st.error(f"Error saving update: {e}")
+        else: st.info(f"No goal set for {current_quarter_for_display}. Contact your admin.")
         st.markdown("---")
         st.markdown("<h5>My Past Goals (2025)</h5>", unsafe_allow_html=True)
-        past_goals = my_goals[
-            (my_goals["MonthYear"].astype(str).str.startswith(str(TARGET_GOAL_YEAR))) &
-            (my_goals["MonthYear"].astype(str) != current_quarter_for_display)
-        ]
+        past_goals = my_goals[(my_goals["MonthYear"].astype(str).str.startswith(str(TARGET_GOAL_YEAR))) & (my_goals["MonthYear"].astype(str) != current_quarter_for_display)]
         if not past_goals.empty:
             st.dataframe(past_goals[["MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]],
                          hide_index=True, use_container_width=True,
-                         column_config={
-                             "TargetAmount": st.column_config.NumberColumn(format="₹%.0f"),
-                             "AchievedAmount": st.column_config.NumberColumn(format="₹%.0f")
-                         })
-        else:
-            st.info(f"No past goal records found for {TARGET_GOAL_YEAR}.")
-
+                         column_config={"TargetAmount": st.column_config.NumberColumn(format="₹%.0f"), "AchievedAmount": st.column_config.NumberColumn(format="₹%.0f")})
+        else: st.info(f"No past goal records found for {TARGET_GOAL_YEAR}.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-from io import BytesIO
 
-# def download_combined_excel(sales_df, payment_df, current_user):
-#     output = BytesIO()
-#     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-#         sales_df.to_excel(writer, index=False, sheet_name="Sales Goals")
-#         payment_df.to_excel(writer, index=False, sheet_name="Payment Goals")
-#         writer.save()
-#     return output.getvalue()
-
-# # Only show for admin or current user's data
-# sales_export_df = goals_df if current_user["role"] == "admin" else goals_df[goals_df["Username"] == current_user["username"]]
-# payment_export_df = payment_goals_df if current_user["role"] == "admin" else payment_goals_df[payment_goals_df["Username"] == current_user["username"]]
-
-# excel_data = download_combined_excel(sales_export_df, payment_export_df, current_user)
-# st.download_button("📂 Download Combined Report (Excel)", data=excel_data,
-#                    file_name="sales_payment_goals.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-
-    
-#-------------------------------------payemnt collection logic-----------------------------------
-
-if nav == "💰 Payment Collection Tracker":
+elif nav == "💰 Payment Collection Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💰 Payment Collection Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
 
     TARGET_YEAR = 2025
     current_quarter_display = get_quarter_str_for_year(TARGET_YEAR, for_current_display=True)
-    status_options = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
+    status_options_payment = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"] # Used different name to avoid conflict
 
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: Set & Track Payment Collection Goals</h4>", unsafe_allow_html=True)
-        admin_action = st.radio(
+        admin_action_payment = st.radio(
             "Action:",
             ["View Team Progress", f"Set/Edit Collection Target for {TARGET_YEAR}"],
             key="admin_payment_action_2025",
             horizontal=True
         )
 
-        if admin_action == "View Team Progress":
+        if admin_action_payment == "View Team Progress":
             st.markdown(f"<h5>Team Payment Progress - {current_quarter_display}</h5>", unsafe_allow_html=True)
-            employees = [u for u, d in USERS.items() if d["role"] == "employee"]
-            summary = []
-            for emp in employees:
-                user_data = USERS.get(emp, {})
-                record = payment_goals_df[
-                    (payment_goals_df["Username"] == emp) &
+            employees_payment = [u for u, d in USERS.items() if d["role"] == "employee"]
+            summary_payment = []
+            for emp_payment in employees_payment:
+                user_data_payment = USERS.get(emp_payment, {})
+                record_payment = payment_goals_df[
+                    (payment_goals_df["Username"] == emp_payment) &
                     (payment_goals_df["MonthYear"] == current_quarter_display)
                 ]
-                if not record.empty:
-                    rec = record.iloc[0]
-                    tgt = float(pd.to_numeric(rec["TargetAmount"], errors="coerce") or 0.0)
-                    ach = float(pd.to_numeric(rec["AchievedAmount"], errors="coerce") or 0.0)
-                    prog = min(ach / tgt, 1.0) if tgt > 0 else 0.0
-                    summary.append({
-                        "Employee": emp,
-                        "Position": user_data.get("position", ""),
-                        "Target": tgt,
-                        "Collected": ach,
-                        "Progress": prog,
-                        "Status": rec.get("Status", "N/A")
+                if not record_payment.empty:
+                    rec_payment = record_payment.iloc[0]
+                    tgt_payment = float(pd.to_numeric(rec_payment["TargetAmount"], errors="coerce") or 0.0)
+                    ach_payment = float(pd.to_numeric(rec_payment["AchievedAmount"], errors="coerce") or 0.0)
+                    prog_payment = min(ach_payment / tgt_payment, 1.0) if tgt_payment > 0 else 0.0
+                    summary_payment.append({
+                        "Employee": emp_payment, "Position": user_data_payment.get("position", ""),
+                        "Target": tgt_payment, "Collected": ach_payment, "Progress": prog_payment,
+                        "Status": rec_payment.get("Status", "N/A")
                     })
-            if summary:
-                st.dataframe(pd.DataFrame(summary), use_container_width=True,
+            if summary_payment:
+                st.dataframe(pd.DataFrame(summary_payment), use_container_width=True,
                              column_config={
                                  "Target": st.column_config.NumberColumn("Target (₹)", format="%.0f"),
                                  "Collected": st.column_config.NumberColumn("Collected (₹)", format="%.0f"),
                                  "Progress": st.column_config.ProgressColumn("Progress", format="%.0f%%", min_value=0, max_value=1)
                              })
-            else:
-                st.info("No goals set for current quarter.")
+            else: st.info("No payment goals set for current quarter.")
         
-        elif admin_action == f"Set/Edit Collection Target for {TARGET_YEAR}":
+        elif admin_action_payment == f"Set/Edit Collection Target for {TARGET_YEAR}":
             st.markdown(f"<h5>Set or Update Collection Goal ({TARGET_YEAR} - Quarterly)</h5>", unsafe_allow_html=True)
-            employees = [u for u, d in USERS.items() if d["role"] == "employee"]
-            selected_emp = st.radio("Select Employee:", employees, key="payment_emp_radio_2025", horizontal=True)
-            quarters = [f"{TARGET_YEAR}-Q{i}" for i in range(1, 5)]
-            selected_period = st.radio("Quarter:", quarters, key="payment_period_radio_2025", horizontal=True)
+            employees_for_payment_goal = [u for u, d in USERS.items() if d["role"] == "employee"]
+            selected_emp_payment = st.radio("Select Employee:", employees_for_payment_goal, key="payment_emp_radio_2025", horizontal=True)
+            quarters_payment = [f"{TARGET_YEAR}-Q{i}" for i in range(1, 5)]
+            selected_period_payment = st.radio("Quarter:", quarters_payment, key="payment_period_radio_2025", horizontal=True)
 
-            existing = payment_goals_df[
-                (payment_goals_df["Username"] == selected_emp) &
-                (payment_goals_df["MonthYear"] == selected_period)
+            existing_payment_goal = payment_goals_df[
+                (payment_goals_df["Username"] == selected_emp_payment) &
+                (payment_goals_df["MonthYear"] == selected_period_payment)
             ]
-            desc, tgt, ach, stat = "", 0.0, 0.0, "Not Started"
-            if not existing.empty:
-                g = existing.iloc[0]
-                desc = g.get("GoalDescription", "")
-                tgt = float(pd.to_numeric(g.get("TargetAmount", 0.0), errors="coerce") or 0.0)
-                ach = float(pd.to_numeric(g.get("AchievedAmount", 0.0), errors="coerce") or 0.0)
-                stat = g.get("Status", "Not Started")
+            desc_payment, tgt_payment_val, ach_payment_val, stat_payment = "", 0.0, 0.0, "Not Started"
+            if not existing_payment_goal.empty:
+                g_payment = existing_payment_goal.iloc[0]
+                desc_payment = g_payment.get("GoalDescription", "")
+                tgt_payment_val = float(pd.to_numeric(g_payment.get("TargetAmount", 0.0), errors="coerce") or 0.0)
+                ach_payment_val = float(pd.to_numeric(g_payment.get("AchievedAmount", 0.0), errors="coerce") or 0.0)
+                stat_payment = g_payment.get("Status", "Not Started")
 
-            with st.form(f"form_payment_{selected_emp}_{selected_period}"):
-                new_desc = st.text_input("Collection Goal Description", value=desc)
-                new_tgt = st.number_input("Target Collection (INR)", value=tgt, min_value=0.0, step=1000.0)
-                new_ach = st.number_input("Collected Amount (INR)", value=ach, min_value=0.0, step=500.0)
-                new_status = st.selectbox("Status", status_options, index=status_options.index(stat))
-                submitted = st.form_submit_button("Save Goal")
+            with st.form(f"form_payment_{selected_emp_payment}_{selected_period_payment}"):
+                new_desc_payment = st.text_input("Collection Goal Description", value=desc_payment)
+                new_tgt_payment = st.number_input("Target Collection (INR)", value=tgt_payment_val, min_value=0.0, step=1000.0)
+                new_ach_payment = st.number_input("Collected Amount (INR)", value=ach_payment_val, min_value=0.0, step=500.0)
+                new_status_payment = st.selectbox("Status", status_options_payment, index=status_options_payment.index(stat_payment))
+                submitted_payment = st.form_submit_button("Save Goal")
 
-            if submitted:
-                if not new_desc.strip():
-                    st.warning("Goal description is required.")
-                elif new_tgt <= 0 and new_status not in ["Cancelled", "Not Started"]:
-                    st.warning("Target must be greater than 0.")
+            if submitted_payment:
+                if not new_desc_payment.strip(): st.warning("Goal description is required.")
+                elif new_tgt_payment <= 0 and new_status_payment not in ["Cancelled", "Not Started"]: st.warning("Target must be greater than 0.")
                 else:
-                    if not existing.empty:
-                        payment_goals_df.loc[existing.index[0]] = [selected_emp, selected_period, new_desc, new_tgt, new_ach, new_status]
-                        msg = "updated"
+                    if not existing_payment_goal.empty:
+                        payment_goals_df.loc[existing_payment_goal.index[0]] = [selected_emp_payment, selected_period_payment, new_desc_payment, new_tgt_payment, new_ach_payment, new_status_payment]
+                        msg_payment = "updated"
                     else:
-                        new_row = {
-                            "Username": selected_emp,
-                            "MonthYear": selected_period,
-                            "GoalDescription": new_desc,
-                            "TargetAmount": new_tgt,
-                            "AchievedAmount": new_ach,
-                            "Status": new_status
-                        }
-                        payment_goals_df = pd.concat([payment_goals_df, pd.DataFrame([new_row])], ignore_index=True)
-                        msg = "set"
-
+                        new_row_payment = {"Username": selected_emp_payment, "MonthYear": selected_period_payment, "GoalDescription": new_desc_payment,
+                                           "TargetAmount": new_tgt_payment, "AchievedAmount": new_ach_payment, "Status": new_status_payment}
+                        for col in PAYMENT_GOALS_COLUMNS: new_row_payment.setdefault(col, pd.NA) # Ensure all columns present
+                        payment_goals_df = pd.concat([payment_goals_df, pd.DataFrame([new_row_payment], columns=PAYMENT_GOALS_COLUMNS)], ignore_index=True)
+                        msg_payment = "set"
                     try:
                         payment_goals_df.to_csv(PAYMENT_GOALS_FILE, index=False)
-                        st.success(f"Payment goal {msg} for {selected_emp} ({selected_period})")
+                        st.success(f"Payment goal {msg_payment} for {selected_emp_payment} ({selected_period_payment})")
                         st.rerun()
-                    except Exception as e:
-                        st.error(f"Error saving data: {e}")
-
-    else:
-        # Employee side
+                    except Exception as e: st.error(f"Error saving payment data: {e}")
+    else: # Employee side for payment
         st.markdown("<h4>My Payment Collection Goals (2025)</h4>", unsafe_allow_html=True)
-        user_goals = payment_goals_df[payment_goals_df["Username"] == current_user["username"]].copy()
-        user_goals[["TargetAmount", "AchievedAmount"]] = user_goals[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce").fillna(0.0)
-
-        current = user_goals[user_goals["MonthYear"] == current_quarter_display]
+        user_goals_payment = payment_goals_df[payment_goals_df["Username"] == current_user["username"]].copy()
+        user_goals_payment[["TargetAmount", "AchievedAmount"]] = user_goals_payment[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce").fillna(0.0)
+        current_payment_goal_period = user_goals_payment[user_goals_payment["MonthYear"] == current_quarter_display]
         st.markdown(f"<h5>Current Quarter: {current_quarter_display}</h5>", unsafe_allow_html=True)
 
-        if not current.empty:
-            g = current.iloc[0]
-            tgt = g["TargetAmount"]
-            ach = g["AchievedAmount"]
-            prog = min(ach / tgt, 1.0) if tgt > 0 else 0.0
-
-            st.markdown(f"**Goal:** {g.get('GoalDescription', '')}")
-            st.metric("Target", f"₹{tgt:,.0f}")
-            st.metric("Collected", f"₹{ach:,.0f}")
-            st.progress(prog)
-            st.caption(f"{prog * 100:.1f}% Complete")
+        if not current_payment_goal_period.empty:
+            g_pay = current_payment_goal_period.iloc[0]
+            tgt_pay = g_pay["TargetAmount"]; ach_pay = g_pay["AchievedAmount"]
+            prog_pay = min(ach_pay / tgt_pay, 1.0) if tgt_pay > 0 else 0.0
+            st.markdown(f"**Goal:** {g_pay.get('GoalDescription', '')}")
+            st.metric("Target", f"₹{tgt_pay:,.0f}"); st.metric("Collected", f"₹{ach_pay:,.0f}")
+            st.progress(prog_pay); st.caption(f"{prog_pay * 100:.1f}% Complete")
 
             with st.form(key=f"update_collection_{current_user['username']}_{current_quarter_display}"):
-                new_ach = st.number_input("Update Collected Amount (INR):", value=ach, min_value=0.0, step=500.0)
-                submit = st.form_submit_button("Update Collection")
-            if submit:
-                idx = current.index[0]
-                payment_goals_df.loc[idx, "AchievedAmount"] = new_ach
-                payment_goals_df.loc[idx, "Status"] = "Achieved" if new_ach >= tgt and tgt > 0 else "In Progress"
+                new_ach_val_payment = st.number_input("Update Collected Amount (INR):", value=ach_pay, min_value=0.0, step=500.0)
+                submit_collection_update = st.form_submit_button("Update Collection")
+            if submit_collection_update:
+                idx_pay = current_payment_goal_period.index[0]
+                payment_goals_df.loc[idx_pay, "AchievedAmount"] = new_ach_val_payment
+                payment_goals_df.loc[idx_pay, "Status"] = "Achieved" if new_ach_val_payment >= tgt_pay and tgt_pay > 0 else "In Progress"
                 try:
                     payment_goals_df.to_csv(PAYMENT_GOALS_FILE, index=False)
-                    st.success("Collection updated.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Error saving update: {e}")
-        else:
-            st.info(f"No collection goal set for {current_quarter_display}.")
-
-        # Past performance
+                    st.success("Collection updated."); st.rerun()
+                except Exception as e: st.error(f"Error saving collection update: {e}")
+        else: st.info(f"No collection goal set for {current_quarter_display}.")
         st.markdown("<h5>Past Quarters</h5>", unsafe_allow_html=True)
-        past = user_goals[user_goals["MonthYear"] != current_quarter_display]
-        if not past.empty:
-            st.dataframe(past[["MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]],
-                         use_container_width=True)
-        else:
-            st.info("No past collection goals found.")
-
+        past_payment_goals = user_goals_payment[user_goals_payment["MonthYear"] != current_quarter_display]
+        if not past_payment_goals.empty:
+            st.dataframe(past_payment_goals[["MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]], use_container_width=True)
+        else: st.info("No past collection goals found.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-status = "Achieved"  # Or "In Progress", or "Pending"
-badge_color = "green" if status == "Achieved" else "orange" if status == "In Progress" else "red"
-status_badge = f"<span class='badge {badge_color}'>{status}</span>"
-st.markdown(f"Status: {status_badge}", unsafe_allow_html=True)
-#---------------------------------------------------------end of payemnt collection logic------------------------------
-
-# ... (your existing code up to Payment Collection Tracker)
-
-elif nav == "💰 Payment Collection Tracker":
-    # ... (your existing payment collection code)
-    st.markdown('</div>', unsafe_allow_html=True)
 
 elif nav == "📊 View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -902,47 +737,35 @@ elif nav == "📊 View Logs":
     
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: View Employee Records</h4>", unsafe_allow_html=True)
-        selected_employee = st.selectbox("Select Employee:", list(USERS.keys()))
+        selected_employee_log = st.selectbox("Select Employee:", list(USERS.keys()), key="log_employee_select") # Added key
         
-        st.markdown(f"<h5>Attendance for {selected_employee}</h5>", unsafe_allow_html=True)
-        emp_attendance = attendance_df[attendance_df["Username"] == selected_employee]
-        if not emp_attendance.empty:
-            st.dataframe(emp_attendance, use_container_width=True)
-        else:
-            st.warning("No attendance records found")
+        st.markdown(f"<h5>Attendance for {selected_employee_log}</h5>", unsafe_allow_html=True)
+        emp_attendance_log = attendance_df[attendance_df["Username"] == selected_employee_log]
+        if not emp_attendance_log.empty:
+            st.dataframe(emp_attendance_log, use_container_width=True)
+        else: st.warning("No attendance records found")
             
-        st.markdown(f"<h5>Allowances for {selected_employee}</h5>", unsafe_allow_html=True)
-        emp_allowance = allowance_df[allowance_df["Username"] == selected_employee]
-        if not emp_allowance.empty:
-            st.dataframe(emp_allowance, use_container_width=True)
-        else:
-            st.warning("No allowance records found")
+        st.markdown(f"<h5>Allowances for {selected_employee_log}</h5>", unsafe_allow_html=True)
+        emp_allowance_log = allowance_df[allowance_df["Username"] == selected_employee_log]
+        if not emp_allowance_log.empty:
+            st.dataframe(emp_allowance_log, use_container_width=True)
+        else: st.warning("No allowance records found")
             
     else:  # Regular employee view
         st.markdown("<h4>My Records</h4>", unsafe_allow_html=True)
         
         st.markdown("<h5>My Attendance</h5>", unsafe_allow_html=True)
-        my_attendance = attendance_df[attendance_df["Username"] == current_user["username"]]
-        if not my_attendance.empty:
-            st.dataframe(my_attendance, use_container_width=True)
-        else:
-            st.warning("No attendance records found for you")
+        my_attendance_log = attendance_df[attendance_df["Username"] == current_user["username"]]
+        if not my_attendance_log.empty:
+            st.dataframe(my_attendance_log, use_container_width=True)
+        else: st.warning("No attendance records found for you")
             
         st.markdown("<h5>My Allowances</h5>", unsafe_allow_html=True)
-        my_allowance = allowance_df[allowance_df["Username"] == current_user["username"]]
-        if not my_allowance.empty:
-            st.dataframe(my_allowance, use_container_width=True)
-        else:
-            st.warning("No allowance records found for you")
+        my_allowance_log = allowance_df[allowance_df["Username"] == current_user["username"]]
+        if not my_allowance_log.empty:
+            st.dataframe(my_allowance_log, use_container_width=True)
+        else: st.warning("No allowance records found for you")
     
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Remove these duplicate lines at the end of your file:
-# status = "Achieved"  # Or "In Progress", or "Pending"
-# badge_color = "green" if status == "Achieved" else "orange" if status == "In Progress" else "red"
-# status_badge = f"<span class='badge {badge_color}'>{status}</span>"
-# st.markdown(f"Status: {status_badge}", unsafe_allow_html=True)
-
-badge_color = "green" if status == "Achieved" else "orange" if status == "In Progress" else "red"
-status_badge = f"<span class='badge {badge_color}'>{status}</span>"
-st.markdown(f"Status: {status_badge}", unsafe_allow_html=True)
+# Removed the problematic status badge code that was at the end of the file
