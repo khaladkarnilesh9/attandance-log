@@ -389,9 +389,12 @@ elif nav == "🎯 Goal Tracker":
                                 if col_name not in new_row_data: new_row_data[col_name]=pd.NA
                             new_row_df=pd.DataFrame([new_row_data],columns=GOALS_COLUMNS); editable_goals_df=pd.concat([editable_goals_df,new_row_df],ignore_index=True); msg_verb="set"
                         try:
-                            editable_goals_df.to_csv(GOALS_FILE,index=False)
-                            goals_df=load_data(GOALS_FILE,GOALS_COLUMNS) # Update global df
-                            st.session_state.user_message=f"Goal for {selected_emp} ({selected_period}) {msg_verb}!"; st.session_state.message_type="success"; st.rerun()
+                                editable_goals_df.to_csv(GOALS_FILE, index=False)
+                                # Reload the updated global goals_df immediately
+                                goals_df = load_data(GOALS_FILE, GOALS_COLUMNS) 
+                                st.session_state.user_message = f"Goal for {selected_emp} ({selected_period}) {msg_verb}!"
+                                st.session_state.message_type = "success"
+                                st.rerun()
                         except Exception as e: st.error(f"Error saving goal: {e}")
     else: # Employee View
         st.markdown("<h4>My Sales Goals (2025 - Quarterly)</h4>", unsafe_allow_html=True)
