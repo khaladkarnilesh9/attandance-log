@@ -316,10 +316,11 @@ html_css = """
     /* Specific styling for Radio Button LABELS in the sidebar */
     [data-testid="stSidebar"] .stRadio > label > div > p { /* Target the <p> inside the radio label structure */
         font-size: 1.05em !important;
-        color: #a9d6e5 !important; /* Light Blue (accent color) for UNSELECTED radio labels */
-        padding: 0; /* Reset padding as it might be inherited */
-        margin: 0; /* Reset margin */
-    }
+        color: var(--primary-color) !important; /* Dark Blue for UNSELECTED radio labels */
+        padding: 0;
+        margin: 0;
+    }    
+    
     [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p { /* Selected Sidebar Radio Label Text */
         color: var(--card-bg-color) !important; /* Bright White for SELECTED radio label text */
         font-weight: 600;
