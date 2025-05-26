@@ -3,9 +3,7 @@ import pandas as pd
 from datetime import datetime, timezone, timedelta
 import os
 import pytz
-# import altair as alt # No longer used if Plotly is used for past goals
 import plotly.express as px
-
 
 # --- Matplotlib Configuration ---
 import matplotlib
@@ -77,6 +75,7 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     fig.tight_layout(pad=1.5)
     return fig
 
+# --- CORRECTED HTML_CSS DEFINITION (DEFINED ONLY ONCE) ---
 html_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -93,7 +92,7 @@ html_css = """
     h1, h2, h3, h4, h5, h6 {color: var(--primary-color); font-weight: 600;}
     .main .block-container > div:first-child > div:first-child > div:first-child > h1 {text-align: center; font-size: 2.6em; font-weight: 700; padding-bottom: 25px; border-bottom: 3px solid var(--accent-color); margin-bottom: 40px; letter-spacing: -0.5px;}
     .card {background-color: var(--card-bg-color); padding: 30px; border-radius: var(--border-radius-lg); box-shadow: var(--box-shadow); margin-bottom: 35px; border: 1px solid var(--border-color);}
-    .card h3 {margin-top: 0; color: var(--primary-color); border-bottom: 2px solid #2b5d8f; padding-bottom: 15px; margin-bottom: 25px; font-size: 1.75em;}
+    .card h3 {margin-top: 0; color: var(--primary-color); border-bottom: 2px solid #e9ecef; padding-bottom: 15px; margin-bottom: 25px; font-size: 1.75em;}
     .card h4 {color: var(--secondary-color); margin-top: 30px; margin-bottom: 20px; font-size: 1.4em; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;}
     .card h5 {font-size: 1.15em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px;}
     .card h6 {font-size: 0.95em; color: var(--text-muted-color); margin-top: 0px; margin-bottom: 15px; font-weight: 500;}
@@ -112,7 +111,7 @@ html_css = """
     .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus, .stDateInput input:focus, .stTimeInput input:focus, .stSelectbox div[data-baseweb="select"] > div:focus-within {border-color: var(--secondary-color) !important; box-shadow: 0 0 0 0.2rem rgba(32, 112, 192, 0.25) !important;}
     [data-testid="stSidebar"] {background-color: var(--primary-color); padding: 25px !important; box-shadow: 0.25rem 0 1rem rgba(0,0,0,0.1);}
     [data-testid="stSidebar"] .sidebar-content {padding-top: 10px;}
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] div:not([data-testid="stRadio"]) {color: #ffffff !important;}
+    [data-testid="stSidebar"] p, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] div:not([data-testid="stRadio"]) {color: #e9ecef !important;}
     [data-testid="stSidebar"] .stRadio > label > div > p {font-size: 1.05em !important; color: var(--accent-color) !important; padding: 0; margin: 0;}
     [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {color: var(--card-bg-color) !important; font-weight: 600;}
     [data-testid="stSidebar"] .stRadio > label {padding: 10px 15px; border-radius: var(--border-radius); margin-bottom: 6px; transition: background-color 0.2s ease;}
@@ -122,7 +121,7 @@ html_css = """
     [data-testid="stSidebar"] [data-testid="stImage"] > img {border-radius: 50%; border: 3px solid var(--accent-color); margin: 0 auto 10px auto; display: block;}
     .stDataFrame {width: 100%; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--box-shadow-sm); margin-bottom: 25px;}
     .stDataFrame table {width: 100%; border-collapse: collapse;}
-    .stDataFrame table thead th {background-color: #2b5d8f; color: var(--primary-color); font-weight: 600; text-align: left; padding: 14px 18px; border-bottom: 2px solid var(--border-color); font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px;}
+    .stDataFrame table thead th {background-color: #e9ecef; color: var(--primary-color); font-weight: 600; text-align: left; padding: 14px 18px; border-bottom: 2px solid var(--border-color); font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px;}
     .stDataFrame table tbody td {padding: 12px 18px; border-bottom: 1px solid #f1f3f5; vertical-align: middle; color: var(--text-color); font-size: 0.9em;}
     .stDataFrame table tbody tr:last-child td {border-bottom: none;}
     .stDataFrame table tbody tr:hover {background-color: #f8f9fa;}
@@ -132,14 +131,14 @@ html_css = """
     .button-column-container > div[data-testid="stHorizontalBlock"] {gap: 20px;}
     .button-column-container .stButton button {width: 100%;}
     div[role="radiogroup"] {display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;}
-    div[role="radiogroup"] > label {background-color: #33689e; color:#ffffff; padding: 10px 18px; border-radius: var(--border-radius); border: 1px solid var(--input-border-color); cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; font-size: 0.95em; font-weight: 500;}
+    div[role="radiogroup"] > label {background-color: #e9ecef; color: var(--text-muted-color); padding: 10px 18px; border-radius: var(--border-radius); border: 1px solid var(--input-border-color); cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; font-size: 0.95em; font-weight: 500;}
     div[role="radiogroup"] > label:hover {background-color: #dde2e6; border-color: #adb5bd; color: var(--text-color);}
     div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {background-color: var(--secondary-color) !important; color: white !important; border-color: var(--secondary-color) !important; font-weight: 500;}
     .employee-section-header {color: var(--secondary-color); margin-top: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 1.35em;}
     .record-type-header {font-size: 1.2em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px; font-weight: 600;}
     div[data-testid="stImage"] > img {border-radius: var(--border-radius-lg); border: 1px solid var(--border-color); box-shadow: var(--box-shadow-sm);}
     .stProgress > div > div {background-color: var(--secondary-color) !important; border-radius: var(--border-radius);}
-    .stProgress {border-radius: var(--border-radius); background-color: #2b5d8f;}
+    .stProgress {border-radius: var(--border-radius); background-color: #e9ecef;}
     div[data-testid="stMetricLabel"] {font-size: 0.95em !important; color: var(--text-muted-color) !important; font-weight: 500;}
     div[data-testid="stMetricValue"] {font-size: 1.8em !important; font-weight: 600; color: var(--primary-color);}
     .custom-notification {padding: 15px 20px; border-radius: var(--border-radius); margin-bottom: 20px; font-size: 1em; border-left-width: 5px; border-left-style: solid; display: flex; align-items: center;}
@@ -161,10 +160,10 @@ st.markdown(html_css, unsafe_allow_html=True)
 USERS = {
     "Geetali": {"password": "Geetali123", "role": "employee", "position": "Software Engineer", "profile_photo": "images/geetali.png"},
     "Nilesh": {"password": "Nilesh123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/nilesh.png"},
-    "Vishal": {"password": "Vishal123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/vishal.png"}, # Placeholder
-    "Santosh": {"password": "Santosh123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/santosh.png"}, # Placeholder
-    "Deepak": {"password": "Deepak123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/deepak.png"}, # Placeholder
-    "Rahul": {"password": "Rahul123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/rahul.png"}, # Placeholder
+    "Vishal": {"password": "Vishal123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/vishal.png"},
+    "Santosh": {"password": "Santosh123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/santosh.png"},
+    "Deepak": {"password": "Deepak123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/deepak.png"},
+    "Rahul": {"password": "Rahul123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/rahul.png"},
     "admin": {"password": "admin123", "role": "admin", "position": "System Administrator", "profile_photo": "images/admin.png"}
 }
 
@@ -192,6 +191,18 @@ if PILLOW_INSTALLED:
 
 # --- File Paths & Timezone ---
 ATTENDANCE_FILE = "attendance.csv"; ALLOWANCE_FILE = "allowances.csv"; GOALS_FILE = "goals.csv"; PAYMENT_GOALS_FILE = "payment_goals.csv"
+ACTIVITY_LOG_FILE = "activity_log.csv"
+ACTIVITY_PHOTOS_DIR = "activity_photos"
+ATTENDANCE_PHOTOS_DIR = "attendance_photos" # Assuming you might still use this or merge
+
+if not os.path.exists(ACTIVITY_PHOTOS_DIR):
+    try: os.makedirs(ACTIVITY_PHOTOS_DIR)
+    except OSError: pass
+if not os.path.exists(ATTENDANCE_PHOTOS_DIR) and ATTENDANCE_PHOTOS_DIR != ACTIVITY_PHOTOS_DIR : # Avoid re-creating if same
+    try: os.makedirs(ATTENDANCE_PHOTOS_DIR)
+    except OSError: pass
+
+
 TARGET_TIMEZONE = "Asia/Kolkata"
 try: tz = pytz.timezone(TARGET_TIMEZONE)
 except pytz.exceptions.UnknownTimeZoneError: st.error(f"Invalid TARGET_TIMEZONE: '{TARGET_TIMEZONE}'."); st.stop()
@@ -224,35 +235,19 @@ def load_data(path, columns):
         except Exception as e: st.warning(f"Could not create {path}: {e}")
         return df
 
-ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude"]
+ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude", "ImageFile"] # Keep ImageFile if used in attendance
 ALLOWANCE_COLUMNS = ["Username", "Type", "Amount", "Reason", "Date"]
 GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
 PAYMENT_GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
+ACTIVITY_LOG_COLUMNS = ["Username", "Timestamp", "Description", "ImageFile", "Latitude", "Longitude"]
 
 # --- Load DataFrames globally ---
 attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS)
 allowance_df = load_data(ALLOWANCE_FILE, ALLOWANCE_COLUMNS)
 goals_df = load_data(GOALS_FILE, GOALS_COLUMNS)
 payment_goals_df = load_data(PAYMENT_GOALS_FILE, PAYMENT_GOALS_COLUMNS)
-
-# --- File Paths ---
-# ... (existing paths) ...
-ACTIVITY_LOG_FILE = "activity_log.csv"       # New CSV for activity photos
-ACTIVITY_PHOTOS_DIR = "activity_photos" # New directory for these photos (can be same as attendance if you prefer, but separate might be cleaner)
-
-# --- Create directories if they don't exist ---
-# ... (existing directory creations) ...
-if not os.path.exists(ACTIVITY_PHOTOS_DIR):
-    try: os.makedirs(ACTIVITY_PHOTOS_DIR)
-    except OSError: pass
-
-# --- Column Definitions ---
-# ... (existing columns) ...
-ACTIVITY_LOG_COLUMNS = ["Username", "Timestamp", "Description", "ImageFile", "Latitude", "Longitude"] # Added Lat/Lon
-
-# --- Load DataFrames ---
-# ... (existing DataFrame loads) ...
 activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS)
+
 
 # --- Session State & Login ---
 if "user_message" not in st.session_state: st.session_state.user_message = None
@@ -260,7 +255,7 @@ if "message_type" not in st.session_state: st.session_state.message_type = None
 if "auth" not in st.session_state: st.session_state.auth = {"logged_in": False, "username": None, "role": None}
 
 if not st.session_state.auth["logged_in"]:
-    st.title("TrackSphere Login")
+    st.title("TrackSphere Login") # Changed Title
     message_placeholder_login = st.empty()
     if st.session_state.user_message:
         message_placeholder_login.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
@@ -278,7 +273,7 @@ if not st.session_state.auth["logged_in"]:
     st.markdown('</div>', unsafe_allow_html=True); st.stop()
 
 # --- Main Application ---
-st.title("TrackSphere")
+st.title("TrackSphere") # Changed Title
 current_user = st.session_state.auth
 message_placeholder = st.empty()
 if st.session_state.user_message:
@@ -288,7 +283,7 @@ if st.session_state.user_message:
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
     nav_options = ["📆 Attendance","📸 Upload Activity Photo", "🧾 Allowance", "🎯 Goal Tracker","💰 Payment Collection Tracker", "📊 View Logs"]
-    nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
+    # CORRECTED: Only one st.radio for navigation
     nav = st.radio("Navigation", nav_options, key="sidebar_nav_main_activity")
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
@@ -303,26 +298,65 @@ with st.sidebar:
 if nav == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
+    
+    # Removed camera_input from here as it's now on a separate page
+    # img_file_buffer = st.camera_input("Take a picture for attendance", key="attendance_camera")
+
     st.info("📍 Location services are currently disabled for attendance.", icon="ℹ️")
     st.markdown("---"); st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
     col1, col2 = st.columns(2); common_data = {"Username": current_user["username"], "Latitude": pd.NA, "Longitude": pd.NA}
+
+    def process_general_attendance(attendance_type): # Simplified, no image buffer here
+        global attendance_df
+        now_str_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
+        new_entry_data = {"Type": attendance_type, "Timestamp": now_str_display, "ImageFile": pd.NA, **common_data} # ImageFile is NA for general attendance
+        for col_name in ATTENDANCE_COLUMNS:
+            if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA
+        new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
+        attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
+        try:
+            attendance_df.to_csv(ATTENDANCE_FILE, index=False)
+            attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS) # Reload
+            st.session_state.user_message = f"{attendance_type} recorded at {now_str_display}."; st.session_state.message_type = "success"; st.rerun()
+        except Exception as e: st.session_state.user_message = f"Error: {e}"; st.session_state.message_type = "error"; st.rerun()
+
     with col1:
-        if st.button("✅ Check In", key="check_in_btn_main", use_container_width=True):
-            now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S"); new_entry_data = {"Type": "Check-In", "Timestamp": now_str, **common_data}
-            for col_name in ATTENDANCE_COLUMNS:
-                if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA
-            new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS); attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
-            try: attendance_df.to_csv(ATTENDANCE_FILE, index=False); st.session_state.user_message = f"Checked in at {now_str}"; st.session_state.message_type = "success"; st.rerun()
-            except Exception as e: st.session_state.user_message = f"Error: {e}"; st.session_state.message_type = "error"; st.rerun()
+        if st.button("✅ Check In", key="check_in_btn_main_no_photo", use_container_width=True): # New key
+            process_general_attendance("Check-In")
     with col2:
-        if st.button("🚪 Check Out", key="check_out_btn_main", use_container_width=True):
-            now_str = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S"); new_entry_data = {"Type": "Check-Out", "Timestamp": now_str, **common_data}
-            for col_name in ATTENDANCE_COLUMNS:
-                if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA
-            new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS); attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
-            try: attendance_df.to_csv(ATTENDANCE_FILE, index=False); st.session_state.user_message = f"Checked out at {now_str}"; st.session_state.message_type = "success"; st.rerun()
-            except Exception as e: st.session_state.user_message = f"Error: {e}"; st.session_state.message_type = "error"; st.rerun()
-    st.markdown('</div></div>', unsafe_allow_html=True) # Close card and button-column-container
+        if st.button("🚪 Check Out", key="check_out_btn_main_no_photo", use_container_width=True): # New key
+            process_general_attendance("Check-Out")
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
+elif nav == "📸 Upload Activity Photo": # New Navigation Option
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
+    current_lat = pd.NA; current_lon = pd.NA
+    with st.form(key="activity_photo_form"):
+        st.markdown("<h6>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True)
+        activity_description = st.text_area("Brief description of activity/visit:", key="activity_desc")
+        img_file_buffer_activity = st.camera_input("Take a picture of your activity/visit", key="activity_camera_input")
+        submit_activity_photo = st.form_submit_button("⬆️ Upload Photo and Log Activity")
+    if submit_activity_photo:
+        if img_file_buffer_activity is None: st.warning("Please take a picture before submitting.")
+        elif not activity_description.strip(): st.warning("Please provide a description for the activity.")
+        else:
+            now_for_filename = get_current_time_in_tz().strftime("%Y%m%d_%H%M%S")
+            now_for_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
+            image_filename_activity = f"{current_user['username']}_activity_{now_for_filename}.jpg"
+            image_path_activity = os.path.join(ACTIVITY_PHOTOS_DIR, image_filename_activity)
+            try:
+                with open(image_path_activity, "wb") as f: f.write(img_file_buffer_activity.getbuffer())
+                new_activity_data = {"Username": current_user["username"], "Timestamp": now_for_display, "Description": activity_description, "ImageFile": image_filename_activity, "Latitude": current_lat, "Longitude": current_lon}
+                for col_name in ACTIVITY_LOG_COLUMNS:
+                    if col_name not in new_activity_data: new_activity_data[col_name] = pd.NA
+                new_activity_entry = pd.DataFrame([new_activity_data], columns=ACTIVITY_LOG_COLUMNS)
+                activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True)
+                activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
+                activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS) # Reload global
+                st.session_state.user_message = "Activity photo and log uploaded!"; st.session_state.message_type = "success"; st.rerun()
+            except Exception as e: st.error(f"Error: {e}"); st.session_state.user_message = f"Error: {e}"; st.session_state.message_type = "error"; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -338,86 +372,13 @@ elif nav == "🧾 Allowance":
             try: allowance_df.to_csv(ALLOWANCE_FILE, index=False); st.session_state.user_message = f"Allowance for ₹{amount:.2f} submitted."; st.session_state.message_type = "success"; st.rerun()
             except Exception as e: st.session_state.user_message = f"Error: {e}"; st.session_state.message_type = "error"; st.rerun()
         else: st.warning("Please complete all fields with valid values.")
-    st.markdown('</div>', unsafe_allow_html=True) # Close card
-
-# --- Activity photo ------------------------------------------------------------------------------------------------------------------------
-# ... (other code) ...
-
-elif nav == "📸 Upload Activity Photo":
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
-
-    current_lat = pd.NA 
-    current_lon = pd.NA 
-
-    with st.form(key="activity_photo_form"):
-        st.markdown("<h6>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True)
-        activity_description = st.text_area("Brief description of activity/visit (e.g., 'Visited Client X at Farm Y', 'Product Demo at Z location'):", key="activity_desc")
-        img_file_buffer_activity = st.camera_input("Take a picture of your activity/visit", key="activity_camera_input")
-        
-        submit_activity_photo = st.form_submit_button("⬆️ Upload Photo and Log Activity")
-
-    if submit_activity_photo:
-        if img_file_buffer_activity is None:
-            st.warning("Please take a picture before submitting.")
-        elif not activity_description.strip():
-            st.warning("Please provide a description for the activity.")
-        else:
-            # REMOVE: global activity_log_df # <--- REMOVE THIS LINE
-
-            now_for_filename = get_current_time_in_tz().strftime("%Y%m%d_%H%M%S")
-            now_for_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
-            
-            image_filename_activity = f"{current_user['username']}_activity_{now_for_filename}.jpg"
-            image_path_activity = os.path.join(ACTIVITY_PHOTOS_DIR, image_filename_activity)
-            
-            try:
-                with open(image_path_activity, "wb") as f:
-                    f.write(img_file_buffer_activity.getbuffer())
-                
-                new_activity_data = {
-                    "Username": current_user["username"],
-                    "Timestamp": now_for_display,
-                    "Description": activity_description,
-                    "ImageFile": image_filename_activity,
-                    "Latitude": current_lat,
-                    "Longitude": current_lon
-                }
-                for col_name in ACTIVITY_LOG_COLUMNS:
-                    if col_name not in new_activity_data:
-                        new_activity_data[col_name] = pd.NA
-                
-                new_activity_entry = pd.DataFrame([new_activity_data], columns=ACTIVITY_LOG_COLUMNS)
-                # This modifies the global 'activity_log_df'
-                activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True) 
-                activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
-                
-                # This reassigns the global 'activity_log_df' with freshly loaded data
-                activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS) 
-                
-                st.session_state.user_message = "Activity photo and log uploaded successfully!"
-                st.session_state.message_type = "success"
-                st.rerun()
-
-            except Exception as e:
-                st.error(f"Error processing activity upload: {e}")
-                st.session_state.user_message = f"Error: {e}"
-                st.session_state.message_type = "error"
-                st.rerun()
-
     st.markdown('</div>', unsafe_allow_html=True)
-
-# ... (rest of your script) ...
-
-#------------------------Goal Tracker-------------------------------------------------------------------------------------------------
 
 elif nav == "🎯 Goal Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_GOAL_YEAR = 2025; current_quarter_for_display = get_quarter_str_for_year(TARGET_GOAL_YEAR)
     status_options = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
-    # No 'global goals_df' needed here
-
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: Manage & Track Employee Goals</h4>", unsafe_allow_html=True)
         admin_action = st.radio("Action:", ["View Team Progress", f"Set/Edit Goal for {TARGET_GOAL_YEAR}"], key="admin_goal_action_radio_2025_q", horizontal=True)
@@ -481,7 +442,7 @@ elif nav == "🎯 Goal Tracker":
                             new_row_df=pd.DataFrame([new_row_data],columns=GOALS_COLUMNS); editable_goals_df=pd.concat([editable_goals_df,new_row_df],ignore_index=True); msg_verb="set"
                         try:
                             editable_goals_df.to_csv(GOALS_FILE,index=False)
-                            goals_df=load_data(GOALS_FILE,GOALS_COLUMNS) # Update global df
+                            goals_df=load_data(GOALS_FILE,GOALS_COLUMNS)
                             st.session_state.user_message=f"Goal for {selected_emp} ({selected_period}) {msg_verb}!"; st.session_state.message_type="success"; st.rerun()
                         except Exception as e: st.error(f"Error saving goal: {e}")
     else: # Employee View
@@ -523,15 +484,13 @@ elif nav == "🎯 Goal Tracker":
         past_goals = my_goals[(my_goals["MonthYear"].astype(str).str.startswith(str(TARGET_GOAL_YEAR))) & (my_goals["MonthYear"].astype(str) != current_quarter_for_display)]
         if not past_goals.empty: render_goal_chart(past_goals, "Past Sales Goal Performance")
         else: st.info(f"No past goal records for {TARGET_GOAL_YEAR}.")
-    st.markdown("</div>", unsafe_allow_html=True) # Close card
+    st.markdown("</div>", unsafe_allow_html=True)
 
 elif nav == "💰 Payment Collection Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💰 Payment Collection Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_YEAR_PAYMENT = 2025; current_quarter_display_payment = get_quarter_str_for_year(TARGET_YEAR_PAYMENT)
     status_options_payment = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
-    # No 'global payment_goals_df' needed here
-
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: Set & Track Payment Collection Goals</h4>", unsafe_allow_html=True)
         admin_action_payment = st.radio("Action:", ["View Team Progress", f"Set/Edit Collection Target for {TARGET_YEAR_PAYMENT}"], key="admin_payment_action_admin_set", horizontal=True)
@@ -599,7 +558,7 @@ elif nav == "💰 Payment Collection Tracker":
                             new_row_df_p=pd.DataFrame([new_row_data_p],columns=PAYMENT_GOALS_COLUMNS); editable_payment_goals_df=pd.concat([editable_payment_goals_df,new_row_df_p],ignore_index=True); msg_payment="set"
                         try:
                             editable_payment_goals_df.to_csv(PAYMENT_GOALS_FILE,index=False)
-                            payment_goals_df=load_data(PAYMENT_GOALS_FILE,PAYMENT_GOALS_COLUMNS) # Update global df
+                            payment_goals_df=load_data(PAYMENT_GOALS_FILE,PAYMENT_GOALS_COLUMNS)
                             st.session_state.user_message=f"Payment goal {msg_payment} for {selected_emp_payment} ({selected_period_payment})"; st.session_state.message_type="success"; st.rerun()
                         except Exception as e: st.error(f"Error saving data: {e}")
     else: # Employee View
@@ -640,104 +599,82 @@ elif nav == "💰 Payment Collection Tracker":
         past_payment_goals = user_goals_payment[user_goals_payment["MonthYear"]!=current_quarter_display_payment]
         if not past_payment_goals.empty: render_goal_chart(past_payment_goals,"Past Collection Performance")
         else: st.info("No past collection goals.")
-    st.markdown('</div>', unsafe_allow_html=True) # Close card
+    st.markdown('</div>', unsafe_allow_html=True)
 
 elif nav == "📊 View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📊 View Logs</h3>", unsafe_allow_html=True)
-
-    # Helper function for displaying activity logs (similar to attendance one)
     def display_activity_logs_with_photos(df_logs, user_name_for_header):
-        if df_logs.empty:
-            st.info(f"No activity logs found for {user_name_for_header}.")
-            return
-
+        if df_logs.empty: st.info(f"No activity logs for {user_name_for_header}."); return
         df_logs_sorted = df_logs.sort_values(by="Timestamp", ascending=False).copy()
         st.markdown(f"<h5>Field Activity Logs for: {user_name_for_header}</h5>", unsafe_allow_html=True)
-
         for index, row in df_logs_sorted.iterrows():
-            st.markdown("---")
-            col_details, col_photo = st.columns([0.7, 0.3])
+            st.markdown("---"); col_details, col_photo = st.columns([0.7, 0.3])
             with col_details:
-                st.markdown(f"""
-                    **Timestamp:** {row['Timestamp']}<br>
-                    **Description:** {row.get('Description', 'N/A')}<br>
-                    **Location:** {'Not Recorded' if pd.isna(row.get('Latitude')) else f"Lat: {row.get('Latitude'):.4f}, Lon: {row.get('Longitude'):.4f}"}
-                """, unsafe_allow_html=True)
-                if pd.notna(row['ImageFile']) and row['ImageFile'] != "":
-                    st.caption(f"Photo ID: {row['ImageFile']}")
-                else:
-                    st.caption("No photo attached to this activity.")
+                st.markdown(f"**Timestamp:** {row['Timestamp']}<br>**Description:** {row.get('Description', 'N/A')}<br>**Location:** {'Not Recorded' if pd.isna(row.get('Latitude')) else f"Lat: {row.get('Latitude'):.4f}, Lon: {row.get('Longitude'):.4f}"}", unsafe_allow_html=True)
+                if pd.notna(row['ImageFile']) and row['ImageFile'] != "": st.caption(f"Photo ID: {row['ImageFile']}")
+                else: st.caption("No photo for this activity.")
             with col_photo:
                 if pd.notna(row['ImageFile']) and row['ImageFile'] != "":
                     image_path_to_display = os.path.join(ACTIVITY_PHOTOS_DIR, str(row['ImageFile']))
                     if os.path.exists(image_path_to_display):
                         try: st.image(image_path_to_display, width=150)
-                        except Exception as e: st.warning(f"Img err")
+                        except: st.warning(f"Img err")
                     else: st.caption(f"Img missing")
-    
-    # --- (Keep the existing display_attendance_logs_with_photos function) ---
-    def display_attendance_logs_with_photos(df_logs, user_name_for_header): # Copied for completeness
-        if df_logs.empty:
-            st.warning(f"No attendance records found for {user_name_for_header}.")
-            return
+    def display_attendance_logs_with_photos(df_logs, user_name_for_header):
+        if df_logs.empty: st.warning(f"No attendance records for {user_name_for_header}."); return
         df_logs_sorted = df_logs.sort_values(by="Timestamp", ascending=False).copy()
         st.markdown(f"<h5>General Attendance Records for: {user_name_for_header}</h5>", unsafe_allow_html=True)
         for index, row in df_logs_sorted.iterrows():
-            st.markdown("---") 
-            col_details, col_photo = st.columns([0.7, 0.3]) 
+            st.markdown("---"); col_details, col_photo = st.columns([0.7, 0.3])
             with col_details:
-                st.markdown(f"""
-                    **Type:** {row['Type']}<br>
-                    **Timestamp:** {row['Timestamp']}<br>
-                    **Location:** {'Not Recorded' if pd.isna(row['Latitude']) else f"Lat: {row['Latitude']:.4f}, Lon: {row['Longitude']:.4f}"}
-                """, unsafe_allow_html=True)
-                if pd.notna(row.get('ImageFile')) and row.get('ImageFile') != "": # Use .get for safety
-                    st.caption(f"Check-in/out Photo ID: {row['ImageFile']}")
-                else:
-                    st.caption("No photo attached to check-in/out.")
+                st.markdown(f"**Type:** {row['Type']}<br>**Timestamp:** {row['Timestamp']}<br>**Location:** {'Not Recorded' if pd.isna(row['Latitude']) else f"Lat: {row['Latitude']:.4f}, Lon: {row['Longitude']:.4f}"}", unsafe_allow_html=True)
+                if pd.notna(row.get('ImageFile')) and row.get('ImageFile') != "": st.caption(f"Check-in/out Photo ID: {row['ImageFile']}")
+                else: st.caption("No photo for check-in/out.")
             with col_photo:
                 if pd.notna(row.get('ImageFile')) and row.get('ImageFile') != "":
-                    # Assuming attendance photos are also in ACTIVITY_PHOTOS_DIR or adjust path
-                    image_path_to_display = os.path.join(ATTENDANCE_PHOTOS_DIR, str(row['ImageFile'])) 
+                    image_path_to_display = os.path.join(ATTENDANCE_PHOTOS_DIR, str(row['ImageFile']))
                     if os.path.exists(image_path_to_display):
                         try: st.image(image_path_to_display, width=150)
-                        except Exception as e: st.warning(f"Img err")
+                        except: st.warning(f"Img err")
                     else: st.caption(f"Img missing")
-
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: View Employee Records</h4>", unsafe_allow_html=True)
-        selected_employee_log = st.selectbox(
-            "Select Employee to View Logs:",
-            list(USERS.keys()),
-            key="log_employee_select_admin_activity"
-        )
-        
-        # Display Activity Logs
+        selected_employee_log = st.selectbox("Select Employee:", list(USERS.keys()), key="log_employee_select_admin_activity")
         emp_activity_log = activity_log_df[activity_log_df["Username"] == selected_employee_log]
         display_activity_logs_with_photos(emp_activity_log, selected_employee_log)
-        
-        st.markdown("<br><hr><br>", unsafe_allow_html=True) # More prominent separator
-
-        # Display General Attendance (if you still want to keep the check-in/out photos separate)
+        st.markdown("<br><hr><br>", unsafe_allow_html=True)
         emp_attendance_log = attendance_df[attendance_df["Username"] == selected_employee_log]
-        display_attendance_logs_with_photos(emp_attendance_log, selected_employee_log) # Re-use existing or adapt
-        
-        # ... (rest of admin log view for allowances, goals, etc.) ...
-            
-    else:  # Regular employee view
+        display_attendance_logs_with_photos(emp_attendance_log, selected_employee_log)
+        st.markdown("---"); st.markdown(f"<h5>Allowances for {selected_employee_log}</h5>", unsafe_allow_html=True)
+        emp_allowance_log = allowance_df[allowance_df["Username"] == selected_employee_log]
+        if not emp_allowance_log.empty: st.dataframe(emp_allowance_log.sort_values(by="Date", ascending=False), use_container_width=True)
+        else: st.warning("No allowance records found")
+        st.markdown(f"<h5>Sales Goals for {selected_employee_log}</h5>", unsafe_allow_html=True)
+        emp_goals_log = goals_df[goals_df["Username"] == selected_employee_log]
+        if not emp_goals_log.empty: st.dataframe(emp_goals_log.sort_values(by="MonthYear", ascending=False), use_container_width=True)
+        else: st.warning("No sales goals records found")
+        st.markdown(f"<h5>Payment Collection Goals for {selected_employee_log}</h5>", unsafe_allow_html=True)
+        emp_payment_goals_log = payment_goals_df[payment_goals_df["Username"] == selected_employee_log]
+        if not emp_payment_goals_log.empty: st.dataframe(emp_payment_goals_log.sort_values(by="MonthYear", ascending=False), use_container_width=True)
+        else: st.warning("No payment collection goals records found")
+    else:
         st.markdown("<h4>My Records</h4>", unsafe_allow_html=True)
-        
-        # Display My Activity Logs
         my_activity_log = activity_log_df[activity_log_df["Username"] == current_user["username"]]
         display_activity_logs_with_photos(my_activity_log, current_user["username"])
-
         st.markdown("<br><hr><br>", unsafe_allow_html=True)
-
-        # Display My General Attendance
         my_attendance_log = attendance_df[attendance_df["Username"] == current_user["username"]]
         display_attendance_logs_with_photos(my_attendance_log, current_user["username"])
-            
-        # ... (rest of employee log view for allowances, goals, etc.) ...
-    
+        st.markdown("---"); st.markdown("<h5>My Allowances</h5>", unsafe_allow_html=True)
+        my_allowance_log = allowance_df[allowance_df["Username"] == current_user["username"]]
+        if not my_allowance_log.empty: st.dataframe(my_allowance_log.sort_values(by="Date", ascending=False), use_container_width=True)
+        else: st.warning("No allowance records found for you")
+        st.markdown("<h5>My Sales Goals</h5>", unsafe_allow_html=True)
+        my_goals_log = goals_df[goals_df["Username"] == current_user["username"]]
+        if not my_goals_log.empty: st.dataframe(my_goals_log.sort_values(by="MonthYear", ascending=False), use_container_width=True)
+        else: st.warning("No sales goals records found for you")
+        st.markdown("<h5>My Payment Collection Goals</h5>", unsafe_allow_html=True)
+        my_payment_goals_log = payment_goals_df[payment_goals_df["Username"] == current_user["username"]]
+        if not my_payment_goals_log.empty: st.dataframe(my_payment_goals_log.sort_values(by="MonthYear", ascending=False), use_container_width=True)
+        else: st.warning("No payment collection goals records found for you")
     st.markdown('</div>', unsafe_allow_html=True)
