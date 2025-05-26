@@ -241,7 +241,7 @@ if "message_type" not in st.session_state: st.session_state.message_type = None
 if "auth" not in st.session_state: st.session_state.auth = {"logged_in": False, "username": None, "role": None}
 
 if not st.session_state.auth["logged_in"]:
-    st.title("🙂HR Dashboard Login")
+    st.title("TrackSphere Login")
     message_placeholder_login = st.empty()
     if st.session_state.user_message:
         message_placeholder_login.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
@@ -259,7 +259,7 @@ if not st.session_state.auth["logged_in"]:
     st.markdown('</div>', unsafe_allow_html=True); st.stop()
 
 # --- Main Application ---
-st.title("👨‍💼 HR Dashboard")
+st.title("TrackSphere")
 current_user = st.session_state.auth
 message_placeholder = st.empty()
 if st.session_state.user_message:
