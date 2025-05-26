@@ -271,29 +271,40 @@ if not st.session_state.auth["logged_in"]:
     st.markdown('</div>', unsafe_allow_html=True); st.stop()
 
 # --- Main Application ---
-st.title("TrackSphere")
-current_user = st.session_state.auth
-message_placeholder = st.empty()
-if st.session_state.user_message:
-    message_placeholder.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
-    st.session_state.user_message = None; st.session_state.message_type = None
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
-    nav_options = ["📆 Attendance","📸 Upload Activity Photo", "🧾 Allowance", "🎯 Goal Tracker","💰 Payment Collection Tracker", "📊 View Logs"]
+
+    # ✅ Use ONLY ONE st.radio for navigation
+    nav_options = [
+        "📆 Attendance",
+        "📸 Upload Activity Photo",
+        "🧾 Allowance",
+        "🎯 Goal Tracker",
+        "💰 Payment Collection Tracker",
+        "📊 View Logs"
+    ]
     
-    # --- CORRECTED: Only ONE st.radio for navigation ---
-    # Choose ONE key. Since "Upload Activity Photo" was added, "sidebar_nav_main_activity" seems more current.
-    # If you preferred "sidebar_nav_main", use that key instead and ensure nav_options includes "📸 Upload Activity Photo".
-    nav = st.radio("Navigation", nav_options, key="sidebar_nav_main_activity") 
-    
+    # ✅ One navigation radio only
+    nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
+
+    # Optional: User photo & position
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
-        st.image(user_sidebar_info["profile_photo"], width=100, use_column_width='auto')
-    st.markdown(f"<p style='text-align:center; font-size:0.9em; color: #e0e0e0;'>{user_sidebar_info.get('position', 'N/A')}</p>", unsafe_allow_html=True)
+        st.image(user_sidebar_info["profile_photo"], width=100)
+    st.markdown(
+        f"<p style='text-align:center; font-size:0.9em; color: #e0e0e0;'>{user_sidebar_info.get('position', 'N/A')}</p>",
+        unsafe_allow_html=True
+    )
+    
     st.markdown("---")
+
     if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
-        st.session_state.user_message = "Logged out successfully."; st.session_state.message_type = "info"; st.rerun()
+        st.session_state.user_message = "Logged out successfully."
+        st.session_state.message_type = "info"
+        st.rerun()
+
+
 #------------------------------------------------------------------------closed navbar
 
 # --- Main Content ---
