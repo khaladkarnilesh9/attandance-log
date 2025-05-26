@@ -281,7 +281,12 @@ if st.session_state.user_message:
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
     nav_options = ["📆 Attendance","📸 Upload Activity Photo", "🧾 Allowance", "🎯 Goal Tracker","💰 Payment Collection Tracker", "📊 View Logs"]
-    nav = st.radio("Navigation", nav_options, key="sidebar_nav_main_activity") # Using one key
+    
+    # --- CORRECTED: Only ONE st.radio for navigation ---
+    # Choose ONE key. Since "Upload Activity Photo" was added, "sidebar_nav_main_activity" seems more current.
+    # If you preferred "sidebar_nav_main", use that key instead and ensure nav_options includes "📸 Upload Activity Photo".
+    nav = st.radio("Navigation", nav_options, key="sidebar_nav_main_activity") 
+    
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
         st.image(user_sidebar_info["profile_photo"], width=100, use_column_width='auto')
@@ -290,6 +295,7 @@ with st.sidebar:
     if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.session_state.user_message = "Logged out successfully."; st.session_state.message_type = "info"; st.rerun()
+#------------------------------------------------------------------------closed navbar
 
 # --- Main Content ---
 if nav == "📆 Attendance":
