@@ -75,7 +75,6 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     fig.tight_layout(pad=1.5)
     return fig
 
-# --- CORRECTED HTML_CSS DEFINITION (DEFINED ONLY ONCE) ---
 html_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -189,19 +188,18 @@ if PILLOW_INSTALLED:
                 draw.text((text_x, text_y), text, fill=(28,78,128), font=font); img.save(img_path)
             except Exception: pass
 
-# --- File Paths & Timezone ---
+# --- File Paths & Timezone & Directories ---
 ATTENDANCE_FILE = "attendance.csv"; ALLOWANCE_FILE = "allowances.csv"; GOALS_FILE = "goals.csv"; PAYMENT_GOALS_FILE = "payment_goals.csv"
 ACTIVITY_LOG_FILE = "activity_log.csv"
 ACTIVITY_PHOTOS_DIR = "activity_photos"
-ATTENDANCE_PHOTOS_DIR = "attendance_photos" # Assuming you might still use this or merge
+ATTENDANCE_PHOTOS_DIR = "attendance_photos" # Used if attendance page still captures its own photos
 
 if not os.path.exists(ACTIVITY_PHOTOS_DIR):
     try: os.makedirs(ACTIVITY_PHOTOS_DIR)
     except OSError: pass
-if not os.path.exists(ATTENDANCE_PHOTOS_DIR) and ATTENDANCE_PHOTOS_DIR != ACTIVITY_PHOTOS_DIR : # Avoid re-creating if same
+if not os.path.exists(ATTENDANCE_PHOTOS_DIR) and ATTENDANCE_PHOTOS_DIR != ACTIVITY_PHOTOS_DIR :
     try: os.makedirs(ATTENDANCE_PHOTOS_DIR)
     except OSError: pass
-
 
 TARGET_TIMEZONE = "Asia/Kolkata"
 try: tz = pytz.timezone(TARGET_TIMEZONE)
@@ -235,7 +233,7 @@ def load_data(path, columns):
         except Exception as e: st.warning(f"Could not create {path}: {e}")
         return df
 
-ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude", "ImageFile"] # Keep ImageFile if used in attendance
+ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude"] # NO ImageFile for general attendance
 ALLOWANCE_COLUMNS = ["Username", "Type", "Amount", "Reason", "Date"]
 GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
 PAYMENT_GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
@@ -255,7 +253,7 @@ if "message_type" not in st.session_state: st.session_state.message_type = None
 if "auth" not in st.session_state: st.session_state.auth = {"logged_in": False, "username": None, "role": None}
 
 if not st.session_state.auth["logged_in"]:
-    st.title("TrackSphere Login") # Changed Title
+    st.title("TrackSphere Login")
     message_placeholder_login = st.empty()
     if st.session_state.user_message:
         message_placeholder_login.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
@@ -273,7 +271,7 @@ if not st.session_state.auth["logged_in"]:
     st.markdown('</div>', unsafe_allow_html=True); st.stop()
 
 # --- Main Application ---
-st.title("TrackSphere") # Changed Title
+st.title("TrackSphere")
 current_user = st.session_state.auth
 message_placeholder = st.empty()
 if st.session_state.user_message:
@@ -283,8 +281,7 @@ if st.session_state.user_message:
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
     nav_options = ["📆 Attendance","📸 Upload Activity Photo", "🧾 Allowance", "🎯 Goal Tracker","💰 Payment Collection Tracker", "📊 View Logs"]
-    # CORRECTED: Only one st.radio for navigation
-    nav = st.radio("Navigation", nav_options, key="sidebar_nav_main_activity")
+    nav = st.radio("Navigation", nav_options, key="sidebar_nav_main_activity") # Using one key
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
         st.image(user_sidebar_info["profile_photo"], width=100, use_column_width='auto')
@@ -298,37 +295,33 @@ with st.sidebar:
 if nav == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
-    
-    # Removed camera_input from here as it's now on a separate page
-    # img_file_buffer = st.camera_input("Take a picture for attendance", key="attendance_camera")
-
-    st.info("📍 Location services are currently disabled for attendance.", icon="ℹ️")
+    st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Upload Activity Photo' section.", icon="ℹ️") # Updated info
     st.markdown("---"); st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
     col1, col2 = st.columns(2); common_data = {"Username": current_user["username"], "Latitude": pd.NA, "Longitude": pd.NA}
 
-    def process_general_attendance(attendance_type): # Simplified, no image buffer here
-        global attendance_df
+    def process_general_attendance(attendance_type):
+        global attendance_df # Ensure we modify the global df
         now_str_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
-        new_entry_data = {"Type": attendance_type, "Timestamp": now_str_display, "ImageFile": pd.NA, **common_data} # ImageFile is NA for general attendance
-        for col_name in ATTENDANCE_COLUMNS:
+        new_entry_data = {"Type": attendance_type, "Timestamp": now_str_display, **common_data}
+        for col_name in ATTENDANCE_COLUMNS: # ATTENDANCE_COLUMNS no longer has ImageFile
             if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA
         new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
         attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
         try:
             attendance_df.to_csv(ATTENDANCE_FILE, index=False)
-            attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS) # Reload
+            attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS) # Reload global df
             st.session_state.user_message = f"{attendance_type} recorded at {now_str_display}."; st.session_state.message_type = "success"; st.rerun()
         except Exception as e: st.session_state.user_message = f"Error: {e}"; st.session_state.message_type = "error"; st.rerun()
 
     with col1:
-        if st.button("✅ Check In", key="check_in_btn_main_no_photo", use_container_width=True): # New key
+        if st.button("✅ Check In", key="check_in_btn_main_no_photo", use_container_width=True):
             process_general_attendance("Check-In")
     with col2:
-        if st.button("🚪 Check Out", key="check_out_btn_main_no_photo", use_container_width=True): # New key
+        if st.button("🚪 Check Out", key="check_out_btn_main_no_photo", use_container_width=True):
             process_general_attendance("Check-Out")
     st.markdown('</div></div>', unsafe_allow_html=True)
 
-elif nav == "📸 Upload Activity Photo": # New Navigation Option
+elif nav == "📸 Upload Activity Photo":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
     current_lat = pd.NA; current_lon = pd.NA
@@ -353,7 +346,7 @@ elif nav == "📸 Upload Activity Photo": # New Navigation Option
                 new_activity_entry = pd.DataFrame([new_activity_data], columns=ACTIVITY_LOG_COLUMNS)
                 activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True)
                 activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
-                activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS) # Reload global
+                activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS)
                 st.session_state.user_message = "Activity photo and log uploaded!"; st.session_state.message_type = "success"; st.rerun()
             except Exception as e: st.error(f"Error: {e}"); st.session_state.user_message = f"Error: {e}"; st.session_state.message_type = "error"; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -619,25 +612,18 @@ elif nav == "📊 View Logs":
                     image_path_to_display = os.path.join(ACTIVITY_PHOTOS_DIR, str(row['ImageFile']))
                     if os.path.exists(image_path_to_display):
                         try: st.image(image_path_to_display, width=150)
-                        except: st.warning(f"Img err")
+                        except: st.warning(f"Img err") # Simplified error
                     else: st.caption(f"Img missing")
-    def display_attendance_logs_with_photos(df_logs, user_name_for_header):
-        if df_logs.empty: st.warning(f"No attendance records for {user_name_for_header}."); return
+    def display_attendance_logs(df_logs, user_name_for_header):
+        if df_logs.empty: st.warning(f"No general attendance records for {user_name_for_header}."); return
         df_logs_sorted = df_logs.sort_values(by="Timestamp", ascending=False).copy()
         st.markdown(f"<h5>General Attendance Records for: {user_name_for_header}</h5>", unsafe_allow_html=True)
-        for index, row in df_logs_sorted.iterrows():
-            st.markdown("---"); col_details, col_photo = st.columns([0.7, 0.3])
-            with col_details:
-                st.markdown(f"**Type:** {row['Type']}<br>**Timestamp:** {row['Timestamp']}<br>**Location:** {'Not Recorded' if pd.isna(row['Latitude']) else f"Lat: {row['Latitude']:.4f}, Lon: {row['Longitude']:.4f}"}", unsafe_allow_html=True)
-                if pd.notna(row.get('ImageFile')) and row.get('ImageFile') != "": st.caption(f"Check-in/out Photo ID: {row['ImageFile']}")
-                else: st.caption("No photo for check-in/out.")
-            with col_photo:
-                if pd.notna(row.get('ImageFile')) and row.get('ImageFile') != "":
-                    image_path_to_display = os.path.join(ATTENDANCE_PHOTOS_DIR, str(row['ImageFile']))
-                    if os.path.exists(image_path_to_display):
-                        try: st.image(image_path_to_display, width=150)
-                        except: st.warning(f"Img err")
-                    else: st.caption(f"Img missing")
+        columns_to_show = ["Type", "Timestamp"]
+        if 'Latitude' in df_logs_sorted.columns and 'Longitude' in df_logs_sorted.columns:
+            df_logs_sorted['Location'] = df_logs_sorted.apply(lambda row: f"Lat: {row['Latitude']:.4f}, Lon: {row['Longitude']:.4f}" if pd.notna(row['Latitude']) and pd.notna(row['Longitude']) else "Not Recorded", axis=1)
+            columns_to_show.append('Location')
+        st.dataframe(df_logs_sorted[columns_to_show], use_container_width=True, hide_index=True)
+
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: View Employee Records</h4>", unsafe_allow_html=True)
         selected_employee_log = st.selectbox("Select Employee:", list(USERS.keys()), key="log_employee_select_admin_activity")
@@ -645,7 +631,7 @@ elif nav == "📊 View Logs":
         display_activity_logs_with_photos(emp_activity_log, selected_employee_log)
         st.markdown("<br><hr><br>", unsafe_allow_html=True)
         emp_attendance_log = attendance_df[attendance_df["Username"] == selected_employee_log]
-        display_attendance_logs_with_photos(emp_attendance_log, selected_employee_log)
+        display_attendance_logs(emp_attendance_log, selected_employee_log) # Using simplified version
         st.markdown("---"); st.markdown(f"<h5>Allowances for {selected_employee_log}</h5>", unsafe_allow_html=True)
         emp_allowance_log = allowance_df[allowance_df["Username"] == selected_employee_log]
         if not emp_allowance_log.empty: st.dataframe(emp_allowance_log.sort_values(by="Date", ascending=False), use_container_width=True)
@@ -664,7 +650,7 @@ elif nav == "📊 View Logs":
         display_activity_logs_with_photos(my_activity_log, current_user["username"])
         st.markdown("<br><hr><br>", unsafe_allow_html=True)
         my_attendance_log = attendance_df[attendance_df["Username"] == current_user["username"]]
-        display_attendance_logs_with_photos(my_attendance_log, current_user["username"])
+        display_attendance_logs(my_attendance_log, current_user["username"]) # Using simplified version
         st.markdown("---"); st.markdown("<h5>My Allowances</h5>", unsafe_allow_html=True)
         my_allowance_log = allowance_df[allowance_df["Username"] == current_user["username"]]
         if not my_allowance_log.empty: st.dataframe(my_allowance_log.sort_values(by="Date", ascending=False), use_container_width=True)
