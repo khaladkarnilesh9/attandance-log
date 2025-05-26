@@ -341,15 +341,14 @@ elif nav == "🧾 Allowance":
     st.markdown('</div>', unsafe_allow_html=True) # Close card
 
 # --- Activity photo ------------------------------------------------------------------------------------------------------------------------
+# ... (other code) ...
 
 elif nav == "📸 Upload Activity Photo":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
 
-    # Get current location (placeholder for now, as geolocation was disabled)
-    # In a real scenario with enabled geolocation, you'd get lat/lon here.
-    current_lat = pd.NA # Replace with actual location if available
-    current_lon = pd.NA # Replace with actual location if available
+    current_lat = pd.NA 
+    current_lon = pd.NA 
 
     with st.form(key="activity_photo_form"):
         st.markdown("<h6>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True)
@@ -364,8 +363,7 @@ elif nav == "📸 Upload Activity Photo":
         elif not activity_description.strip():
             st.warning("Please provide a description for the activity.")
         else:
-            # Process and save the activity photo and log
-            global activity_log_df # To modify the global DataFrame
+            # REMOVE: global activity_log_df # <--- REMOVE THIS LINE
 
             now_for_filename = get_current_time_in_tz().strftime("%Y%m%d_%H%M%S")
             now_for_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
@@ -385,21 +383,20 @@ elif nav == "📸 Upload Activity Photo":
                     "Latitude": current_lat,
                     "Longitude": current_lon
                 }
-                # Ensure all columns are present
                 for col_name in ACTIVITY_LOG_COLUMNS:
                     if col_name not in new_activity_data:
                         new_activity_data[col_name] = pd.NA
                 
                 new_activity_entry = pd.DataFrame([new_activity_data], columns=ACTIVITY_LOG_COLUMNS)
-                activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True)
+                # This modifies the global 'activity_log_df'
+                activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True) 
                 activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
                 
-                # Reload the global dataframe
-                activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS)
+                # This reassigns the global 'activity_log_df' with freshly loaded data
+                activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS) 
                 
                 st.session_state.user_message = "Activity photo and log uploaded successfully!"
                 st.session_state.message_type = "success"
-                # st.experimental_rerun() # Use st.rerun() for newer Streamlit versions
                 st.rerun()
 
             except Exception as e:
@@ -409,6 +406,8 @@ elif nav == "📸 Upload Activity Photo":
                 st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
+
+# ... (rest of your script) ...
 
 #------------------------Goal Tracker-------------------------------------------------------------------------------------------------
 
