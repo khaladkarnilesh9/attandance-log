@@ -268,7 +268,7 @@ if st.session_state.user_message:
 
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
-    nav_options = ["📆 Attendance","📸 Upload Activity Photo", "🧾 Allowance", "🎯 Goal Tracker","💰 Payment Collection Tracker", "📊 View Logs"]
+    nav_options = ["📆 Attendance","📸 visit Photo", "🧾 Allowance", "🎯 Goal Tracker","💰 Payment Collection Tracker", "📊 View Logs"]
     nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
     nav = st.radio("Navigation", nav_options, key="sidebar_nav_main_activity")
     user_sidebar_info = USERS.get(current_user["username"], {})
