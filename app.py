@@ -2,7 +2,6 @@
 # Placeholder for the corrected Streamlit app.py code
 # Add your full working application logic here...
 import streamlit as st
-
 st.title("Attendance Log System - Placeholder")
 
 
@@ -138,7 +137,7 @@ html_css = """
     .button-column-container > div[data-testid="stHorizontalBlock"] {gap: 20px;}
     .button-column-container .stButton button {width: 100%;}
     div[role="radiogroup"] {display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;}
-    div[role="radiogroup"] > label {background-color: #e9ecef; color: var(--text-muted-color); padding: 10px 18px; border-radius: var(--border-radius); border: 1px solid var(--input-border-color); cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; font-size: 0.95em; font-weight: 500;}
+    div[role="radiogroup"] > label {background-color: #23578c; color: var(--text-muted-color); padding: 10px 18px; border-radius: var(--border-radius); border: 1px solid var(--input-border-color); cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; font-size: 0.95em; font-weight: 500;}
     div[role="radiogroup"] > label:hover {background-color: #dde2e6; border-color: #adb5bd; color: var(--text-color);}
     div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {background-color: var(--secondary-color) !important; color: white !important; border-color: var(--secondary-color) !important; font-weight: 500;}
     .employee-section-header {color: var(--secondary-color); margin-top: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 1.35em;}
