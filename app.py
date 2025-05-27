@@ -298,20 +298,13 @@ if "user_message" in st.session_state and st.session_state.user_message:
 
 
 with st.sidebar:
-    st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
-
-    nav_options = [
-        "📆 Attendance",
-        "📸 Upload Photo",
-        "🧾 Allowance",
-        "🎯 Goal Tracker",
-        "💰 Payment Collection",
-        "📊 View Logs"
-    ]
-
-    nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
+    st.markdown(
+        f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>",
+        unsafe_allow_html=True
+    )
 
     user_sidebar_info = USERS.get(current_user["username"], {})
+
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
         st.image(user_sidebar_info["profile_photo"], width=100)
 
@@ -322,12 +315,27 @@ with st.sidebar:
 
     st.markdown("---")
 
+    # Navigation using icons (Google style via emoji or HTML)
+    st.markdown("### 📂 Menu")
+    st.markdown("""
+    <ul style="list-style: none; padding: 0; font-size: 16px;">
+        <li>📆 Attendance</li>
+        <li>📸 Upload Photo</li>
+        <li>🧾 Allowance</li>
+        <li>🎯 Goal Tracker</li>
+        <li>💰 Payment Collection</li>
+        <li>📊 View Logs</li>
+    </ul>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # Logout button
     if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.session_state.user_message = "Logged out successfully."
         st.session_state.message_type = "info"
         st.rerun()
-
 
 #------------------------------------------------------------------------closed navbar
 
