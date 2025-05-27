@@ -677,34 +677,58 @@ elif nav == "📸 Upload Activity Photo":
         st.markdown("<h6 class='form-field-label-custom'>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True) 
         activity_description = st.text_area("Brief description of activity/visit:", key="activity_desc_content_final_v2") 
         img_file_buffer_activity = st.camera_input("Take a picture of your activity/visit", key="activity_camera_input_content_final_v2") 
-        submit_activity_photo = st.form_submit_button("⬆️ Upload Photo and Log Activity", key="activity_photo_form-Submit_v2") 
+        submit_activity_photo = st.form_submit_button("⬆️ Upload Photo and Log Activity", key="activity_photo_form-Submit_v2")
+
+# Declare the global variable before using it
+global activity_log_df
+
+if img_file_buffer_activity is None:
+    st.warning("Please take a picture before submitting.")
+elif not activity_description.strip():
+    st.warning("Please provide a description for the activity.")
+else:
+    now_for_filename = get_current_time_in_tz().strftime("%Y%m%d_%H%M%S")
+    now_for_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
+    image_filename_activity = f"{current_user['username']}_activity_{now_for_filename}.jpg"
+    image_path_activity = os.path.join(ACTIVITY_PHOTOS_DIR, image_filename_activity)
+    
+    try:
+        with open(image_path_activity, "wb") as f:
+            f.write(img_file_buffer_activity.getbuffer())
+
+        new_activity_data = {
+            "Username": current_user["username"],
+            "Timestamp": now_for_display,
+            "Description": activity_description,
+            "ImageFile": image_filename_activity,
+            "Latitude": current_lat,
+            "Longitude": current_lon
+        }
+
+        for col_name_act in ACTIVITY_LOG_COLUMNS:
+            if col_name_act not in new_activity_data:
+                new_activity_data[col_name_act] = pd.NA
+
+        new_activity_entry = pd.DataFrame([new_activity_data], columns=ACTIVITY_LOG_COLUMNS)
+
+        # Append and save the new entry
+        activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True)
+        activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
+
+        st.session_state.user_message = "Activity photo and log uploaded!"
+        st.session_state.message_type = "success"
+        st.rerun()
+
+    except Exception as e:
+        st.session_state.user_message = f"Error saving activity: {e}"
+        st.session_state.message_type = "error"
+        st.rerun()
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 
 
-        def some_function():
-            global activity_log_df
-            activity_log_df =
-        
-        if img_file_buffer_activity is None: st.warning("Please take a picture before submitting.")
-        elif not activity_description.strip(): st.warning("Please provide a description for the activity.")
-        else:
-            now_for_filename = get_current_time_in_tz().strftime("%Y%m%d_%H%M%S")
-            now_for_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
-            image_filename_activity = f"{current_user['username']}_activity_{now_for_filename}.jpg"
-            image_path_activity = os.path.join(ACTIVITY_PHOTOS_DIR, image_filename_activity)
-            try:
-                with open(image_path_activity, "wb") as f: f.write(img_file_buffer_activity.getbuffer())
-                new_activity_data = {"Username": current_user["username"], "Timestamp": now_for_display, "Description": activity_description, "ImageFile": image_filename_activity, "Latitude": current_lat, "Longitude": current_lon}
-                for col_name_act in ACTIVITY_LOG_COLUMNS: 
-                    if col_name_act not in new_activity_data: new_activity_data[col_name_act] = pd.NA
-                new_activity_entry = pd.DataFrame([new_activity_data], columns=ACTIVITY_LOG_COLUMNS)
-                
-                activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True)
-                activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
-                
-                st.session_state.user_message = "Activity photo and log uploaded!"; st.session_state.message_type = "success"; st.rerun()
-            except Exception as e: st.session_state.user_message = f"Error saving activity: {e}"; st.session_state.message_type = "error"; st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+
 
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
