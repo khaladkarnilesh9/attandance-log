@@ -180,32 +180,32 @@ html_css = """
         border: 1px solid var(--md-sys-color-outline-variant); margin-bottom: 20px;
         box-shadow: var(--md-sys-elevation-level-0); 
     }
-    .card h3.card-title { 
+    .card h3.card-title { /* This is used for page titles in your Python */
         margin-top: 0; padding-bottom: 12px; margin-bottom: 18px;
         font-size: var(--md-sys-typescale-title-large-font-size); font-weight: 500;
         border-bottom: 1px solid var(--md-sys-color-outline-variant);
         color: var(--md-sys-color-on-surface); 
     }
-     .card h4.section-title { 
+     .card h4.section-title { /* This is used for section titles like "Admin: Manage..." */
         font-size: var(--md-sys-typescale-title-medium-font-size); font-weight: 500; 
         margin-top: 20px; margin-bottom: 12px; color: var(--md-sys-color-on-surface-variant);
      }
-     .card h5 { 
+     .card h5 { /* This is used for sub-section titles like "Team Goal Progress..." */
         font-size: 1.05em; color: var(--md-sys-color-on-surface); margin-top: 18px; 
         margin-bottom: 10px; font-weight: 500;
      }
-     .card h6 { 
+     .card h6 { /* This is used for smaller labels like "Individual Sales Progress" */
         font-size: 0.9em; color: var(--md-sys-color-on-surface-variant); margin-top: 16px; 
         margin-bottom: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px;
      }
     /* Your Python's h6 for form field labels */
-    .form-field-label-custom {
-        font-size: var(--md-sys-typescale-label-medium-font-size); /* Updated */
+    h6.form-field-label-custom {
+        font-size: var(--md-sys-typescale-label-medium-font-size);
         font-weight: 500;
         color: var(--md-sys-color-on-surface-variant);
-        margin-bottom: 4px; /* Reduced margin */
-        text-transform: none; /* No uppercase typically in Material */
-        letter-spacing: 0.1px; /* Subtle spacing */
+        margin-bottom: 4px; 
+        text-transform: none; 
+        letter-spacing: 0.1px; 
     }
 
 
@@ -226,7 +226,7 @@ html_css = """
     }
     
     .sidebar-header-section { padding: 16px 20px 12px 20px; } 
-    .welcome-text-sidebar { /* Your custom class */
+    .welcome-text-sidebar { 
         font-size: var(--md-sys-typescale-title-medium-font-size); font-weight: 500;
         color: var(--md-sys-color-on-surface) !important; margin-bottom: 4px;
     }
@@ -234,7 +234,7 @@ html_css = """
         border-radius: 50%; margin: 0px 0px 4px 0px; width: 36px !important; height: 36px !important;
         border: 1px solid var(--md-sys-color-outline-variant);
     }
-    .user-position-sidebar { /* Your custom class */
+    .user-position-sidebar { 
         font-size: 13px; color: var(--md-sys-color-on-surface-variant) !important;
         margin-bottom: 12px;
     }
@@ -302,7 +302,7 @@ html_css = """
     .stButton button[key*="check_in_btn"], 
     .stButton button[key*="submit_allowance_btn"], 
     .stButton button[key*="activity_photo_form-Submit"], 
-    .stButton button[key*="set_sales_goal_form_admin-Submit"], /* Check form keys */
+    .stButton button[key*="set_sales_goal_form_admin-Submit"], 
     .stButton button[key*="form_payment_admin-Submit"],
     .stButton button[key*="update_sales_achievement_form_employee-Submit"],
     .stButton button[key*="update_payment_collection_form_employee-Submit"]
@@ -353,7 +353,17 @@ html_css = """
     .stTextInput input::placeholder, .stNumberInput input::placeholder, .stTextArea textarea::placeholder {
         color: var(--md-sys-color-on-surface-variant) !important; opacity: 0.6;
     }
-    
+    div[data-testid="stTextInput"] > label,
+    div[data-testid="stNumberInput"] > label,
+    div[data-testid="stTextArea"] > label,
+    div[data-testid="stDateInput"] > label,
+    div[data-testid="stTimeInput"] > label,
+    div[data-testid="stSelectbox"] > label {
+        font-size: var(--md-sys-typescale-body-small-font-size) !important; 
+        color: var(--md-sys-color-on-surface-variant) !important;
+        margin-bottom: 4px !important;
+        padding-left: 2px !important;
+    }
     div[data-testid="stForm"] { border: none; padding: 0; } 
 
     .stDataFrame { border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-small); box-shadow: none; overflow: hidden;}
@@ -663,14 +673,14 @@ elif nav == "📸 Upload Activity Photo":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3 class='card-title'>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True) 
     current_lat = pd.NA; current_lon = pd.NA 
-    with st.form(key="activity_photo_form_content_final_page"): 
+    with st.form(key="activity_photo_form_content_final_v2"): 
         st.markdown("<h6 class='form-field-label-custom'>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True) 
-        activity_description = st.text_area("Brief description of activity/visit:", key="activity_desc_content_final_page") 
-        img_file_buffer_activity = st.camera_input("Take a picture of your activity/visit", key="activity_camera_input_content_final_page") 
-        submit_activity_photo = st.form_submit_button("⬆️ Upload Photo and Log Activity", key="activity_photo_form-Submit") 
+        activity_description = st.text_area("Brief description of activity/visit:", key="activity_desc_content_final_v2") 
+        img_file_buffer_activity = st.camera_input("Take a picture of your activity/visit", key="activity_camera_input_content_final_v2") 
+        submit_activity_photo = st.form_submit_button("⬆️ Upload Photo and Log Activity", key="activity_photo_form-Submit_v2") 
 
     if submit_activity_photo:
-        global activity_log_df # Correct placement
+        global activity_log_df 
         
         if img_file_buffer_activity is None: st.warning("Please take a picture before submitting.")
         elif not activity_description.strip(): st.warning("Please provide a description for the activity.")
@@ -696,15 +706,15 @@ elif nav == "📸 Upload Activity Photo":
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3 class='card-title'>💼 Claim Allowance</h3>", unsafe_allow_html=True) 
-    with st.form(key="allowance_form_content_final_page"): 
+    with st.form(key="allowance_form_content_final_v2"): 
         st.markdown("<h6 class='form-field-label-custom'>Select Allowance Type:</h6>", unsafe_allow_html=True) 
-        a_type = st.radio("", ["Travel", "Dinner", "Medical", "Internet", "Other"], key="allowance_type_radio_content_final_page", horizontal=True, label_visibility='collapsed') 
-        amount = st.number_input("Enter Amount (INR):", min_value=0.01, step=10.0, format="%.2f", key="allowance_amount_content_final_page") 
-        reason = st.text_area("Reason for Allowance:", key="allowance_reason_content_final_page", placeholder="Please provide a clear justification...") 
-        submitted_allowance = st.form_submit_button("Submit Allowance Request", use_container_width=True, key="submit_allowance_btn_content_final_page") 
+        a_type = st.radio("", ["Travel", "Dinner", "Medical", "Internet", "Other"], key="allowance_type_radio_content_final_v2", horizontal=True, label_visibility='collapsed') 
+        amount = st.number_input("Enter Amount (INR):", min_value=0.01, step=10.0, format="%.2f", key="allowance_amount_content_final_v2") 
+        reason = st.text_area("Reason for Allowance:", key="allowance_reason_content_final_v2", placeholder="Please provide a clear justification...") 
+        submitted_allowance = st.form_submit_button("Submit Allowance Request", use_container_width=True, key="submit_allowance_btn_content_final_v2") 
 
         if submitted_allowance:
-            global allowance_df # Correct placement
+            global allowance_df
 
             if a_type and amount > 0 and reason.strip():
                 date_str = get_current_time_in_tz().strftime("%Y-%m-%d"); new_entry_data = {"Username": current_user["username"], "Type": a_type, "Amount": amount, "Reason": reason, "Date": date_str}
@@ -729,7 +739,7 @@ elif nav == "🎯 Goal Tracker":
 
     if current_user["role"] == "admin":
         st.markdown("<h4 class='section-title'>Admin: Manage & Track Employee Goals</h4>", unsafe_allow_html=True) 
-        admin_action = st.radio("Action:", ["View Team Progress", f"Set/Edit Goal for {TARGET_GOAL_YEAR}"], key="admin_goal_action_radio_content_final_page", horizontal=True) 
+        admin_action = st.radio("Action:", ["View Team Progress", f"Set/Edit Goal for {TARGET_GOAL_YEAR}"], key="admin_goal_action_radio_content_final_v2", horizontal=True) 
         if admin_action == "View Team Progress":
             st.markdown(f"<h5>Team Goal Progress for {current_quarter_for_display}</h5>", unsafe_allow_html=True)
             employee_users = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
@@ -766,8 +776,8 @@ elif nav == "🎯 Goal Tracker":
             employee_options = [u for u,d in USERS.items() if d["role"]=="employee"];
             if not employee_options: st.warning("No employees available.");
             else:
-                selected_emp = st.radio("Select Employee:", employee_options, key="goal_emp_radio_admin_set_content_final_page2", horizontal=True) 
-                quarter_options = [f"{TARGET_GOAL_YEAR}-Q{i}" for i in range(1,5)]; selected_period = st.radio("Goal Period:", quarter_options, key="goal_period_radio_admin_set_content_final_page2", horizontal=True) 
+                selected_emp = st.radio("Select Employee:", employee_options, key="goal_emp_radio_admin_set_content_final_v2", horizontal=True) 
+                quarter_options = [f"{TARGET_GOAL_YEAR}-Q{i}" for i in range(1,5)]; selected_period = st.radio("Goal Period:", quarter_options, key="goal_period_radio_admin_set_content_final_v2", horizontal=True) 
                 
                 existing_g = goals_df[(goals_df["Username"].astype(str)==str(selected_emp)) & (goals_df["MonthYear"].astype(str)==str(selected_period))]
                 g_desc,g_target,g_achieved,g_status = "",0.0,0.0,"Not Started"
@@ -775,15 +785,15 @@ elif nav == "🎯 Goal Tracker":
                     g_data=existing_g.iloc[0]; g_desc=g_data.get("GoalDescription",""); g_target=float(pd.to_numeric(g_data.get("TargetAmount",0.0),errors='coerce') or 0.0)
                     g_achieved=float(pd.to_numeric(g_data.get("AchievedAmount",0.0),errors='coerce') or 0.0); g_status=g_data.get("Status","Not Started"); st.info(f"Editing goal for {selected_emp} - {selected_period}")
                 
-                with st.form(key=f"set_sales_goal_form_admin_content_final_{selected_emp}_{selected_period}"): 
-                    new_desc=st.text_area("Goal Description",value=g_desc,key=f"desc_admin_sales_content_final_{selected_emp}_{selected_period}") 
-                    new_target=st.number_input("Target Sales (INR)",value=g_target,min_value=0.0,step=1000.0,format="%.2f",key=f"target_admin_sales_content_final_{selected_emp}_{selected_period}") 
-                    new_achieved=st.number_input("Achieved Sales (INR)",value=g_achieved,min_value=0.0,step=100.0,format="%.2f",key=f"achieved_admin_sales_content_final_{selected_emp}_{selected_period}") 
-                    new_status=st.radio("Status:",status_options,index=status_options.index(g_status),horizontal=True,key=f"status_admin_sales_content_final_{selected_emp}_{selected_period}") 
+                with st.form(key=f"set_sales_goal_form_admin_content_final_v2_{selected_emp}_{selected_period}"): 
+                    new_desc=st.text_area("Goal Description",value=g_desc,key=f"desc_admin_sales_content_final_v2_{selected_emp}_{selected_period}") 
+                    new_target=st.number_input("Target Sales (INR)",value=g_target,min_value=0.0,step=1000.0,format="%.2f",key=f"target_admin_sales_content_final_v2_{selected_emp}_{selected_period}") 
+                    new_achieved=st.number_input("Achieved Sales (INR)",value=g_achieved,min_value=0.0,step=100.0,format="%.2f",key=f"achieved_admin_sales_content_final_v2_{selected_emp}_{selected_period}") 
+                    new_status=st.radio("Status:",status_options,index=status_options.index(g_status),horizontal=True,key=f"status_admin_sales_content_final_v2_{selected_emp}_{selected_period}") 
                     submitted=st.form_submit_button("Save Goal", key="set_goal_form-Submit") 
 
                     if submitted:
-                        global goals_df # Moved global declaration up
+                        global goals_df 
                         if not new_desc.strip(): st.warning("Description is required.")
                         elif new_target <= 0 and new_status not in ["Cancelled","On Hold","Not Started"]: st.warning("Target > 0 required.")
                         else:
@@ -817,8 +827,8 @@ elif nav == "🎯 Goal Tracker":
                 st.markdown(f"<h6 style='text-align:center;margin-bottom:0px;margin-top:0px;'>Sales Progress</h6>",unsafe_allow_html=True)
                 st.pyplot(create_donut_chart(progress_percent_sales, achieved_color=achieved_color_sales),use_container_width=True)
             st.markdown("<hr>", unsafe_allow_html=True)
-            with st.form(key=f"update_sales_achievement_form_employee_content_final_{current_user['username']}_{current_quarter_for_display}"): 
-                new_val=st.number_input("Update Achieved Amount (INR):",value=achieved_amt,min_value=0.0,step=100.0,format="%.2f", key=f"employee_sales_ach_update_content_final_{current_user['username']}_{current_quarter_for_display}") 
+            with st.form(key=f"update_sales_achievement_form_employee_content_final_v2_{current_user['username']}_{current_quarter_for_display}"): 
+                new_val=st.number_input("Update Achieved Amount (INR):",value=achieved_amt,min_value=0.0,step=100.0,format="%.2f", key=f"employee_sales_ach_update_content_final_v2_{current_user['username']}_{current_quarter_for_display}") 
                 submitted_ach=st.form_submit_button("Update Achievement", key="update_achievement-Submit") 
                 if submitted_ach:
                     global goals_df 
@@ -849,7 +859,7 @@ elif nav == "💰 Payment Collection Tracker":
 
     if current_user["role"] == "admin":
         st.markdown("<h4 class='section-title'>Admin: Set & Track Payment Collection Goals</h4>", unsafe_allow_html=True) 
-        admin_action_payment = st.radio("Action:", ["View Team Progress", f"Set/Edit Collection Target for {TARGET_YEAR_PAYMENT}"], key="admin_payment_action_radio_content_final", horizontal=True) 
+        admin_action_payment = st.radio("Action:", ["View Team Progress", f"Set/Edit Collection Target for {TARGET_YEAR_PAYMENT}"], key="admin_payment_action_radio_content_final_v2", horizontal=True) 
         if admin_action_payment == "View Team Progress":
             st.markdown(f"<h5>Team Payment Collection Progress for {current_quarter_display_payment}</h5>", unsafe_allow_html=True)
             employees_payment_list = [u for u,d in USERS.items() if d["role"]=="employee"]
@@ -886,11 +896,9 @@ elif nav == "💰 Payment Collection Tracker":
             employees_for_payment_goal = [u for u,d in USERS.items() if d["role"]=="employee"];
             if not employees_for_payment_goal: st.warning("No employees available.")
             else:
-                selected_emp_payment=st.radio("Select Employee:",employees_for_payment_goal,key="payment_emp_radio_admin_set_content_final", horizontal=True) 
-                quarters_payment=[f"{TARGET_YEAR_PAYMENT}-Q{i}" for i in range(1,5)]; selected_period_payment=st.radio("Quarter:",quarters_payment,key="payment_period_radio_admin_set_content_final", horizontal=True) 
+                selected_emp_payment=st.radio("Select Employee:",employees_for_payment_goal,key="payment_emp_radio_admin_set_content_final_v2", horizontal=True) 
+                quarters_payment=[f"{TARGET_YEAR_PAYMENT}-Q{i}" for i in range(1,5)]; selected_period_payment=st.radio("Quarter:",quarters_payment,key="payment_period_radio_admin_set_content_final_v2", horizontal=True) 
                 
-                global payment_goals_df # Moved global up
-
                 existing_payment_goal=payment_goals_df[(payment_goals_df["Username"]==selected_emp_payment)&(payment_goals_df["MonthYear"]==selected_period_payment)]
                 desc_payment,tgt_payment_val,ach_payment_val,stat_payment = "",0.0,0.0,"Not Started"
                 if not existing_payment_goal.empty:
@@ -898,14 +906,15 @@ elif nav == "💰 Payment Collection Tracker":
                     ach_payment_val=float(pd.to_numeric(g_payment.get("AchievedAmount",0.0),errors='coerce') or 0.0); stat_payment=g_payment.get("Status","Not Started")
                     st.info(f"Editing payment goal for {selected_emp_payment} - {selected_period_payment}")
                 
-                with st.form(f"form_payment_admin_content_final_{selected_emp_payment}_{selected_period_payment}"): 
-                    new_desc_payment=st.text_input("Collection Goal Description",value=desc_payment,key=f"desc_admin_payment_content_final_{selected_emp_payment}_{selected_period_payment}") 
-                    new_tgt_payment=st.number_input("Target Collection (INR)",value=tgt_payment_val,min_value=0.0,step=1000.0,key=f"target_admin_payment_content_final_{selected_emp_payment}_{selected_period_payment}") 
-                    new_ach_payment=st.number_input("Collected Amount (INR)",value=ach_payment_val,min_value=0.0,step=500.0,key=f"achieved_admin_payment_content_final_{selected_emp_payment}_{selected_period_payment}") 
-                    new_status_payment=st.selectbox("Status",status_options_payment,index=status_options_payment.index(stat_payment),key=f"status_admin_payment_content_final_{selected_emp_payment}_{selected_period_payment}") 
+                with st.form(f"form_payment_admin_content_final_v2_{selected_emp_payment}_{selected_period_payment}"): 
+                    new_desc_payment=st.text_input("Collection Goal Description",value=desc_payment,key=f"desc_admin_payment_content_final_v2_{selected_emp_payment}_{selected_period_payment}") 
+                    new_tgt_payment=st.number_input("Target Collection (INR)",value=tgt_payment_val,min_value=0.0,step=1000.0,key=f"target_admin_payment_content_final_v2_{selected_emp_payment}_{selected_period_payment}") 
+                    new_ach_payment=st.number_input("Collected Amount (INR)",value=ach_payment_val,min_value=0.0,step=500.0,key=f"achieved_admin_payment_content_final_v2_{selected_emp_payment}_{selected_period_payment}") 
+                    new_status_payment=st.selectbox("Status",status_options_payment,index=status_options_payment.index(stat_payment),key=f"status_admin_payment_content_final_v2_{selected_emp_payment}_{selected_period_payment}") 
                     submitted_payment=st.form_submit_button("Save Goal", key="form_payment-Submit") 
 
                     if submitted_payment:
+                        global payment_goals_df 
                         if not new_desc_payment.strip(): st.warning("Description required.")
                         elif new_tgt_payment <= 0 and new_status_payment not in ["Cancelled","Not Started", "On Hold"]: st.warning("Target > 0 required unless status is Cancelled, Not Started or On Hold.")
                         else:
@@ -939,8 +948,8 @@ elif nav == "💰 Payment Collection Tracker":
                 st.markdown(f"<h6 style='text-align:center;margin-bottom:0px;margin-top:0px;'>Collection Progress</h6>",unsafe_allow_html=True)
                 st.pyplot(create_donut_chart(progress_percent_pay, achieved_color=achieved_color_payment),use_container_width=True)
             st.markdown("<hr>", unsafe_allow_html=True)
-            with st.form(key=f"update_payment_collection_form_employee_content_final_{current_user['username']}_{current_quarter_display_payment}"): 
-                new_ach_val_payment=st.number_input("Update Collected Amount (INR):",value=ach_pay,min_value=0.0,step=500.0, key=f"employee_payment_ach_update_content_final_{current_user['username']}_{current_quarter_display_payment}") 
+            with st.form(key=f"update_payment_collection_form_employee_content_final_v2_{current_user['username']}_{current_quarter_display_payment}"): 
+                new_ach_val_payment=st.number_input("Update Collected Amount (INR):",value=ach_pay,min_value=0.0,step=500.0, key=f"employee_payment_ach_update_content_final_v2_{current_user['username']}_{current_quarter_display_payment}") 
                 submit_collection_update=st.form_submit_button("Update Collection", key="update_collection-Submit") 
                 if submit_collection_update:
                     global payment_goals_df 
