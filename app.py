@@ -293,12 +293,10 @@ if "user_message" in st.session_state and st.session_state.user_message:
         unsafe_allow_html=True
     )
     # Clear the message after displaying it so it doesn't reappear
-    st.session_state.user_message = None
-    st.session_state.message_type = None
+    # st.session_state.user_message = None
+    # st.session_state.message_type = None
 
-
-import streamlit as st
-import os
+nav = st.session_state.nav
 
 # Initialize navigation state
 if "nav" not in st.session_state:
