@@ -679,8 +679,11 @@ elif nav == "📸 Upload Activity Photo":
         img_file_buffer_activity = st.camera_input("Take a picture of your activity/visit", key="activity_camera_input_content_final_v2") 
         submit_activity_photo = st.form_submit_button("⬆️ Upload Photo and Log Activity", key="activity_photo_form-Submit_v2") 
 
-    if submit_activity_photo:
-        global activity_log_df 
+
+
+        def some_function():
+            global activity_log_df
+            activity_log_df =
         
         if img_file_buffer_activity is None: st.warning("Please take a picture before submitting.")
         elif not activity_description.strip(): st.warning("Please provide a description for the activity.")
