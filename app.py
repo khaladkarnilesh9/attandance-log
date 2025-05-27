@@ -648,6 +648,7 @@ html_css = """
     }
 </style>
 """
+"""
 st.markdown(html_css, unsafe_allow_html=True)
 
 # --- Credentials & User Info ---
