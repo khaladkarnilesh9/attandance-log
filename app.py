@@ -83,305 +83,364 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
 
 html_css = """
 /* CSS for Google AI Studio Look & Feel */
+/* CSS for Enhanced Google AI Studio Look & Feel */
 <style>
     @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap'); /* Inter for some UI text if preferred */
 
     :root {
-        --google-blue: #1A73E8; /* Updated Google Blue */
-        --google-red: #D93025;
-        --google-yellow: #F9AB00;
-        --google-green: #1E8E3E;
+        /* Google Material 3 Inspired Palette */
+        --md-sys-color-primary: #0B57D0; /* Google Blue - Primary actions, active states */
+        --md-sys-color-on-primary: #FFFFFF;
+        --md-sys-color-primary-container: #D3E3FD;
+        --md-sys-color-on-primary-container: #001B3D;
 
-        --primary-text-color: #202124; 
-        --secondary-text-color: #5F6368; 
-        --disabled-text-color: #9AA0A6;
-        
-        --sidebar-bg-color: #FFFFFF; 
-        --sidebar-text-color: #3C4043; 
-        --sidebar-icon-color: #5F6368; /* For icons if used outside radio labels */
-        --sidebar-active-bg: #E8F0FE; 
-        --sidebar-active-text: var(--google-blue);
-        --sidebar-active-icon: var(--google-blue); /* For icons if used outside radio labels */
-        --sidebar-hover-bg: #F1F3F4; 
-        
-        --body-bg-color: #F8F9FA; 
-        --card-bg-color: #FFFFFF;
-        --border-color: #DADCE0; 
-        --input-border-color: #DADCE0;
-        --input-focus-border: var(--google-blue);
-        --input-bg-color: #FFFFFF;
+        --md-sys-color-secondary: #565E71; /* For less prominent elements */
+        --md-sys-color-on-secondary: #FFFFFF;
+        --md-sys-color-secondary-container: #DAE2F9;
+        --md-sys-color-on-secondary-container: #131C2B;
 
-        --font-family-main: 'Roboto', 'Inter', sans-serif;
-        --border-radius: 8px;
-        --border-radius-sm: 4px;
-        --card-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-        --button-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 0 1px 0 rgba(60,64,67,0.15);
+        --md-sys-color-tertiary: #725572;
+        --md-sys-color-on-tertiary: #FFFFFF;
+        --md-sys-color-tertiary-container: #FBD7FA;
+        --md-sys-color-on-tertiary-container: #2A122C;
+        
+        --md-sys-color-surface: #FCFCFF; /* Main background for components like cards */
+        --md-sys-color-surface-variant: #E1E2EC; /* Borders, dividers, muted backgrounds */
+        --md-sys-color-on-surface: #1A1C1E; /* Primary text on surfaces */
+        --md-sys-color-on-surface-variant: #44474E; /* Secondary text, icons */
+        
+        --md-sys-color-background: #F8F9FA; /* Overall page background */
+        --md-sys-color-on-background: #1A1C1E;
+
+        --md-sys-color-outline: #74777F;
+        --md-sys-color-outline-variant: #C4C6CF;
+
+        --md-sys-color-error: #B3261E;
+        --md-sys-color-on-error: #FFFFFF;
+
+        /* Typography */
+        --md-sys-font-family-main: 'Roboto', 'Inter', sans-serif;
+        --md-sys-typescale-headline-small-font-size: 24px;
+        --md-sys-typescale-title-large-font-size: 22px;
+        --md-sys-typescale-title-medium-font-size: 16px;
+        --md-sys-typescale-title-small-font-size: 14px;
+        --md-sys-typescale-label-large-font-size: 14px;
+        --md-sys-typescale-label-medium-font-size: 12px;
+        --md-sys-typescale-body-large-font-size: 16px;
+        --md-sys-typescale-body-medium-font-size: 14px;
+
+        /* Shape & Elevation */
+        --md-sys-shape-corner-extra-small: 4px;
+        --md-sys-shape-corner-small: 8px;
+        --md-sys-shape-corner-medium: 12px;
+        --md-sys-shape-corner-large: 16px;
+        --md-sys-shape-corner-full: 999px; /* For pills */
+
+        --md-sys-elevation-level-0: none;
+        --md-sys-elevation-level-1: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+        --md-sys-elevation-level-2: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
     }
 
+    /* Base Styles */
     body, .main {
-        font-family: var(--font-family-main);
-        background-color: var(--body-bg-color) !important;
-        color: var(--primary-text-color);
+        font-family: var(--md-sys-font-family-main);
+        background-color: var(--md-sys-color-background) !important;
+        color: var(--md-sys-color-on-background);
+        font-size: var(--md-sys-typescale-body-medium-font-size);
+        line-height: 1.5;
+    }
+    .main .block-container { 
+        max-width: 1200px; /* Control max content width */
+        margin: 0 auto;
+        padding: 24px 32px !important; /* More generous padding */
     }
 
-    /* General Typography & Headers */
-    h1, h2, h3, h4, h5, h6 {
-        color: var(--primary-text-color);
-        font-weight: 500; /* Google often uses slightly lighter bold */
-    }
-    /* Main page title (if any, generally handled by card titles) */
-    .main .block-container > div:first-child > div:first-child > div:first-child > h1 {
-        font-size: 22px; /* Google style title */
+    /* Typography */
+    h1 { font-size: var(--md-sys-typescale-headline-small-font-size); font-weight: 400; margin-bottom: 24px; }
+    h3.card-title { /* For titles inside your cards */
+        font-size: var(--md-sys-typescale-title-large-font-size);
         font-weight: 500;
+        color: var(--md-sys-color-on-surface);
         padding-bottom: 16px;
-        margin-bottom: 24px;
-        color: var(--primary-text-color);
-        border-bottom: 1px solid var(--border-color);
-        text-align: left;
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    }
+    h4.section-title { /* For sub-sections if needed */
+        font-size: var(--md-sys-typescale-title-medium-font-size);
+        font-weight: 500;
+        color: var(--md-sys-color-on-surface-variant);
+        margin-top: 24px;
+        margin-bottom: 12px;
+    }
+    h6.form-field-label-custom { /* Your custom class for form field labels */
+        font-size: var(--md-sys-typescale-label-medium-font-size);
+        font-weight: 500;
+        color: var(--md-sys-color-on-surface-variant);
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     /* Card Styling */
     .card {
-        background-color: var(--card-bg-color);
+        background-color: var(--md-sys-color-surface);
         padding: 24px;
-        border-radius: var(--border-radius);
-        box-shadow: none; /* Google cards often have border, not shadow */
-        border: 1px solid var(--border-color);
+        border-radius: var(--md-sys-shape-corner-medium);
+        border: 1px solid var(--md-sys-color-outline-variant);
         margin-bottom: 24px;
+        box-shadow: var(--md-sys-elevation-level-0); /* subtle or no shadow for cards if using borders */
     }
-    .card h3 { /* Titles within cards */
-        margin-top: 0;
-        color: var(--primary-text-color);
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 16px;
-        margin-bottom: 20px;
-        font-size: 18px; /* Google card title size */
-        font-weight: 500;
-        line-height: 24px;
-    }
-    .card h4 { font-size: 16px; font-weight: 500; margin-bottom: 12px; }
-    .card h5 { font-size: 14px; font-weight: 500; color: var(--secondary-text-color); margin-bottom: 8px; }
-    .card h6 { font-size: 12px; font-weight: 400; color: var(--secondary-text-color); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
-
 
     /* Sidebar Styling */
     [data-testid="stSidebar"] {
-        background-color: var(--sidebar-bg-color) !important;
-        padding: 16px 0px !important; /* Remove horizontal padding from sidebar itself */
-        border-right: 1px solid var(--border-color) !important;
+        background-color: var(--md-sys-color-surface) !important; /* Surface color for sidebar */
+        padding: 0px !important; /* Remove all padding from the main sidebar container */
+        border-right: 1px solid var(--md-sys-color-outline-variant) !important;
+        width: 280px !important; /* Fixed width like Google products */
         box-shadow: none !important;
     }
-    [data-testid="stSidebar"] .main-sidebar-content-wrapper { /* Custom class if you wrap sidebar content */
-        display: flex;
-        flex-direction: column;
-        height: 100%;
+    [data-testid="stSidebar"] .main-sidebar-content-wrapper { /* If you use a custom wrapper div */
+        display: flex; flex-direction: column; height: 100%; padding: 0;
     }
-    [data-testid="stSidebar"] .sidebar-content { /* Streamlit's inner sidebar content div */
-        padding-top: 0px !important;
-        flex-grow: 1; /* Allows logout to be pushed down */
+    [data-testid="stSidebar"] .sidebar-content { /* Streamlit's inner div */
+        padding: 16px 0px 16px 0px !important; /* Padding top/bottom, no sides */
+        overflow-y: auto; /* Enable scrolling for sidebar content */
+        flex-grow: 1;
     }
-
-    .welcome-text { /* Your custom class for welcome message */
-        font-size: 16px;
+    
+    /* Sidebar Header / User Info */
+    .sidebar-header-section { padding: 20px 24px 12px 24px; }
+    .welcome-text-sidebar { /* Your custom class */
+        font-size: var(--md-sys-typescale-title-medium-font-size);
         font-weight: 500;
-        padding: 16px 16px 12px 24px; /* Google-like padding */
-        color: var(--primary-text-color) !important;
+        color: var(--md-sys-color-on-surface) !important;
+        margin-bottom: 4px;
     }
     [data-testid="stSidebar"] [data-testid="stImage"] > img {
         border-radius: 50%;
-        border: 1px solid var(--border-color); /* Subtle border */
-        margin: 0px 0px 4px 24px; /* Match padding */
-        width: 36px !important; /* Google avatar size */
-        height: 36px !important;
+        margin: 0px 0px 4px 0px; /* No extra margin from image itself if inside .sidebar-header-section */
+        width: 32px !important; height: 32px !important;
+        border: 1px solid var(--md-sys-color-outline-variant);
     }
-    [data-testid="stSidebar"] p[style*="text-align:left"] { /* User position */
-        font-size: 13px;
-        color: var(--secondary-text-color) !important;
-        margin-left: 24px !important;
-        margin-top: 0px !important;
-        margin-bottom: 16px !important;
+    .user-position-sidebar { /* Your custom class for user position */
+        font-size: var(--md-sys-typescale-body-medium-font-size);
+        color: var(--md-sys-color-on-surface-variant) !important;
+        margin-bottom: 16px;
     }
-    [data-testid="stSidebar"] hr {
-        margin: 16px 24px !important; /* Match padding */
-        border-color: var(--border-color) !important;
+    [data-testid="stSidebar"] hr.sidebar-divider {
+        margin: 0px 0px 8px 0px !important; /* Full width divider */
+        border-color: var(--md-sys-color-outline-variant) !important;
     }
-    .menu-label { /* Your custom MENU label */
-        font-size: 11px;
+    .menu-label-sidebar { /* Your custom class */
+        font-size: var(--md-sys-typescale-label-small-font-size);
         font-weight: 500;
-        color: var(--secondary-text-color);
+        color: var(--md-sys-color-on-surface-variant);
         padding: 16px 24px 8px 24px;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
+        text-transform: none; /* Google often doesn't uppercase these */
+        letter-spacing: 0.1px;
     }
 
-    /* Styling for st.radio in Sidebar to mimic Google Nav */
-    [data-testid="stSidebar"] div[data-testid="stRadio"] label { /* Targets each radio item's label */
+    /* Sidebar Navigation (st.radio) */
+    [data-testid="stSidebar"] div[data-testid="stRadio"] {
+        padding: 0 12px; /* Padding for the group of radio items */
+    }
+    [data-testid="stSidebar"] div[data-testid="stRadio"] label {
         display: flex !important;
         align-items: center !important;
-        padding: 10px 24px 10px 21px !important; /* Adjust left padding for active border */
-        border-radius: 0 var(--border-radius) var(--border-radius) 0 !important; /* Pill shape on right */
-        margin: 2px 0 !important; /* Margin between items, no right margin on label itself */
-        font-size: 14px !important;
+        padding: 8px 12px !important; /* Padding inside each item */
+        border-radius: var(--md-sys-shape-corner-full) !important; /* Pill shape */
+        margin: 4px 0 !important;
+        font-size: var(--md-sys-typescale-label-large-font-size) !important;
         font-weight: 400 !important;
-        color: var(--sidebar-text-color) !important;
-        border-left: 3px solid transparent !important; /* For active indicator */
-        transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out, border-left-color 0.1s ease-in-out;
-        width: 100%; /* Make label take full width of its container */
+        color: var(--md-sys-color-on-surface) !important;
+        border: 1px solid transparent !important; /* For smooth transition */
+        transition: background-color 0.15s ease-out, color 0.15s ease-out;
     }
     [data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {
-        background-color: var(--sidebar-hover-bg) !important;
-        color: var(--primary-text-color) !important;
+        background-color: var(--md-sys-color-surface-variant) !important; /* Muted hover */
     }
-    [data-testid="stSidebar"] div[data-testid="stRadio"] label > div[data-baseweb="radio"] { /* The actual radio input circle */
-        display: none !important; /* Hide it */
+    [data-testid="stSidebar"] div[data-testid="stRadio"] label > div[data-baseweb="radio"] { display: none !important; }
+    
+    [data-testid="stSidebar"] div[data-testid="stRadio"] div[aria-checked="true"] + label {
+        background-color: var(--md-sys-color-primary-container) !important;
+        color: var(--md-sys-color-on-primary-container) !important;
+        font-weight: 500 !important;
     }
-    /* Active Navigation Item (st.radio) */
-    [data-testid="stSidebar"] div[data-testid="stRadio"] div[aria-checked="true"] + label { /* Label of the checked radio */
-        background-color: var(--sidebar-active-bg) !important;
-        color: var(--sidebar-active-text) !important;
-        font-weight: 500 !important; /* Slightly bolder for active */
-        border-left: 3px solid var(--sidebar-active-icon) !important;
-    }
-    /* If you use emojis in st.radio labels, they will inherit the label's color. */
-    /* Example: "🗓️ Attendance" - the emoji is part of the text. */
+    /* If using emojis like "🗓️ Attendance", the emoji is part of the text and will get the color */
 
-
-    /* Logout Section & Button */
-    .logout-section { margin-top: auto; /* Pushes to bottom in flex container */ }
-    .logout-section hr { margin: 16px 24px !important; }
+    /* Sidebar Logout Button */
+    .logout-section-sidebar { margin-top: auto; padding: 8px 12px 16px 12px; }
+    .logout-section-sidebar hr { margin: 0 12px 8px 12px !important; border-color: var(--md-sys-color-outline-variant) !important; }
     [data-testid="stSidebar"] .stButton button[id*="logout_button_sidebar"] {
         display: flex !important; align-items: center !important; justify-content: flex-start !important;
-        padding: 10px 24px 10px 21px !important; border-radius: 0 var(--border-radius) var(--border-radius) 0 !important; margin: 2px 0 !important;
-        width: 100% !important; background-color: transparent !important; color: var(--sidebar-text-color) !important;
-        font-size: 14px !important; font-weight: 400 !important; border: none !important; text-align: left;
-        border-left: 3px solid transparent !important;
+        padding: 8px 12px !important; border-radius: var(--md-sys-shape-corner-full) !important;
+        width: 100% !important; background-color: transparent !important;
+        color: var(--md-sys-color-on-surface) !important;
+        font-size: var(--md-sys-typescale-label-large-font-size) !important; font-weight: 400 !important;
+        border: 1px solid transparent !important; text-align: left;
     }
     [data-testid="stSidebar"] .stButton button[id*="logout_button_sidebar"]:hover {
-        background-color: var(--sidebar-hover-bg) !important; color: var(--google-red) !important;
+        background-color: var(--md-sys-color-surface-variant) !important;
+        color: var(--md-sys-color-error) !important; /* Red text on hover for logout */
     }
-    [data-testid="stSidebar"] .stButton button[id*="logout_button_sidebar"]::before { /* Icon for logout */
-        font-family: 'Material Icons'; content: 'logout'; margin-right: 16px; font-size: 20px; vertical-align: middle;
-        color: var(--sidebar-icon-color); /* Default icon color */
+    [data-testid="stSidebar"] .stButton button[id*="logout_button_sidebar"]::before {
+        font-family: 'Material Icons'; content: 'logout'; margin-right: 12px; font-size: 18px;
+        color: var(--md-sys-color-on-surface-variant); transition: color 0.15s ease-out;
     }
     [data-testid="stSidebar"] .stButton button[id*="logout_button_sidebar"]:hover::before {
-        color: var(--google-red) !important; /* Icon color on hover */
+        color: var(--md-sys-color-error) !important;
     }
 
-    /* Main Content Buttons (outside sidebar) */
-    .stButton:not([data-testid="stSidebar"] .stButton) button {
-        background-color: var(--google-blue) !important;
-        color: white !important;
-        padding: 8px 16px !important; /* Google button padding */
-        border: none !important;
-        border-radius: var(--border-radius-sm) !important; /* Smaller radius for content buttons */
-        font-size: 14px !important;
+    /* Main Content Buttons */
+    .stButton:not([data-testid="stSidebar"] .stButton) button { /* Filled button - primary action */
+        background-color: var(--md-sys-color-primary) !important;
+        color: var(--md-sys-color-on-primary) !important;
+        padding: 10px 24px !important;
+        border-radius: var(--md-sys-shape-corner-full) !important; /* Pill shape */
+        font-size: var(--md-sys-typescale-label-large-font-size) !important;
         font-weight: 500 !important;
-        text-transform: none; /* Google buttons often not uppercase */
-        box-shadow: var(--button-shadow) !important;
-        transition: background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+        border: none !important;
+        box-shadow: var(--md-sys-elevation-level-1) !important;
+        transition: background-color 0.15s ease-out, box-shadow 0.15s ease-out;
+        text-transform: none;
     }
     .stButton:not([data-testid="stSidebar"] .stButton) button:hover {
-        background-color: #185ABC !important; /* Darker blue */
-        box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 2px 5px 2px rgba(60,64,67,0.15) !important; /* Elevated shadow on hover */
+        background-color: color-mix(in srgb, var(--md-sys-color-primary) 92%, black) !important; /* Slightly darker */
+        box-shadow: var(--md-sys-elevation-level-2) !important;
     }
-    /* Specific action buttons */
+    /* Specific positive action buttons (e.g., submit, check-in) */
     .stButton button[id*="check_in_btn"], 
     .stButton button[id*="submit_allowance_btn"], 
-    .stButton button[id*="form_submit_button"] { /* Assuming this key is used for form submits */
-        background-color: var(--google-green) !important;
+    .stButton button[id*="form_submit_button"] { 
+        background-color: var(--md-sys-color-primary) !important; /* Keep primary for consistency or use green */
+        /* If using green: background-color: var(--google-green) !important; */
     }
-    .stButton button[id*="check_in_btn"]:hover, 
-    .stButton button[id*="submit_allowance_btn"]:hover,
-    .stButton button[id*="form_submit_button"]:hover {
-        background-color: #1A7A34 !important; /* Darker Green */
-    }
-    .stButton button[id*="check_out_btn"] {
-        background-color: var(--google-yellow) !important;
-        color: var(--primary-text-color) !important;
+    /* Outlined or Text Buttons (Secondary actions) - This requires changing button type in Python or more specific CSS */
+    .stButton button[id*="check_out_btn"] { /* Example of a secondary-style button */
+        background-color: transparent !important;
+        color: var(--md-sys-color-primary) !important;
+        border: 1px solid var(--md-sys-color-outline) !important;
+        box-shadow: none !important;
     }
     .stButton button[id*="check_out_btn"]:hover {
-        background-color: #F09A00 !important; /* Darker Yellow */
+        background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent) !important; /* Slight tint on hover */
+        border-color: var(--md-sys-color-primary) !important;
     }
 
-    /* Input Fields */
-    .stTextInput input, 
-    .stNumberInput input, 
-    .stTextArea textarea, 
-    .stDateInput input, 
-    .stTimeInput input, 
-    .stSelectbox div[data-baseweb="select"] > div {
-        border-radius: var(--border-radius-sm) !important;
-        border: 1px solid var(--input-border-color) !important;
-        padding: 10px 12px !important;
-        font-size: 14px !important;
-        color: var(--primary-text-color) !important;
-        background-color: var(--input-bg-color) !important;
-        transition: border-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+
+    /* Input Fields (Outlined Style) */
+    .stTextInput > div > div > input, /* Standard text input */
+    .stNumberInput > div > div > input, /* Standard number input */
+    .stDateInput > div > div > input, /* Standard date input */
+    .stTimeInput > div > div > input, /* Standard time input */
+    .stTextArea > div > div > textarea, /* Standard text area */
+    .stSelectbox > div > div[data-baseweb="select"] > div:first-child { /* Selectbox visible part */
+        border-radius: var(--md-sys-shape-corner-extra-small) !important;
+        border: 1px solid var(--md-sys-color-outline) !important;
+        background-color: var(--md-sys-color-surface) !important;
+        color: var(--md-sys-color-on-surface) !important;
+        padding: 16px 12px !important; /* Material spec for outlined text field padding */
+        font-size: var(--md-sys-typescale-body-large-font-size) !important;
+        line-height: 24px !important; /* Match body large line height */
+        transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
     }
-    .stTextInput input:focus, 
-    .stNumberInput input:focus, 
-    .stTextArea textarea:focus, 
-    .stDateInput input:focus, 
-    .stTimeInput input:focus, 
-    .stSelectbox div[data-baseweb="select"] > div:focus-within {
-        border-color: var(--input-focus-border) !important;
-        box-shadow: 0 0 0 1px var(--input-focus-border) !important;
+    .stTextArea > div > div > textarea { padding: 12px !important; min-height: 112px; } /* Text area padding adjustment */
+
+    /* Focused state for inputs */
+    .stTextInput > div > div > input:focus,
+    .stNumberInput > div > div > input:focus,
+    .stDateInput > div > div > input:focus,
+    .stTimeInput > div > div > input:focus,
+    .stTextArea > div > div > textarea:focus,
+    .stSelectbox > div > div[data-baseweb="select"][aria-expanded="true"] > div:first-child, /* When selectbox is open */
+    .stSelectbox > div > div[data-baseweb="select"] > div:first-child:focus-within { /* When selectbox itself is focused */
+        border-color: var(--md-sys-color-primary) !important;
+        box-shadow: 0 0 0 1px var(--md-sys-color-primary) !important; /* 2px border effect */
     }
-    .stTextArea textarea { min-height: 90px; }
-    div[data-testid="stForm"] { border: none; padding: 0; } /* Remove default form border */
+    /* Placeholder text style */
+    .stTextInput input::placeholder, .stNumberInput input::placeholder, .stTextArea textarea::placeholder {
+        color: var(--md-sys-color-on-surface-variant) !important; opacity: 1;
+    }
+    /* Input Labels (Streamlit's default above the input) */
+    div[data-testid="stTextInput"] > label,
+    div[data-testid="stNumberInput"] > label,
+    div[data-testid="stTextArea"] > label,
+    div[data-testid="stDateInput"] > label,
+    div[data-testid="stTimeInput"] > label,
+    div[data-testid="stSelectbox"] > label {
+        font-size: var(--md-sys-typescale-body-small-font-size) !important; /* Smaller label for input */
+        color: var(--md-sys-color-on-surface-variant) !important;
+        margin-bottom: 4px !important;
+        padding-left: 2px !important;
+    }
 
 
     /* DataFrames */
-    .stDataFrame { border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: none; }
+    .stDataFrame { border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-small); box-shadow: none; overflow: hidden;}
     .stDataFrame table thead th { 
-        background-color: var(--body-bg-color); /* Consistent with page bg */
-        color: var(--secondary-text-color); font-weight: 500; 
-        border-bottom: 1px solid var(--border-color); 
-        font-size: 13px; text-transform:none; padding: 10px 12px;
+        background-color: var(--md-sys-color-surface-variant); /* Slightly different for header */
+        color: var(--md-sys-color-on-surface-variant); font-weight: 500; 
+        border-bottom: 1px solid var(--md-sys-color-outline-variant); 
+        font-size: var(--md-sys-typescale-label-large-font-size); text-transform:none; padding: 12px 16px;
+        text-align: left;
     }
     .stDataFrame table tbody td { 
-        color: var(--primary-text-color); font-size: 13px; 
-        border-bottom: 1px solid var(--border-color); padding: 10px 12px;
+        color: var(--md-sys-color-on-surface); font-size: var(--md-sys-typescale-body-medium-font-size); 
+        border-bottom: 1px solid var(--md-sys-color-outline-variant); padding: 12px 16px;
+        vertical-align: middle;
     }
     .stDataFrame table tbody tr:last-child td { border-bottom: none; }
-    .stDataFrame table tbody tr:hover { background-color: var(--sidebar-hover-bg); }
+    .stDataFrame table tbody tr:hover { background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent); }
+
 
     /* Metrics */
-    div[data-testid="stMetricLabel"] {font-size: 12px !important; color: var(--secondary-text-color) !important; font-weight: 400; text-transform: none; margin-bottom: 2px;}
-    div[data-testid="stMetricValue"] {font-size: 20px !important; font-weight: 500; color: var(--primary-text-color); line-height: 26px;}
+    div[data-testid="stMetric"] { padding: 12px; }
+    div[data-testid="stMetricLabel"] {
+        font-size: var(--md-sys-typescale-label-medium-font-size) !important; 
+        color: var(--md-sys-color-on-surface-variant) !important; 
+        font-weight: 400; text-transform: none; margin-bottom: 2px;
+    }
+    div[data-testid="stMetricValue"] {
+        font-size: var(--md-sys-typescale-headline-small-font-size) !important; 
+        font-weight: 500; color: var(--md-sys-color-on-surface); line-height: 32px;
+    }
     
     /* Employee Progress Item (Donut chart containers) */
     .employee-progress-item { 
-        border: 1px solid var(--border-color); 
-        background-color: var(--card-bg-color); 
-        border-radius: var(--border-radius); 
+        border: 1px solid var(--md-sys-color-outline-variant); 
+        background-color: var(--md-sys-color-surface); 
+        border-radius: var(--md-sys-shape-corner-medium); 
         padding:16px; text-align:center;
     }
-    .employee-progress-item h6 {margin-top:0; margin-bottom:4px; font-size:14px; color: var(--primary-text-color); font-weight: 500;}
-    .employee-progress-item p {font-size:13px; color: var(--secondary-text-color); margin-bottom:8px;}
+    .employee-progress-item h6 {margin-top:0; margin-bottom:4px; font-size:var(--md-sys-typescale-title-small-font-size); color: var(--md-sys-color-on-surface); font-weight: 500;}
+    .employee-progress-item p {font-size:var(--md-sys-typescale-body-small-font-size); color: var(--md-sys-color-on-surface-variant); margin-bottom:8px;}
     
     /* Headers for log sections */
     .record-type-header { 
-        font-size: 16px; color: var(--primary-text-color); 
-        margin-top: 24px; margin-bottom: 10px; font-weight: 500; 
-        padding-bottom: 8px; border-bottom: 1px solid var(--border-color); 
+        font-size: var(--md-sys-typescale-title-medium-font-size); color: var(--md-sys-color-on-surface); 
+        margin-top: 24px; margin-bottom: 12px; font-weight: 500; 
+        padding-bottom: 8px; border-bottom: 1px solid var(--md-sys-color-outline-variant); 
     }
 
-    /* Login Page Specifics */
-    .login-page-container { /* Ensures login form is centered on page */
-        display: flex; justify-content: center; align-items: center; min-height: 90vh; padding: 20px;
-    }
-    .login-container.card { /* The login card itself */
-        max-width: 400px; width: 100%; padding: 32px;
-        border: 1px solid var(--border-color);
-        box-shadow: var(--card-shadow);
-    }
-    .login-container h3 {
-        text-align:center; margin-bottom:24px; font-size: 20px;
-    }
-</style>"""
+    /* Remove default form border */
+    div[data-testid="stForm"] { border: none; padding: 0; }
+
+    /* Main content hr */
+    hr { border-color: var(--md-sys-color-outline-variant); margin: 24px 0; }
+
+    /* Ensure login form is centered */
+    .login-page-container { display: flex; justify-content: center; align-items: center; min-height: 90vh; padding: 20px; }
+    .login-container.card { max-width: 420px; width: 100%; padding: 32px; }
+    .login-container h3 { text-align:center; margin-bottom:24px; font-size: var(--md-sys-typescale-title-large-font-size); }
+
+</style>
+
+
+
+"""
 st.markdown(html_css, unsafe_allow_html=True)
 
 # --- Credentials & User Info ---
