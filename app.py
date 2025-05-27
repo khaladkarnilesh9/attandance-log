@@ -332,7 +332,7 @@ with st.sidebar:
         "📸 Upload Photo": "Upload_Activity_Photo",
         "🧾 Allowance": "allowance",
         "🎯 Goal Tracker": "goal_tracker",
-        "💰 Payment Collection": Payment_Collection_Tracker"",
+        "💰 Payment Collection": "Payment_Collection_Tracker",
         "📊 View Logs": "view_logs"
     }
 
