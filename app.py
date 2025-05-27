@@ -302,10 +302,10 @@ with st.sidebar:
 
     nav_options = [
         "📆 Attendance",
-        "📸 Upload Activity Photo",
+        "📸 Upload Photo",
         "🧾 Allowance",
         "🎯 Goal Tracker",
-        "💰 Payment Collection Tracker",
+        "💰 Payment Collection",
         "📊 View Logs"
     ]
 
