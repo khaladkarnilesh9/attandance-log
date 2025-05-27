@@ -297,6 +297,13 @@ if "user_message" in st.session_state and st.session_state.user_message:
     st.session_state.message_type = None
 
 
+import streamlit as st
+import os
+
+# Initialize navigation state
+if "nav" not in st.session_state:
+    st.session_state.nav = "📆 Attendance"  # default page
+
 with st.sidebar:
     st.markdown(
         f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>",
@@ -315,22 +322,23 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Navigation using icons (Google style via emoji or HTML)
-    st.markdown("### 📂 Menu")
-    st.markdown("""
-    <ul style="list-style: none; padding: 0; font-size: 16px;">
-        <li>📆 Attendance</li>
-        <li>📸 Upload Photo</li>
-        <li>🧾 Allowance</li>
-        <li>🎯 Goal Tracker</li>
-        <li>💰 Payment Collection</li>
-        <li>📊 View Logs</li>
-    </ul>
-    """, unsafe_allow_html=True)
+    # Define nav options as icon + label
+    nav_options = {
+        "📆 Attendance": "attendance",
+        "📸 Upload Photo": "upload_photo",
+        "🧾 Allowance": "allowance",
+        "🎯 Goal Tracker": "goal_tracker",
+        "💰 Payment Collection": "payment_collection",
+        "📊 View Logs": "view_logs"
+    }
+
+    for label, nav_key in nav_options.items():
+        if st.button(label, key=f"nav_{nav_key}", use_container_width=True):
+            st.session_state.nav = label
+            st.rerun()
 
     st.markdown("---")
 
-    # Logout button
     if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.session_state.user_message = "Logged out successfully."
