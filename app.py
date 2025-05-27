@@ -98,13 +98,13 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     ax.yaxis.grid(True, linestyle=':', alpha=0.7, color='var(--md-sys-color-outline-variant)')
     ax.tick_params(colors='var(--md-sys-color-on-surface-variant)')
     
-    def autolabel(rects, color_text): # Renamed color parameter
+    def autolabel(rects, color_text): 
         for rect in rects:
             height = rect.get_height()
             if height > 0: 
                 ax.annotate(f'{height:,.0f}', xy=(rect.get_x() + rect.get_width() / 2, height), 
                             xytext=(0, 3), textcoords="offset points", ha='center', va='bottom', 
-                            fontsize=7, color=color_text, fontfamily='Roboto', fontweight='500') # Use color_text
+                            fontsize=7, color=color_text, fontfamily='Roboto', fontweight='500') 
     autolabel(rects1, 'var(--md-sys-color-on-secondary-container)')
     autolabel(rects2, 'var(--md-sys-color-on-primary)') 
     
@@ -173,30 +173,28 @@ html_css = """
     }
 
     h1, h2, h3, h4, h5, h6 { color: var(--md-sys-color-on-surface); font-weight: 500; }
-    /* This was the old app title, ensure it's not active or styled if not used */
-    /* .main .block-container > div:first-child > div:first-child > div:first-child > h1 { ... } */
-
+    
     .card {
         background-color: var(--md-sys-color-surface); padding: 20px 24px; 
         border-radius: var(--md-sys-shape-corner-medium);
         border: 1px solid var(--md-sys-color-outline-variant); margin-bottom: 20px;
         box-shadow: var(--md-sys-elevation-level-0); 
     }
-    .card h3 { /* Titles inside cards (YOUR PYTHON USES THIS FOR PAGE TITLES) */
+    .card h3.card-title { 
         margin-top: 0; padding-bottom: 12px; margin-bottom: 18px;
         font-size: var(--md-sys-typescale-title-large-font-size); font-weight: 500;
         border-bottom: 1px solid var(--md-sys-color-outline-variant);
-        color: var(--md-sys-color-on-surface); /* Ensure card title color */
+        color: var(--md-sys-color-on-surface); 
     }
-     .card h4 { /* Your python uses this for section titles like "Admin: Manage..." */
+     .card h4.section-title { 
         font-size: var(--md-sys-typescale-title-medium-font-size); font-weight: 500; 
         margin-top: 20px; margin-bottom: 12px; color: var(--md-sys-color-on-surface-variant);
      }
-     .card h5 { /* Your python uses this for sub-section titles like "Team Goal Progress..." */
+     .card h5 { 
         font-size: 1.05em; color: var(--md-sys-color-on-surface); margin-top: 18px; 
         margin-bottom: 10px; font-weight: 500;
      }
-     .card h6 { /* Your python uses this for small labels like "Individual Sales Progress" */
+     .card h6 { 
         font-size: 0.9em; color: var(--md-sys-color-on-surface-variant); margin-top: 16px; 
         margin-bottom: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px;
      }
@@ -207,8 +205,7 @@ html_css = """
         border-right: 1px solid var(--md-sys-color-outline-variant) !important; width: 260px !important; 
         box-shadow: none !important;
     }
-    /* Making sidebar scrollable if content overflows */
-    [data-testid="stSidebar"] > div:first-child {
+    [data-testid="stSidebar"] > div:first-child { /* This is the direct child that holds sidebar content */
         display: flex;
         flex-direction: column;
         height: 100vh; /* Full viewport height */
@@ -219,27 +216,29 @@ html_css = """
         flex-grow: 1;
     }
     
-    .welcome-text { /* Your python uses this for welcome message */
+    .sidebar-header-section { padding: 16px 20px 12px 20px; } /* User info section padding */
+    .welcome-text-sidebar { 
         font-size: var(--md-sys-typescale-title-medium-font-size); font-weight: 500;
-        padding: 16px 20px 12px 20px; color: var(--md-sys-color-on-surface) !important;
-        text-align: left; /* As per your original CSS */
+        color: var(--md-sys-color-on-surface) !important; margin-bottom: 4px;
     }
-    [data-testid="stSidebar"] [data-testid="stImage"] > img { /* User avatar */
-        border-radius: 50%; margin: 0px auto 4px 20px; width: 36px !important; height: 36px !important;
-        border: 1px solid var(--md-sys-color-outline-variant); display: block; /* ensure display block */
+    [data-testid="stSidebar"] [data-testid="stImage"] > img { 
+        border-radius: 50%; margin: 0px 0px 4px 0px; width: 36px !important; height: 36px !important;
+        border: 1px solid var(--md-sys-color-outline-variant);
     }
-    [data-testid="stSidebar"] p[style*="text-align:center"] { /* User position */
+    .user-position-sidebar { 
         font-size: 13px; color: var(--md-sys-color-on-surface-variant) !important;
-        margin-left: 20px !important; margin-top: -2px !important; margin-bottom: 12px !important;
-        text-align: left !important;
+        margin-bottom: 12px;
     }
-    [data-testid="stSidebar"] hr { margin: 12px 20px !important; border-color: var(--md-sys-color-outline-variant) !important; }
+    [data-testid="stSidebar"] hr.sidebar-divider {
+        margin: 0px 0px 8px 0px !important; 
+        border-color: var(--md-sys-color-outline-variant) !important;
+    }
     
     [data-testid="stSidebar"] div[data-testid="stRadio"] > label[data-baseweb="radio"] { /* Radio group label e.g. "Navigation" */
         font-size: 11px !important; font-weight: 500 !important; color: var(--md-sys-color-on-surface-variant) !important;
         padding: 12px 20px 6px 20px !important; text-transform: uppercase; letter-spacing: 0.8px;
     }
-    [data-testid="stSidebar"] div[data-testid="stRadio"] label { /* Each radio item's label */
+    [data-testid="stSidebar"] div[data-testid="stRadio"] label { 
         display: flex !important; align-items: center !important;
         padding: 9px 20px 9px 17px !important; 
         border-radius: 0 var(--md-sys-shape-corner-full) var(--md-sys-shape-corner-full) 0 !important;
@@ -264,8 +263,7 @@ html_css = """
         display: flex; align-items: center; 
     }
 
-    /* Logout section wrapper - this should be outside .sidebar-content if using flex to push down */
-    .logout-section-wrapper { margin-top: auto; padding-bottom: 12px; } /* Add this div in Python around logout */
+    .logout-section-wrapper { margin-top: auto; padding-bottom: 12px; } 
     .logout-section-wrapper hr { margin: 8px 20px !important; }
     [data-testid="stSidebar"] .stButton button[id*="logout_button_sidebar"] {
         display: flex !important; align-items: center !important; justify-content: flex-start !important;
@@ -279,8 +277,7 @@ html_css = """
         background-color: color-mix(in srgb, var(--md-sys-color-error) 8%, transparent) !important;
         color: var(--md-sys-color-error) !important;
     }
-    /* For an icon with logout, use emoji in button label: st.button("🔒 Logout") */
-
+    
     .stButton:not([data-testid="stSidebar"] .stButton) button {
         background-color: var(--md-sys-color-primary) !important; color: var(--md-sys-color-on-primary) !important;
         padding: 9px 20px !important; border-radius: var(--md-sys-shape-corner-full) !important;
@@ -292,36 +289,32 @@ html_css = """
         background-color: color-mix(in srgb, var(--md-sys-color-primary) 90%, black) !important;
         box-shadow: var(--md-sys-elevation-level-2) !important;
     }
-    /* Ensure your button keys from Python match these `id*=` selectors */
-    .stButton button[id*="check_in_btn"], 
-    .stButton button[id*="submit_allowance_btn"], 
-    .stButton button[id*="activity_photo_form-Submit"], /* Default Streamlit form submit button ID part */
-    .stButton button[id*="set_goal_form-Submit"],
-    .stButton button[id*="form_payment-Submit"],
-    .stButton button[id*="update_achievement-Submit"],
-    .stButton button[id*="update_collection-Submit"],
-    .stButton button[id*="Save Goal"] /* If label is "Save Goal" */
+    /* Main content action buttons */
+    .stButton button[key*="check_in_btn"], 
+    .stButton button[key*="submit_allowance_btn"], 
+    .stButton button[key*="form_submit_button"], /* If forms have this in key */
+    .stButton button[key*="activity_photo_form-Submit"], 
+    .stButton button[key*="save_goal"], 
+    .stButton button[key*="update_achievement"]
      { 
-        background-color: var(--md-sys-color-success) !important; /* Using Google Green */
-        color: var(--md-sys-color-on-primary) !important;
+        background-color: var(--md-sys-color-success) !important; 
     }
-    .stButton button[id*="check_in_btn"]:hover, 
-    .stButton button[id*="submit_allowance_btn"]:hover,
-    .stButton button[id*="activity_photo_form-Submit"]:hover,
-    .stButton button[id*="set_goal_form-Submit"]:hover,
-    .stButton button[id*="form_payment-Submit"]:hover,
-    .stButton button[id*="update_achievement-Submit"]:hover,
-    .stButton button[id*="update_collection-Submit"]:hover,
-    .stButton button[id*="Save Goal"]:hover
+    .stButton button[key*="check_in_btn"]:hover, 
+    .stButton button[key*="submit_allowance_btn"]:hover,
+    .stButton button[key*="activity_photo_form-Submit"]:hover,
+    .stButton button[key*="set_goal_form-Submit"]:hover,
+    .stButton button[key*="form_payment-Submit"]:hover,
+    .stButton button[key*="update_achievement-Submit"]:hover,
+    .stButton button[key*="save_goal"]:hover
     {
         background-color: color-mix(in srgb, var(--md-sys-color-success) 90%, black) !important;
     }
 
-    .stButton button[id*="check_out_btn"] { 
+    .stButton button[key*="check_out_btn"] { 
         background-color: transparent !important; color: var(--md-sys-color-primary) !important;
         border: 1px solid var(--md-sys-color-outline) !important; box-shadow: none !important;
     }
-    .stButton button[id*="check_out_btn"]:hover {
+    .stButton button[key*="check_out_btn"]:hover {
         background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent) !important;
     }
 
@@ -349,6 +342,18 @@ html_css = """
     }
     .stTextInput input::placeholder, .stNumberInput input::placeholder, .stTextArea textarea::placeholder {
         color: var(--md-sys-color-on-surface-variant) !important; opacity: 0.6;
+    }
+    /* Input Labels (Streamlit's default above the input) */
+    div[data-testid="stTextInput"] > label,
+    div[data-testid="stNumberInput"] > label,
+    div[data-testid="stTextArea"] > label,
+    div[data-testid="stDateInput"] > label,
+    div[data-testid="stTimeInput"] > label,
+    div[data-testid="stSelectbox"] > label {
+        font-size: var(--md-sys-typescale-body-small-font-size) !important; 
+        color: var(--md-sys-color-on-surface-variant) !important;
+        margin-bottom: 4px !important;
+        padding-left: 2px !important;
     }
     div[data-testid="stForm"] { border: none; padding: 0; } 
 
@@ -386,8 +391,8 @@ html_css = """
     .employee-progress-item h6 {margin-top:0; margin-bottom:4px; font-size:var(--md-sys-typescale-label-large-font-size); color: var(--md-sys-color-on-surface); font-weight: 500;}
     .employee-progress-item p {font-size:12px; color: var(--md-sys-color-on-surface-variant); margin-bottom:6px;}
     
-    .record-type-header { /* Your h6 class for log sections */
-        font-size: var(--md-sys-typescale-title-small-font-size); color: var(--md-sys-color-on-surface); 
+    .record-type-header { 
+        font-size: var(--md-sys-typescale-title-medium-font-size); color: var(--md-sys-color-on-surface); 
         margin-top: 20px; margin-bottom: 10px; font-weight: 500; 
         padding-bottom: 6px; border-bottom: 1px solid var(--md-sys-color-outline-variant); 
     }
@@ -395,28 +400,20 @@ html_css = """
 
     .login-page-container { display: flex; justify-content: center; align-items: center; min-height: 90vh; padding: 20px; }
     .login-container.card { max-width: 400px; width: 100%; padding: 28px; 
-        border: 1px solid var(--md-sys-color-outline-variant); /* Ensure login card also uses new border */
-        box-shadow: var(--md-sys-elevation-level-1); /* Give login card a bit of shadow */
+        border: 1px solid var(--md-sys-color-outline-variant); 
+        box-shadow: var(--md-sys-elevation-level-1); 
     }
     .login-container h3 { text-align:center; margin-bottom:20px; font-size: var(--md-sys-typescale-title-large-font-size); }
     
-    /* Custom Notification Styling (if you use the div-based notifications) */
-    .custom-notification { 
-        padding: 12px 16px; border-radius: var(--md-sys-shape-corner-small); 
-        margin-bottom: 16px; font-size: var(--md-sys-typescale-body-medium-font-size); 
-        border-left-width: 4px; border-left-style: solid; display: flex; align-items: center; 
-    }
+    /* Custom Notification Styling (your original HTML class based) */
+    .custom-notification { padding: 12px 16px; border-radius: var(--md-sys-shape-corner-small); margin-bottom: 16px; font-size: var(--md-sys-typescale-body-medium-font-size); border-left-width: 4px; border-left-style: solid; display: flex; align-items: center; }
     .custom-notification.success { background-color: #E6F4EA; color: #135423; border-left-color: var(--md-sys-color-success); }
     .custom-notification.error { background-color: #FDECEA; color: #8C1D18; border-left-color: var(--md-sys-color-error); }
     .custom-notification.info { background-color: #E8F0FE; color: #001B3D; border-left-color: var(--md-sys-color-primary); }
 
 </style>
 """
-# The rest of your Python code (USERS, file paths, functions, Streamlit layout, etc.)
-# should be EXACTLY as you provided in the previous message, with the `global` fixes.
-# For brevity, I am not re-pasting the entire Python script again here,
-# but the above CSS should be placed into the `html_css` variable in THAT script.
-
+# Python code continues from here...
 st.markdown(html_css, unsafe_allow_html=True)
 
 # --- Credentials & User Info ---
@@ -520,31 +517,38 @@ if 'nav_selection_display' not in st.session_state: st.session_state.nav_selecti
 
 
 if not st.session_state.auth["logged_in"]:
-    st.markdown('<div class="login-page-container">', unsafe_allow_html=True) # Centering wrapper
-    st.markdown('<div class="login-container card">', unsafe_allow_html=True) # Login card
+    st.markdown('<div class="login-page-container">', unsafe_allow_html=True) 
+    st.markdown('<div class="login-container card">', unsafe_allow_html=True) 
     st.markdown("<h3>🔐 Login</h3>", unsafe_allow_html=True)
     
-    if st.session_state.user_message: # Display messages within the login card
+    if st.session_state.user_message: 
         if st.session_state.message_type == "error":
             st.error(st.session_state.user_message, icon="❌")
         else:
-            st.info(st.session_state.user_message, icon="ℹ️") # For logout message
+            st.info(st.session_state.user_message, icon="ℹ️") 
         st.session_state.user_message = None
         st.session_state.message_type = None
 
-    uname = st.text_input("Username", key="login_uname_mainpage") # Unique key
-    pwd = st.text_input("Password", type="password", key="login_pwd_mainpage") # Unique key
-    if st.button("Login", key="login_button_mainpage", use_container_width=True): # Unique key
+    uname = st.text_input("Username", key="login_uname_mainpage_key") 
+    pwd = st.text_input("Password", type="password", key="login_pwd_mainpage_key") 
+    if st.button("Login", key="login_button_mainpage_key", use_container_width=True): 
         user_creds = USERS.get(uname)
         if user_creds and user_creds["password"] == pwd:
             st.session_state.auth = {"logged_in": True, "username": uname, "role": user_creds["role"]}
+            # Set default navigation on successful login
+            nav_options_display_on_login = [ # Re-define here or pass from global if preferred
+                "🗓️ Attendance", "📸 Upload Activity Photo", "🧾 Allowance", 
+                "🎯 Goal Tracker", "💰 Payment Collection Tracker", "📊 View Logs"
+            ]
+            st.session_state.nav_selection_display = nav_options_display_on_login[0]
+
             st.session_state.user_message = "Login successful!"
             st.session_state.message_type = "success"
             st.rerun()
         else: 
             st.session_state.user_message = "Invalid username or password."
             st.session_state.message_type = "error"
-            st.rerun() # Rerun to show the error message
+            st.rerun() 
     st.markdown('</div></div>', unsafe_allow_html=True); st.stop()
 
 
@@ -553,45 +557,43 @@ current_user = st.session_state.auth
 # Global Message Display (after login)
 if "user_message" in st.session_state and st.session_state.user_message:
     message_type_main = st.session_state.get("message_type", "info") 
-    # Using Streamlit's native alerts
     if message_type_main == "success":
         st.success(st.session_state.user_message, icon="✅")
     elif message_type_main == "error":
         st.error(st.session_state.user_message, icon="❌")
     elif message_type_main == "warning":
         st.warning(st.session_state.user_message, icon="⚠️")
-    else: # info
+    else: 
         st.info(st.session_state.user_message, icon="ℹ️")
     st.session_state.user_message = None
     st.session_state.message_type = None
 
 
 with st.sidebar:
-    # This outer div helps in making the sidebar scrollable if content exceeds viewport
-    st.markdown('<div class="main-sidebar-content-wrapper" style="display: flex; flex-direction: column; height: 100vh;">', unsafe_allow_html=True)
+    st.markdown('<div style="display: flex; flex-direction: column; height: 100vh;">', unsafe_allow_html=True) # Flex wrapper for the entire sidebar content
     
-    # User Info Section
-    st.markdown('<div class="sidebar-header-section">', unsafe_allow_html=True) # Wrapper for header
+    # User Info Section - Placed within the flex wrapper, not sidebar-content for fixed position
+    st.markdown('<div class="sidebar-header-section">', unsafe_allow_html=True)
     st.markdown(f"<div class='welcome-text-sidebar'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
-        st.image(user_sidebar_info["profile_photo"]) # CSS will size this
+        st.image(user_sidebar_info["profile_photo"]) 
     st.markdown(f"<p class='user-position-sidebar'>{user_sidebar_info.get('position', 'N/A')}</p>", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-header-section
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    st.markdown("<hr class='sidebar-divider'>", unsafe_allow_html=True)
 
-    st.markdown("<hr class='sidebar-divider'>", unsafe_allow_html=True) # Use custom class for hr
-
-    # Navigation
-    # IMPORTANT: Use EMOJIS in the labels for st.radio for icons.
+    # Navigation - This will be inside .sidebar-content which is scrollable
+    st.markdown('<div class="sidebar-content">', unsafe_allow_html=True) # Start of scrollable content
     nav_options_display = [
-        "🗓️ Attendance",
+        "🗓️ Attendance", 
         "📸 Upload Activity Photo",
         "🧾 Allowance",
         "🎯 Goal Tracker",
         "💰 Payment Collection Tracker",
         "📊 View Logs"
     ]
-    nav_logic_map = { # Maps display string (with emoji) to original logic string
+    nav_logic_map = { 
         "🗓️ Attendance": "📆 Attendance",
         "📸 Upload Activity Photo": "📸 Upload Activity Photo",
         "🧾 Allowance": "🧾 Allowance",
@@ -603,34 +605,43 @@ with st.sidebar:
     if st.session_state.nav_selection_display is None or st.session_state.nav_selection_display not in nav_options_display:
         st.session_state.nav_selection_display = nav_options_display[0]
     
-    current_nav_index = nav_options_display.index(st.session_state.nav_selection_display)
+    try: # Defensive coding for index
+        current_nav_index = nav_options_display.index(st.session_state.nav_selection_display)
+    except ValueError:
+        current_nav_index = 0
+        st.session_state.nav_selection_display = nav_options_display[0]
+
 
     selected_nav_display = st.radio(
-        "MENU", # Label for the radio group
+        "Navigation", # Label for the radio group
         nav_options_display, 
-        key="sidebar_nav_main_radio_unique_key", # Ensure this key is unique
+        key="sidebar_nav_main_radio_key_final", 
         index=current_nav_index,
-        label_visibility="visible" # Show "MENU" label, or "collapsed" to hide
+        label_visibility="visible" 
     )
-    st.session_state.nav_selection_display = selected_nav_display 
-    nav = nav_logic_map[selected_nav_display] 
+    if st.session_state.nav_selection_display != selected_nav_display: # Only rerun if selection changed
+        st.session_state.nav_selection_display = selected_nav_display 
+        st.rerun() # Rerun on change to update page
+
+    nav = nav_logic_map[st.session_state.nav_selection_display] 
+    st.markdown('</div>', unsafe_allow_html=True) # End of scrollable content
 
     # Logout section at the bottom
-    st.markdown("<div class='logout-section-wrapper'>", unsafe_allow_html=True) # Wrapper for positioning
+    st.markdown("<div class='logout-section-wrapper'>", unsafe_allow_html=True) 
     st.markdown("<hr class='sidebar-divider'>", unsafe_allow_html=True)
-    if st.button("Logout", key="logout_button_sidebar", use_container_width=True): # Key for CSS targeting
+    if st.button("Logout", key="logout_button_sidebar", use_container_width=True): 
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.session_state.user_message = "Logged out successfully."
         st.session_state.message_type = "info"
         st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True) # Close logout-section-wrapper
-    st.markdown("</div>", unsafe_allow_html=True) # Close main-sidebar-content-wrapper
+    st.markdown("</div>", unsafe_allow_html=True) 
+    st.markdown("</div>", unsafe_allow_html=True) 
 
 
-# --- Main Content (Using original 'nav' variable as per your Python logic) ---
+# --- Main Content ---
 if nav == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3 class='card-title'>🕒 Digital Attendance</h3>", unsafe_allow_html=True) # Use custom class
+    st.markdown("<h3 class='card-title'>🕒 Digital Attendance</h3>", unsafe_allow_html=True) 
     st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Upload Activity Photo' section.", icon="ℹ️") 
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
@@ -640,8 +651,8 @@ if nav == "📆 Attendance":
         global attendance_df 
         now_str_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
         new_entry_data = {"Type": attendance_type, "Timestamp": now_str_display, **common_data}
-        for col_name in ATTENDANCE_COLUMNS: 
-            if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA
+        for col_name_att in ATTENDANCE_COLUMNS: 
+            if col_name_att not in new_entry_data: new_entry_data[col_name_att] = pd.NA
         new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
         attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
         try:
@@ -650,27 +661,29 @@ if nav == "📆 Attendance":
         except Exception as e: st.session_state.user_message = f"Error saving attendance: {e}"; st.session_state.message_type = "error"; st.rerun()
 
     with col1:
-        if st.button("Check In", key="check_in_btn_main_content_page", use_container_width=True): # Unique key
+        if st.button("Check In", key="check_in_btn_main_content_final", use_container_width=True): 
             process_general_attendance("Check-In")
     with col2:
-        if st.button("Check Out", key="check_out_btn_main_content_page", use_container_width=True): # Unique key
+        if st.button("Check Out", key="check_out_btn_main_content_final", use_container_width=True): 
             process_general_attendance("Check-Out")
     st.markdown('</div></div>', unsafe_allow_html=True)
 
 elif nav == "📸 Upload Activity Photo":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3 class='card-title'>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True) # Use custom class
+    st.markdown("<h3 class='card-title'>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True) 
     current_lat = pd.NA; current_lon = pd.NA 
-    with st.form(key="activity_photo_form_content_page"): # Unique key
-        st.markdown("<h6 class='form-field-label-custom'>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True) # Custom class
-        activity_description = st.text_area("Brief description of activity/visit:", key="activity_desc_content_page") # Unique key
-        img_file_buffer_activity = st.camera_input("Take a picture of your activity/visit", key="activity_camera_input_content_page") # Unique key
-        submit_activity_photo = st.form_submit_button("⬆️ Upload Photo and Log Activity", key="activity_photo_form-Submit") # For CSS targeting
+    with st.form(key="activity_photo_form_content_final"): 
+        st.markdown("<h6 class='form-field-label-custom'>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True) 
+        activity_description = st.text_area("Brief description of activity/visit:", key="activity_desc_content_final") 
+        img_file_buffer_activity = st.camera_input("Take a picture of your activity/visit", key="activity_camera_input_content_final") 
+        submit_activity_photo = st.form_submit_button("⬆️ Upload Photo and Log Activity", key="activity_photo_form-Submit") 
 
     if submit_activity_photo:
         if img_file_buffer_activity is None: st.warning("Please take a picture before submitting.")
         elif not activity_description.strip(): st.warning("Please provide a description for the activity.")
         else:
+            global activity_log_df # Moved global declaration up
+
             now_for_filename = get_current_time_in_tz().strftime("%Y%m%d_%H%M%S")
             now_for_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
             image_filename_activity = f"{current_user['username']}_activity_{now_for_filename}.jpg"
@@ -678,11 +691,10 @@ elif nav == "📸 Upload Activity Photo":
             try:
                 with open(image_path_activity, "wb") as f: f.write(img_file_buffer_activity.getbuffer())
                 new_activity_data = {"Username": current_user["username"], "Timestamp": now_for_display, "Description": activity_description, "ImageFile": image_filename_activity, "Latitude": current_lat, "Longitude": current_lon}
-                for col_name in ACTIVITY_LOG_COLUMNS:
-                    if col_name not in new_activity_data: new_activity_data[col_name] = pd.NA
+                for col_name_act in ACTIVITY_LOG_COLUMNS: 
+                    if col_name_act not in new_activity_data: new_activity_data[col_name_act] = pd.NA
                 new_activity_entry = pd.DataFrame([new_activity_data], columns=ACTIVITY_LOG_COLUMNS)
                 
-                global activity_log_df # Ensure modification of global df
                 activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True)
                 activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
                 
@@ -692,20 +704,21 @@ elif nav == "📸 Upload Activity Photo":
 
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3 class='card-title'>💼 Claim Allowance</h3>", unsafe_allow_html=True) # Use custom class
-    with st.form(key="allowance_form_content_page"): # Unique key
-        st.markdown("<h6 class='form-field-label-custom'>Select Allowance Type:</h6>", unsafe_allow_html=True) # Custom class
-        a_type = st.radio("", ["Travel", "Dinner", "Medical", "Internet", "Other"], key="allowance_type_radio_content_page", horizontal=True, label_visibility='collapsed') # Unique key
-        amount = st.number_input("Enter Amount (INR):", min_value=0.01, step=10.0, format="%.2f", key="allowance_amount_content_page") # Unique key
-        reason = st.text_area("Reason for Allowance:", key="allowance_reason_content_page", placeholder="Please provide a clear justification...") # Unique key
-        submitted_allowance = st.form_submit_button("Submit Allowance Request", use_container_width=True, key="submit_allowance_btn_content_page") # Unique key & for CSS
+    st.markdown("<h3 class='card-title'>💼 Claim Allowance</h3>", unsafe_allow_html=True) 
+    with st.form(key="allowance_form_content_final"): 
+        st.markdown("<h6 class='form-field-label-custom'>Select Allowance Type:</h6>", unsafe_allow_html=True) 
+        a_type = st.radio("", ["Travel", "Dinner", "Medical", "Internet", "Other"], key="allowance_type_radio_content_final", horizontal=True, label_visibility='collapsed') 
+        amount = st.number_input("Enter Amount (INR):", min_value=0.01, step=10.0, format="%.2f", key="allowance_amount_content_final") 
+        reason = st.text_area("Reason for Allowance:", key="allowance_reason_content_final", placeholder="Please provide a clear justification...") 
+        submitted_allowance = st.form_submit_button("Submit Allowance Request", use_container_width=True, key="submit_allowance_btn_content_final") 
 
         if submitted_allowance:
             if a_type and amount > 0 and reason.strip():
+                global allowance_df # Moved global declaration up
+
                 date_str = get_current_time_in_tz().strftime("%Y-%m-%d"); new_entry_data = {"Username": current_user["username"], "Type": a_type, "Amount": amount, "Reason": reason, "Date": date_str}
                 new_entry = pd.DataFrame([new_entry_data], columns=ALLOWANCE_COLUMNS)
                 
-                global allowance_df # Ensure modification of global df
                 allowance_df = pd.concat([allowance_df, new_entry], ignore_index=True)
                 try:
                     allowance_df.to_csv(ALLOWANCE_FILE, index=False)
@@ -714,17 +727,18 @@ elif nav == "🧾 Allowance":
             else: st.warning("Please complete all fields with valid values.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == "🎯 Goal Tracker":
+elif nav == "🎯 Goal Tracker": 
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3 class='card-title'>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True) # Use custom class
+    st.markdown("<h3 class='card-title'>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True) 
     TARGET_GOAL_YEAR = 2025; current_quarter_for_display = get_quarter_str_for_year(TARGET_GOAL_YEAR)
     status_options = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
     achieved_color_sales = 'var(--md-sys-color-success)' 
     target_color_sales = 'var(--md-sys-color-secondary-container)'
 
+
     if current_user["role"] == "admin":
-        st.markdown("<h4 class='section-title'>Admin: Manage & Track Employee Goals</h4>", unsafe_allow_html=True) # Use custom class
-        admin_action = st.radio("Action:", ["View Team Progress", f"Set/Edit Goal for {TARGET_GOAL_YEAR}"], key="admin_goal_action_radio_content_page_unique", horizontal=True) # Unique key
+        st.markdown("<h4 class='section-title'>Admin: Manage & Track Employee Goals</h4>", unsafe_allow_html=True) 
+        admin_action = st.radio("Action:", ["View Team Progress", f"Set/Edit Goal for {TARGET_GOAL_YEAR}"], key="admin_goal_action_radio_content_final", horizontal=True) 
         if admin_action == "View Team Progress":
             st.markdown(f"<h5>Team Goal Progress for {current_quarter_for_display}</h5>", unsafe_allow_html=True)
             employee_users = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
@@ -761,8 +775,8 @@ elif nav == "🎯 Goal Tracker":
             employee_options = [u for u,d in USERS.items() if d["role"]=="employee"];
             if not employee_options: st.warning("No employees available.");
             else:
-                selected_emp = st.radio("Select Employee:", employee_options, key="goal_emp_radio_admin_set_content_page_unique2", horizontal=True) # Unique key
-                quarter_options = [f"{TARGET_GOAL_YEAR}-Q{i}" for i in range(1,5)]; selected_period = st.radio("Goal Period:", quarter_options, key="goal_period_radio_admin_set_content_page_unique2", horizontal=True) # Unique key
+                selected_emp = st.radio("Select Employee:", employee_options, key="goal_emp_radio_admin_set_content_final", horizontal=True) 
+                quarter_options = [f"{TARGET_GOAL_YEAR}-Q{i}" for i in range(1,5)]; selected_period = st.radio("Goal Period:", quarter_options, key="goal_period_radio_admin_set_content_final", horizontal=True) 
                 
                 global goals_df # Moved global declaration up
 
@@ -772,12 +786,12 @@ elif nav == "🎯 Goal Tracker":
                     g_data=existing_g.iloc[0]; g_desc=g_data.get("GoalDescription",""); g_target=float(pd.to_numeric(g_data.get("TargetAmount",0.0),errors='coerce') or 0.0)
                     g_achieved=float(pd.to_numeric(g_data.get("AchievedAmount",0.0),errors='coerce') or 0.0); g_status=g_data.get("Status","Not Started"); st.info(f"Editing goal for {selected_emp} - {selected_period}")
                 
-                with st.form(key=f"set_sales_goal_form_admin_content_page_unique_{selected_emp}_{selected_period}"): # Unique and specific key
-                    new_desc=st.text_area("Goal Description",value=g_desc,key=f"desc_admin_sales_content_page_unique_{selected_emp}_{selected_period}") 
-                    new_target=st.number_input("Target Sales (INR)",value=g_target,min_value=0.0,step=1000.0,format="%.2f",key=f"target_admin_sales_content_page_unique_{selected_emp}_{selected_period}") 
-                    new_achieved=st.number_input("Achieved Sales (INR)",value=g_achieved,min_value=0.0,step=100.0,format="%.2f",key=f"achieved_admin_sales_content_page_unique_{selected_emp}_{selected_period}") 
-                    new_status=st.radio("Status:",status_options,index=status_options.index(g_status),horizontal=True,key=f"status_admin_sales_content_page_unique_{selected_emp}_{selected_period}") 
-                    submitted=st.form_submit_button("Save Goal", key="set_goal_form-Submit") # For CSS
+                with st.form(key=f"set_sales_goal_form_admin_content_final_{selected_emp}_{selected_period}"): 
+                    new_desc=st.text_area("Goal Description",value=g_desc,key=f"desc_admin_sales_content_final_{selected_emp}_{selected_period}") 
+                    new_target=st.number_input("Target Sales (INR)",value=g_target,min_value=0.0,step=1000.0,format="%.2f",key=f"target_admin_sales_content_final_{selected_emp}_{selected_period}") 
+                    new_achieved=st.number_input("Achieved Sales (INR)",value=g_achieved,min_value=0.0,step=100.0,format="%.2f",key=f"achieved_admin_sales_content_final_{selected_emp}_{selected_period}") 
+                    new_status=st.radio("Status:",status_options,index=status_options.index(g_status),horizontal=True,key=f"status_admin_sales_content_final_{selected_emp}_{selected_period}") 
+                    submitted=st.form_submit_button("Save Goal", key="set_goal_form-Submit") 
 
                     if submitted:
                         if not new_desc.strip(): st.warning("Description is required.")
@@ -788,15 +802,15 @@ elif nav == "🎯 Goal Tracker":
                                 goals_df.loc[existing_g_indices[0]]=[selected_emp,selected_period,new_desc,new_target,new_achieved,new_status]; msg_verb="updated"
                             else:
                                 new_row_data={"Username":selected_emp,"MonthYear":selected_period,"GoalDescription":new_desc,"TargetAmount":new_target,"AchievedAmount":new_achieved,"Status":new_status}
-                                for col_name_iter in GOALS_COLUMNS: # Unique iterator variable
+                                for col_name_iter in GOALS_COLUMNS: 
                                     if col_name_iter not in new_row_data: new_row_data[col_name_iter]=pd.NA
                                 new_row_df=pd.DataFrame([new_row_data],columns=GOALS_COLUMNS); goals_df=pd.concat([goals_df,new_row_df],ignore_index=True); msg_verb="set"
                             try:
                                 goals_df.to_csv(GOALS_FILE,index=False)
                                 st.session_state.user_message=f"Sales goal for {selected_emp} ({selected_period}) {msg_verb}!"; st.session_state.message_type="success"; st.rerun()
                             except Exception as e: st.session_state.user_message=f"Error saving sales goal: {e}"; st.session_state.message_type="error"; st.rerun()
-    else: # Employee View Sales
-        st.markdown("<h4 class='section-title'>My Sales Goals (2025 - Quarterly)</h4>", unsafe_allow_html=True) # Use custom class
+    else: 
+        st.markdown("<h4 class='section-title'>My Sales Goals (2025 - Quarterly)</h4>", unsafe_allow_html=True) 
         my_goals = goals_df[goals_df["Username"].astype(str) == str(current_user["username"])].copy()
         my_goals[["TargetAmount", "AchievedAmount"]] = my_goals[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric,errors="coerce").fillna(0.0)
         current_g_df = my_goals[my_goals["MonthYear"] == current_quarter_for_display]
@@ -813,11 +827,11 @@ elif nav == "🎯 Goal Tracker":
                 st.markdown(f"<h6 style='text-align:center;margin-bottom:0px;margin-top:0px;'>Sales Progress</h6>",unsafe_allow_html=True)
                 st.pyplot(create_donut_chart(progress_percent_sales, achieved_color=achieved_color_sales),use_container_width=True)
             st.markdown("<hr>", unsafe_allow_html=True)
-            with st.form(key=f"update_sales_achievement_form_employee_content_page_unique_{current_user['username']}_{current_quarter_for_display}"): # Unique key
-                new_val=st.number_input("Update Achieved Amount (INR):",value=achieved_amt,min_value=0.0,step=100.0,format="%.2f", key=f"employee_sales_ach_update_content_page_unique_{current_user['username']}_{current_quarter_for_display}") # Unique key
-                submitted_ach=st.form_submit_button("Update Achievement", key="update_achievement-Submit") # For CSS
+            with st.form(key=f"update_sales_achievement_form_employee_content_final_{current_user['username']}_{current_quarter_for_display}"): 
+                new_val=st.number_input("Update Achieved Amount (INR):",value=achieved_amt,min_value=0.0,step=100.0,format="%.2f", key=f"employee_sales_ach_update_content_final_{current_user['username']}_{current_quarter_for_display}") 
+                submitted_ach=st.form_submit_button("Update Achievement", key="update_achievement-Submit") 
                 if submitted_ach:
-                    global goals_df # Moved global up
+                    global goals_df 
                     idx = goals_df[(goals_df["Username"] == current_user["username"]) &(goals_df["MonthYear"] == current_quarter_for_display)].index
                     if not idx.empty:
                         goals_df.loc[idx[0],"AchievedAmount"]=new_val
@@ -837,15 +851,15 @@ elif nav == "🎯 Goal Tracker":
 
 elif nav == "💰 Payment Collection Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3 class='card-title'>💰 Payment Collection Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True) # Use custom class
+    st.markdown("<h3 class='card-title'>💰 Payment Collection Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True) 
     TARGET_YEAR_PAYMENT = 2025; current_quarter_display_payment = get_quarter_str_for_year(TARGET_YEAR_PAYMENT)
     status_options_payment = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
-    achieved_color_payment = 'var(--md-sys-color-primary)' # Main blue for payments
+    achieved_color_payment = 'var(--md-sys-color-primary)'
     target_color_payment = 'var(--md-sys-color-secondary-container)'
 
     if current_user["role"] == "admin":
-        st.markdown("<h4 class='section-title'>Admin: Set & Track Payment Collection Goals</h4>", unsafe_allow_html=True) # Use custom class
-        admin_action_payment = st.radio("Action:", ["View Team Progress", f"Set/Edit Collection Target for {TARGET_YEAR_PAYMENT}"], key="admin_payment_action_radio_content_page_unique", horizontal=True) # Unique key
+        st.markdown("<h4 class='section-title'>Admin: Set & Track Payment Collection Goals</h4>", unsafe_allow_html=True) 
+        admin_action_payment = st.radio("Action:", ["View Team Progress", f"Set/Edit Collection Target for {TARGET_YEAR_PAYMENT}"], key="admin_payment_action_radio_content_final", horizontal=True) 
         if admin_action_payment == "View Team Progress":
             st.markdown(f"<h5>Team Payment Collection Progress for {current_quarter_display_payment}</h5>", unsafe_allow_html=True)
             employees_payment_list = [u for u,d in USERS.items() if d["role"]=="employee"]
@@ -862,7 +876,7 @@ elif nav == "💰 Payment Collection Tracker":
                 summary_df_payment = pd.DataFrame(summary_list_payment)
                 if not summary_df_payment.empty:
                     st.markdown("<h6>Individual Collection Progress:</h6>", unsafe_allow_html=True)
-                    num_cols_payment = min(3, len(employees_payment_list))
+                    num_cols_payment = min(3, len(employees_payment_list) if employees_payment_list else 1)
                     cols_payment=st.columns(num_cols_payment); col_idx_payment=0
                     for index,row in summary_df_payment.iterrows():
                         progress_percent_p=(row['Achieved']/row['Target']*100) if row['Target'] > 0 else 0
@@ -882,8 +896,8 @@ elif nav == "💰 Payment Collection Tracker":
             employees_for_payment_goal = [u for u,d in USERS.items() if d["role"]=="employee"];
             if not employees_for_payment_goal: st.warning("No employees available.")
             else:
-                selected_emp_payment=st.radio("Select Employee:",employees_for_payment_goal,key="payment_emp_radio_admin_set_content_page_unique2",horizontal=True) # Unique key
-                quarters_payment=[f"{TARGET_YEAR_PAYMENT}-Q{i}" for i in range(1,5)]; selected_period_payment=st.radio("Quarter:",quarters_payment,key="payment_period_radio_admin_set_content_page_unique2",horizontal=True) # Unique key
+                selected_emp_payment=st.radio("Select Employee:",employees_for_payment_goal,key="payment_emp_radio_admin_set_content_final", horizontal=True) 
+                quarters_payment=[f"{TARGET_YEAR_PAYMENT}-Q{i}" for i in range(1,5)]; selected_period_payment=st.radio("Quarter:",quarters_payment,key="payment_period_radio_admin_set_content_final", horizontal=True) 
                 
                 global payment_goals_df # Moved global up
 
@@ -894,12 +908,12 @@ elif nav == "💰 Payment Collection Tracker":
                     ach_payment_val=float(pd.to_numeric(g_payment.get("AchievedAmount",0.0),errors='coerce') or 0.0); stat_payment=g_payment.get("Status","Not Started")
                     st.info(f"Editing payment goal for {selected_emp_payment} - {selected_period_payment}")
                 
-                with st.form(f"form_payment_admin_content_page_unique_{selected_emp_payment}_{selected_period_payment}"): # Unique and specific key
-                    new_desc_payment=st.text_input("Collection Goal Description",value=desc_payment,key=f"desc_admin_payment_content_page_unique_{selected_emp_payment}_{selected_period_payment}") 
-                    new_tgt_payment=st.number_input("Target Collection (INR)",value=tgt_payment_val,min_value=0.0,step=1000.0,key=f"target_admin_payment_content_page_unique_{selected_emp_payment}_{selected_period_payment}") 
-                    new_ach_payment=st.number_input("Collected Amount (INR)",value=ach_payment_val,min_value=0.0,step=500.0,key=f"achieved_admin_payment_content_page_unique_{selected_emp_payment}_{selected_period_payment}") 
-                    new_status_payment=st.selectbox("Status",status_options_payment,index=status_options_payment.index(stat_payment),key=f"status_admin_payment_content_page_unique_{selected_emp_payment}_{selected_period_payment}") 
-                    submitted_payment=st.form_submit_button("Save Goal", key="form_payment-Submit") # For CSS
+                with st.form(f"form_payment_admin_content_final_{selected_emp_payment}_{selected_period_payment}"): 
+                    new_desc_payment=st.text_input("Collection Goal Description",value=desc_payment,key=f"desc_admin_payment_content_final_{selected_emp_payment}_{selected_period_payment}") 
+                    new_tgt_payment=st.number_input("Target Collection (INR)",value=tgt_payment_val,min_value=0.0,step=1000.0,key=f"target_admin_payment_content_final_{selected_emp_payment}_{selected_period_payment}") 
+                    new_ach_payment=st.number_input("Collected Amount (INR)",value=ach_payment_val,min_value=0.0,step=500.0,key=f"achieved_admin_payment_content_final_{selected_emp_payment}_{selected_period_payment}") 
+                    new_status_payment=st.selectbox("Status",status_options_payment,index=status_options_payment.index(stat_payment),key=f"status_admin_payment_content_final_{selected_emp_payment}_{selected_period_payment}") 
+                    submitted_payment=st.form_submit_button("Save Goal", key="form_payment-Submit") 
 
                     if submitted_payment:
                         if not new_desc_payment.strip(): st.warning("Description required.")
@@ -910,15 +924,15 @@ elif nav == "💰 Payment Collection Tracker":
                                 payment_goals_df.loc[existing_pg_indices[0]]=[selected_emp_payment,selected_period_payment,new_desc_payment,new_tgt_payment,new_ach_payment,new_status_payment]; msg_payment="updated"
                             else:
                                 new_row_data_p={"Username":selected_emp_payment,"MonthYear":selected_period_payment,"GoalDescription":new_desc_payment,"TargetAmount":new_tgt_payment,"AchievedAmount":new_ach_payment,"Status":new_status_payment}
-                                for col_name_iter_p in PAYMENT_GOALS_COLUMNS: # Unique iterator variable
+                                for col_name_iter_p in PAYMENT_GOALS_COLUMNS: 
                                      if col_name_iter_p not in new_row_data_p: new_row_data_p[col_name_iter_p]=pd.NA
                                 new_row_df_p=pd.DataFrame([new_row_data_p],columns=PAYMENT_GOALS_COLUMNS); payment_goals_df=pd.concat([payment_goals_df,new_row_df_p],ignore_index=True); msg_payment="set"
                             try:
                                 payment_goals_df.to_csv(PAYMENT_GOALS_FILE,index=False)
                                 st.session_state.user_message=f"Payment goal {msg_payment} for {selected_emp_payment} ({selected_period_payment})"; st.session_state.message_type="success"; st.rerun()
                             except Exception as e: st.session_state.user_message=f"Error saving payment goal: {e}"; st.session_state.message_type="error"; st.rerun()
-    else: # Employee View Payment
-        st.markdown("<h4 class='section-title'>My Payment Collection Goals (2025)</h4>", unsafe_allow_html=True) # Use custom class
+    else: 
+        st.markdown("<h4 class='section-title'>My Payment Collection Goals (2025)</h4>", unsafe_allow_html=True) 
         user_goals_payment = payment_goals_df[payment_goals_df["Username"]==current_user["username"]].copy()
         user_goals_payment[["TargetAmount","AchievedAmount"]] = user_goals_payment[["TargetAmount","AchievedAmount"]].apply(pd.to_numeric,errors="coerce").fillna(0.0)
         current_payment_goal_period_df = user_goals_payment[user_goals_payment["MonthYear"]==current_quarter_display_payment]
@@ -935,11 +949,11 @@ elif nav == "💰 Payment Collection Tracker":
                 st.markdown(f"<h6 style='text-align:center;margin-bottom:0px;margin-top:0px;'>Collection Progress</h6>",unsafe_allow_html=True)
                 st.pyplot(create_donut_chart(progress_percent_pay, achieved_color=achieved_color_payment),use_container_width=True)
             st.markdown("<hr>", unsafe_allow_html=True)
-            with st.form(key=f"update_payment_collection_form_employee_content_page_unique_{current_user['username']}_{current_quarter_display_payment}"): # Unique key
-                new_ach_val_payment=st.number_input("Update Collected Amount (INR):",value=ach_pay,min_value=0.0,step=500.0, key=f"employee_payment_ach_update_content_page_unique_{current_user['username']}_{current_quarter_display_payment}") # Unique key
-                submit_collection_update=st.form_submit_button("Update Collection", key="update_collection-Submit") # For CSS
+            with st.form(key=f"update_payment_collection_form_employee_content_final_{current_user['username']}_{current_quarter_display_payment}"): 
+                new_ach_val_payment=st.number_input("Update Collected Amount (INR):",value=ach_pay,min_value=0.0,step=500.0, key=f"employee_payment_ach_update_content_final_{current_user['username']}_{current_quarter_display_payment}") 
+                submit_collection_update=st.form_submit_button("Update Collection", key="update_collection-Submit") 
                 if submit_collection_update:
-                    global payment_goals_df # Moved global up
+                    global payment_goals_df 
                     idx_pay=payment_goals_df[(payment_goals_df["Username"]==current_user["username"])&(payment_goals_df["MonthYear"]==current_quarter_display_payment)].index
                     if not idx_pay.empty:
                         payment_goals_df.loc[idx_pay[0],"AchievedAmount"]=new_ach_val_payment
@@ -958,11 +972,11 @@ elif nav == "💰 Payment Collection Tracker":
 
 elif nav == "📊 View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3 class='card-title'>📊 View Logs</h3>", unsafe_allow_html=True) # Use custom class
-    def display_activity_logs_with_photos(df_logs, user_name_for_header):
-        if df_logs.empty: st.info(f"No activity logs for {user_name_for_header}."); return
-        # No inner H5 for username as it's part of section title
-        for index, row in df_logs.sort_values(by="Timestamp", ascending=False).iterrows():
+    st.markdown("<h3 class='card-title'>📊 View Logs</h3>", unsafe_allow_html=True) 
+    def display_activity_logs_with_photos(df_logs, user_name_for_header): # user_name_for_header no longer used for an H5 here
+        if df_logs.empty: st.info(f"No activity logs found."); return # Simplified message
+        df_logs_sorted = df_logs.sort_values(by="Timestamp", ascending=False).copy()
+        for index, row in df_logs_sorted.iterrows():
             st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True); 
             col_details, col_photo = st.columns([0.75, 0.25]) 
             with col_details:
@@ -987,29 +1001,29 @@ elif nav == "📊 View Logs":
         if df_logs.empty: st.info(f"No {record_type_name.lower()} records found."); return
         st.dataframe(df_logs.reset_index(drop=True), use_container_width=True)
 
+
     if current_user["role"] == "admin":
-        st.markdown("<h4 class='section-title'>Admin: View Employee Records</h4>", unsafe_allow_html=True) # Use custom class
+        st.markdown("<h4 class='section-title'>Admin: View Employee Records</h4>", unsafe_allow_html=True) 
         employee_name_list = [uname for uname in USERS.keys() if USERS[uname]["role"] == "employee"]
-        selected_employee_log = st.selectbox("Select Employee:", employee_name_list, key="log_employee_select_admin_content_page_unique", index=0 if employee_name_list else None) # Unique key
+        selected_employee_log = st.selectbox("Select Employee:", employee_name_list, key="log_employee_select_admin_content_final", index=0 if employee_name_list else None) 
 
         if selected_employee_log:
             st.markdown(f"<h5 style='margin-top:20px; font-weight:500;'>Records for: {selected_employee_log}</h5>", unsafe_allow_html=True)
             
             st.markdown("<h6 class='record-type-header'>Field Activity Logs</h6>", unsafe_allow_html=True)
             emp_activity_log = activity_log_df[activity_log_df["Username"] == selected_employee_log]
-            display_activity_logs_with_photos(emp_activity_log, selected_employee_log)
+            display_activity_logs_with_photos(emp_activity_log, selected_employee_log) # Pass username for context in function if needed
             
             st.markdown("<h6 class='record-type-header'>General Attendance</h6>", unsafe_allow_html=True)
             emp_attendance_log = attendance_df[attendance_df["Username"] == selected_employee_log]
             if not emp_attendance_log.empty:
                 display_cols_att = ["Type", "Timestamp"]
-                if 'Latitude' in emp_attendance_log.columns and 'Longitude' in emp_attendance_log.columns: # Check explicitly
-                    emp_attendance_log_copy = emp_attendance_log.copy() # Avoid SettingWithCopyWarning
+                if 'Latitude' in emp_attendance_log.columns and 'Longitude' in emp_attendance_log.columns: 
+                    emp_attendance_log_copy = emp_attendance_log.copy() 
                     emp_attendance_log_copy['Location'] = emp_attendance_log_copy.apply(lambda r: f"Lat:{r.get('Latitude'):.2f},Lon:{r.get('Longitude'):.2f}" if pd.notna(r.get('Latitude')) and pd.notna(r.get('Longitude')) else "N/R", axis=1)
                     st.dataframe(emp_attendance_log_copy[display_cols_att + ['Location']].sort_values("Timestamp", ascending=False).reset_index(drop=True), use_container_width=True)
                 else:
                     st.dataframe(emp_attendance_log[display_cols_att].sort_values("Timestamp", ascending=False).reset_index(drop=True), use_container_width=True)
-
             else: st.info(f"No attendance records for {selected_employee_log}.")
 
             st.markdown("<h6 class='record-type-header'>Allowances</h6>", unsafe_allow_html=True)
@@ -1024,8 +1038,8 @@ elif nav == "📊 View Logs":
              st.info("Please select an employee to view their logs.")
         else:
             st.info("No employee records to display.")
-    else: # Employee view
-        st.markdown(f"<h4 class='section-title'>My Records: {current_user['username']}</h4>", unsafe_allow_html=True) # Use custom class
+    else: 
+        st.markdown(f"<h4 class='section-title'>My Records: {current_user['username']}</h4>", unsafe_allow_html=True) 
         st.markdown("<h6 class='record-type-header'>My Field Activity Logs</h6>", unsafe_allow_html=True)
         display_activity_logs_with_photos(activity_log_df[activity_log_df["Username"] == current_user["username"]], current_user["username"])
         
@@ -1033,8 +1047,8 @@ elif nav == "📊 View Logs":
         my_attendance_log = attendance_df[attendance_df["Username"] == current_user["username"]]
         if not my_attendance_log.empty:
             display_cols_my_att = ["Type", "Timestamp"]
-            if 'Latitude' in my_attendance_log.columns and 'Longitude' in my_attendance_log.columns: # Check explicitly
-                my_attendance_log_copy = my_attendance_log.copy() # Avoid SettingWithCopyWarning
+            if 'Latitude' in my_attendance_log.columns and 'Longitude' in my_attendance_log.columns: 
+                my_attendance_log_copy = my_attendance_log.copy() 
                 my_attendance_log_copy['Location'] = my_attendance_log_copy.apply(lambda r: f"Lat:{r.get('Latitude'):.2f},Lon:{r.get('Longitude'):.2f}" if pd.notna(r.get('Latitude')) and pd.notna(r.get('Longitude')) else "N/R", axis=1)
                 st.dataframe(my_attendance_log_copy[display_cols_my_att + ['Location']].sort_values("Timestamp", ascending=False).reset_index(drop=True), use_container_width=True)
             else:
