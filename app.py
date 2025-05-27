@@ -351,7 +351,7 @@ with st.sidebar:
 
     nav_options = {
         "📆 Attendance": "attendance_page", # Using unique keys for buttons if labels are similar
-        "📸 Upload Activity Photo": "upload_activity_page",
+        "📸 Upload Activity Photo": "upload_Activity_page",
         "🧾 Allowance": "allowance_page",
         "🎯 Goal Tracker": "goal_tracker_page",
         "💰 Payment Collection Tracker": "payment_tracker_page",
