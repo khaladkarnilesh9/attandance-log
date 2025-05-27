@@ -727,154 +727,72 @@ else:
 st.markdown('</div>', unsafe_allow_html=True)
 
 
-
-
-
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3 class='card-title'>💼 Claim Allowance</h3>", unsafe_allow_html=True) 
+
     with st.form(key="allowance_form_content_final_v2"): 
         st.markdown("<h6 class='form-field-label-custom'>Select Allowance Type:</h6>", unsafe_allow_html=True) 
-        a_type = st.radio("", ["Travel", "Dinner", "Medical", "Internet", "Other"], key="allowance_type_radio_content_final_v2", horizontal=True, label_visibility='collapsed') 
-        amount = st.number_input("Enter Amount (INR):", min_value=0.01, step=10.0, format="%.2f", key="allowance_amount_content_final_v2") 
-        reason = st.text_area("Reason for Allowance:", key="allowance_reason_content_final_v2", placeholder="Please provide a clear justification...") 
-        submitted_allowance = st.form_submit_button("Submit Allowance Request", use_container_width=True, key="submit_allowance_btn_content_final_v2") 
+        a_type = st.radio(
+            "", 
+            ["Travel", "Dinner", "Medical", "Internet", "Other"], 
+            key="allowance_type_radio_content_final_v2", 
+            horizontal=True, 
+            label_visibility='collapsed'
+        ) 
+
+        amount = st.number_input(
+            "Enter Amount (INR):", 
+            min_value=0.01, 
+            step=10.0, 
+            format="%.2f", 
+            key="allowance_amount_content_final_v2"
+        ) 
+
+        reason = st.text_area(
+            "Reason for Allowance:", 
+            key="allowance_reason_content_final_v2", 
+            placeholder="Please provide a clear justification..."
+        ) 
+
+        submitted_allowance = st.form_submit_button(
+            "Submit Allowance Request", 
+            use_container_width=True, 
+            key="submit_allowance_btn_content_final_v2"
+        ) 
 
         if submitted_allowance:
             global allowance_df
 
             if a_type and amount > 0 and reason.strip():
-                date_str = get_current_time_in_tz().strftime("%Y-%m-%d"); new_entry_data = {"Username": current_user["username"], "Type": a_type, "Amount": amount, "Reason": reason, "Date": date_str}
+                date_str = get_current_time_in_tz().strftime("%Y-%m-%d")
+                new_entry_data = {
+                    "Username": current_user["username"],
+                    "Type": a_type,
+                    "Amount": amount,
+                    "Reason": reason,
+                    "Date": date_str
+                }
                 new_entry = pd.DataFrame([new_entry_data], columns=ALLOWANCE_COLUMNS)
-                
+
                 allowance_df = pd.concat([allowance_df, new_entry], ignore_index=True)
+                
                 try:
                     allowance_df.to_csv(ALLOWANCE_FILE, index=False)
-                    st.session_state.user_message = f"Allowance for ₹{amount:.2f} submitted."; st.session_state.message_type = "success"; st.rerun()
-                except Exception as e: st.session_state.user_message = f"Error submitting allowance: {e}"; st.session_state.message_type = "error"; st.rerun()
-            else: st.warning("Please complete all fields with valid values.")
+                    st.session_state.user_message = f"Allowance for ₹{amount:.2f} submitted."
+                    st.session_state.message_type = "success"
+                    st.rerun()
+                except Exception as e:
+                    st.session_state.user_message = f"Error submitting allowance: {e}"
+                    st.session_state.message_type = "error"
+                    st.rerun()
+            else:
+                st.warning("Please complete all fields with valid values.")
+
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == "🎯 Goal Tracker": 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3 class='card-title'>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True) 
-    TARGET_GOAL_YEAR = 2025; current_quarter_for_display = get_quarter_str_for_year(TARGET_GOAL_YEAR)
-    status_options = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
-    achieved_color_sales = 'var(--md-sys-color-success)' 
-    target_color_sales = 'var(--md-sys-color-secondary-container)'
 
 
-    if current_user["role"] == "admin":
-        st.markdown("<h4 class='section-title'>Admin: Manage & Track Employee Goals</h4>", unsafe_allow_html=True) 
-        admin_action = st.radio("Action:", ["View Team Progress", f"Set/Edit Goal for {TARGET_GOAL_YEAR}"], key="admin_goal_action_radio_content_final_v2", horizontal=True) 
-        if admin_action == "View Team Progress":
-            st.markdown(f"<h5>Team Goal Progress for {current_quarter_for_display}</h5>", unsafe_allow_html=True)
-            employee_users = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
-            if not employee_users: st.info("No employees found.")
-            else:
-                summary_list_sales = []
-                for emp_name in employee_users:
-                    emp_current_goal = goals_df[(goals_df["Username"].astype(str) == str(emp_name)) & (goals_df["MonthYear"].astype(str) == str(current_quarter_for_display))]
-                    target, achieved, status_val = 0.0, 0.0, "Not Set"
-                    if not emp_current_goal.empty:
-                        g_data = emp_current_goal.iloc[0]; target = float(pd.to_numeric(g_data.get("TargetAmount"), errors='coerce') or 0.0)
-                        achieved = float(pd.to_numeric(g_data.get("AchievedAmount", 0.0), errors='coerce') or 0.0); status_val = g_data.get("Status", "N/A")
-                    summary_list_sales.append({"Employee": emp_name, "Target": target, "Achieved": achieved, "Status": status_val})
-                summary_df_sales = pd.DataFrame(summary_list_sales)
-                if not summary_df_sales.empty:
-                    st.markdown("<h6>Individual Sales Progress:</h6>", unsafe_allow_html=True)
-                    num_cols_sales = min(3, len(employee_users) if employee_users else 1)
-                    cols_sales = st.columns(num_cols_sales); col_idx_sales = 0
-                    for index, row in summary_df_sales.iterrows():
-                        progress_percent = (row['Achieved'] / row['Target'] * 100) if row['Target'] > 0 else 0
-                        donut_fig = create_donut_chart(progress_percent, achieved_color=achieved_color_sales)
-                        with cols_sales[col_idx_sales % num_cols_sales]:
-                            st.markdown(f"<div class='employee-progress-item'><h6>{row['Employee']}</h6><p>Target: ₹{row['Target']:,.0f}<br>Achieved: ₹{row['Achieved']:,.0f}</p></div>", unsafe_allow_html=True)
-                            st.pyplot(donut_fig, use_container_width=True); st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
-                        col_idx_sales += 1
-                    st.markdown("<hr>", unsafe_allow_html=True)
-                    st.markdown("<h6>Overall Team Sales Performance:</h6>", unsafe_allow_html=True)
-                    team_bar_fig_sales = create_team_progress_bar_chart(summary_df_sales, title="Team Sales Target vs. Achieved", achieved_color=achieved_color_sales, target_color=target_color_sales)
-                    if team_bar_fig_sales: st.pyplot(team_bar_fig_sales, use_container_width=True)
-                    else: st.info("No sales data to plot for the team bar chart.")
-                else: st.info(f"No sales goals data found for {current_quarter_for_display} to display team progress.")
-        elif admin_action == f"Set/Edit Goal for {TARGET_GOAL_YEAR}":
-            st.markdown(f"<h5>Set or Update Employee Goal ({TARGET_GOAL_YEAR} - Quarterly)</h5>", unsafe_allow_html=True)
-            employee_options = [u for u,d in USERS.items() if d["role"]=="employee"];
-            if not employee_options: st.warning("No employees available.");
-            else:
-                selected_emp = st.radio("Select Employee:", employee_options, key="goal_emp_radio_admin_set_content_final_v2", horizontal=True) 
-                quarter_options = [f"{TARGET_GOAL_YEAR}-Q{i}" for i in range(1,5)]; selected_period = st.radio("Goal Period:", quarter_options, key="goal_period_radio_admin_set_content_final_v2", horizontal=True) 
-                
-                existing_g = goals_df[(goals_df["Username"].astype(str)==str(selected_emp)) & (goals_df["MonthYear"].astype(str)==str(selected_period))]
-                g_desc,g_target,g_achieved,g_status = "",0.0,0.0,"Not Started"
-                if not existing_g.empty:
-                    g_data=existing_g.iloc[0]; g_desc=g_data.get("GoalDescription",""); g_target=float(pd.to_numeric(g_data.get("TargetAmount",0.0),errors='coerce') or 0.0)
-                    g_achieved=float(pd.to_numeric(g_data.get("AchievedAmount",0.0),errors='coerce') or 0.0); g_status=g_data.get("Status","Not Started"); st.info(f"Editing goal for {selected_emp} - {selected_period}")
-                
-                with st.form(key=f"set_sales_goal_form_admin_content_final_v2_{selected_emp}_{selected_period}"): 
-                    new_desc=st.text_area("Goal Description",value=g_desc,key=f"desc_admin_sales_content_final_v2_{selected_emp}_{selected_period}") 
-                    new_target=st.number_input("Target Sales (INR)",value=g_target,min_value=0.0,step=1000.0,format="%.2f",key=f"target_admin_sales_content_final_v2_{selected_emp}_{selected_period}") 
-                    new_achieved=st.number_input("Achieved Sales (INR)",value=g_achieved,min_value=0.0,step=100.0,format="%.2f",key=f"achieved_admin_sales_content_final_v2_{selected_emp}_{selected_period}") 
-                    new_status=st.radio("Status:",status_options,index=status_options.index(g_status),horizontal=True,key=f"status_admin_sales_content_final_v2_{selected_emp}_{selected_period}") 
-                    submitted=st.form_submit_button("Save Goal", key="set_goal_form-Submit") 
-
-                    if submitted:
-                        global goals_df 
-                        if not new_desc.strip(): st.warning("Description is required.")
-                        elif new_target <= 0 and new_status not in ["Cancelled","On Hold","Not Started"]: st.warning("Target > 0 required.")
-                        else:
-                            existing_g_indices=goals_df[(goals_df["Username"].astype(str)==str(selected_emp))&(goals_df["MonthYear"].astype(str)==str(selected_period))].index
-                            if not existing_g_indices.empty: 
-                                goals_df.loc[existing_g_indices[0]]=[selected_emp,selected_period,new_desc,new_target,new_achieved,new_status]; msg_verb="updated"
-                            else:
-                                new_row_data={"Username":selected_emp,"MonthYear":selected_period,"GoalDescription":new_desc,"TargetAmount":new_target,"AchievedAmount":new_achieved,"Status":new_status}
-                                for col_name_iter in GOALS_COLUMNS: 
-                                    if col_name_iter not in new_row_data: new_row_data[col_name_iter]=pd.NA
-                                new_row_df=pd.DataFrame([new_row_data],columns=GOALS_COLUMNS); goals_df=pd.concat([goals_df,new_row_df],ignore_index=True); msg_verb="set"
-                            try:
-                                goals_df.to_csv(GOALS_FILE,index=False)
-                                st.session_state.user_message=f"Sales goal for {selected_emp} ({selected_period}) {msg_verb}!"; st.session_state.message_type="success"; st.rerun()
-                            except Exception as e: st.session_state.user_message=f"Error saving sales goal: {e}"; st.session_state.message_type="error"; st.rerun()
-    else: 
-        st.markdown("<h4 class='section-title'>My Sales Goals (2025 - Quarterly)</h4>", unsafe_allow_html=True) 
-        my_goals = goals_df[goals_df["Username"].astype(str) == str(current_user["username"])].copy()
-        my_goals[["TargetAmount", "AchievedAmount"]] = my_goals[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric,errors="coerce").fillna(0.0)
-        current_g_df = my_goals[my_goals["MonthYear"] == current_quarter_for_display]
-        st.markdown(f"<h5>Current Goal Period: {current_quarter_for_display}</h5>", unsafe_allow_html=True)
-        if not current_g_df.empty:
-            g = current_g_df.iloc[0]; target_amt = g["TargetAmount"]; achieved_amt = g["AchievedAmount"]
-            st.markdown(f"**Description:** {g.get('GoalDescription', 'N/A')}")
-            col_metrics_sales, col_chart_sales = st.columns([0.6, 0.4]) 
-            with col_metrics_sales:
-                sub_col1,sub_col2=st.columns(2); sub_col1.metric("Target",f"₹{target_amt:,.0f}"); sub_col2.metric("Achieved",f"₹{achieved_amt:,.0f}")
-                st.metric("Status",g.get("Status","In Progress"))
-            with col_chart_sales:
-                progress_percent_sales=(achieved_amt/target_amt*100) if target_amt > 0 else 0.0
-                st.markdown(f"<h6 style='text-align:center;margin-bottom:0px;margin-top:0px;'>Sales Progress</h6>",unsafe_allow_html=True)
-                st.pyplot(create_donut_chart(progress_percent_sales, achieved_color=achieved_color_sales),use_container_width=True)
-            st.markdown("<hr>", unsafe_allow_html=True)
-            with st.form(key=f"update_sales_achievement_form_employee_content_final_v2_{current_user['username']}_{current_quarter_for_display}"): 
-                new_val=st.number_input("Update Achieved Amount (INR):",value=achieved_amt,min_value=0.0,step=100.0,format="%.2f", key=f"employee_sales_ach_update_content_final_v2_{current_user['username']}_{current_quarter_for_display}") 
-                submitted_ach=st.form_submit_button("Update Achievement", key="update_achievement-Submit") 
-                if submitted_ach:
-                    global goals_df 
-                    idx = goals_df[(goals_df["Username"] == current_user["username"]) &(goals_df["MonthYear"] == current_quarter_for_display)].index
-                    if not idx.empty:
-                        goals_df.loc[idx[0],"AchievedAmount"]=new_val
-                        new_status="Achieved" if new_val >= target_amt and target_amt > 0 else "In Progress"
-                        goals_df.loc[idx[0],"Status"]=new_status
-                        try:
-                            goals_df.to_csv(GOALS_FILE,index=False)
-                            st.session_state.user_message = "Achievement updated!"; st.session_state.message_type = "success"; st.rerun()
-                        except Exception as e: st.session_state.user_message = f"Error updating achievement: {e}"; st.session_state.message_type = "error"; st.rerun()
-                    else: st.session_state.user_message = "Could not find your current goal to update."; st.session_state.message_type = "error"; st.rerun()
-        else: st.info(f"No goal set for {current_quarter_for_display}. Contact admin.")
-        st.markdown("<hr>", unsafe_allow_html=True); st.markdown("<h5>My Past Sales Goals (2025)</h5>", unsafe_allow_html=True)
-        past_goals = my_goals[(my_goals["MonthYear"].str.startswith(str(TARGET_GOAL_YEAR))) & (my_goals["MonthYear"].astype(str) != current_quarter_for_display)]
-        if not past_goals.empty: render_goal_chart(past_goals, "Past Sales Goal Performance", achieved_color=achieved_color_sales, target_color=target_color_sales)
-        else: st.info(f"No past goal records for {TARGET_GOAL_YEAR}.")
-    st.markdown("</div>", unsafe_allow_html=True)
 
 elif nav == "💰 Payment Collection Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
