@@ -82,8 +82,13 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     return fig
 
 html_css = """
+html_css = """
 <style>
+    /* Import Google Fonts (Roboto for text) */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+    
+    /* Import Google Material Symbols Outlined (for icons) */
+    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
     :root {
         --primary-color: #4285F4;  /* Google blue */
@@ -92,18 +97,18 @@ html_css = """
         --yellow-color: #FBBC05;  /* Google yellow */
         --success-color: #34A853;
         --danger-color: #EA4335;
-        --warning-color: #FBBC05;  /* Google yellow */ /* Fixed: Was an unclosed comment */
+        --warning-color: #FBBC05;
         --info-color: #4285F4;
-        --body-bg-color: #f8f9fa;
+        --body-bg-color: #f8f9fa; /* Light grey, common in Google UIs */
         --card-bg-color: #ffffff;
-        --text-color: #202124;
-        --text-muted-color: #5f6368;
-        --border-color: #dadce0;
+        --text-color: #202124; /* Google's primary text color */
+        --text-muted-color: #5f6368; /* Google's secondary text color */
+        --border-color: #dadce0; /* Google's common border color */
         --input-border-color: #dadce0;
         --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        --border-radius: 8px;
+        --border-radius: 8px; /* Slightly more rounded like Google's newer designs */
         --border-radius-lg: 12px;
-        --box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+        --box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* Google-like shadow */
         --box-shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.1);
     }
 
@@ -117,14 +122,14 @@ html_css = """
 
     h1, h2, h3, h4, h5, h6 {
         color: var(--text-color);
-        font-weight: 500;
-        letter-spacing: -0.25px;
+        font-weight: 500; /* Slightly bolder headings */
+        letter-spacing: -0.25px; /* Common in Google typography for larger text */
     }
 
     /* Main page title (Streamlit's default h1) */
     .main .block-container > div:first-child > div:first-child > div:first-child > h1 {
-        text-align: left;
-        font-size: 1.75rem; /* 28px */
+        text-align: left; /* Default is left, but good to be explicit */
+        font-size: 1.75rem; /* Approx 28px */
         font-weight: 500;
         padding-bottom: 16px;
         margin-bottom: 24px;
@@ -145,7 +150,7 @@ html_css = """
         color: var(--text-color);
         padding-bottom: 12px;
         margin-bottom: 20px;
-        font-size: 1.25rem; /* 20px */
+        font-size: 1.25rem; /* Approx 20px */
         font-weight: 500;
         display: flex;
         align-items: center;
@@ -155,7 +160,7 @@ html_css = """
         content: "";
         display: inline-block;
         width: 4px;
-        height: 20px;
+        height: 20px; /* Adjusted to match typical line height of h3 */
         background-color: var(--primary-color);
         margin-right: 12px;
         border-radius: 2px;
@@ -165,7 +170,7 @@ html_css = """
         color: var(--text-color);
         margin-top: 24px;
         margin-bottom: 16px;
-        font-size: 1.1rem; /* ~17-18px */
+        font-size: 1.1rem; /* Approx 17-18px */
         font-weight: 500;
     }
 
@@ -180,9 +185,9 @@ html_css = """
     .card h6 { /* Sub-labels or small titles */
         font-size: 0.875rem; /* 14px */
         color: var(--text-muted-color);
-        margin-top: 0;
+        margin-top: 0; /* Remove default top margin if it's the first element */
         margin-bottom: 12px;
-        font-weight: 400;
+        font-weight: 400; /* Lighter for sub-labels */
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -207,12 +212,12 @@ html_css = """
         width: 100%;
         background-color: var(--primary-color) !important;
         color: white !important;
-        font-size: 1rem;
+        font-size: 1rem; /* 16px */
         padding: 12px 20px;
         border-radius: var(--border-radius);
         border: none !important;
         font-weight: 500 !important;
-        box-shadow: none !important;
+        box-shadow: none !important; /* Flat button style */
         transition: background-color 0.2s ease;
     }
 
@@ -229,10 +234,10 @@ html_css = """
         padding: 10px 20px;
         border: none;
         border-radius: var(--border-radius);
-        font-size: 0.875rem;
+        font-size: 0.875rem; /* 14px */
         font-weight: 500;
         transition: background-color 0.2s ease;
-        box-shadow: none;
+        box-shadow: none; /* Flatter buttons */
         cursor: pointer;
     }
 
@@ -262,7 +267,7 @@ html_css = """
         border-radius: var(--border-radius) !important;
         border: 1px solid var(--input-border-color) !important;
         padding: 10px 12px !important;
-        font-size: 0.875rem !important;
+        font-size: 0.875rem !important; /* 14px */
         color: var(--text-color) !important;
         background-color: var(--card-bg-color) !important;
         transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -272,13 +277,14 @@ html_css = """
     .stNumberInput input::placeholder,
     .stTextArea textarea::placeholder {
         color: var(--text-muted-color) !important;
-        opacity: 1;
+        opacity: 1; /* Ensure placeholder is fully visible */
     }
 
     .stTextArea textarea {
-        min-height: 120px;
+        min-height: 120px; /* Ample space for text areas */
     }
 
+    /* Focus styles for inputs */
     .stTextInput input:focus,
     .stNumberInput input:focus,
     .stTextArea textarea:focus,
@@ -286,19 +292,19 @@ html_css = """
     .stTimeInput input:focus,
     .stSelectbox div[data-baseweb="select"] > div:focus-within {
         border-color: var(--primary-color) !important;
-        box-shadow: 0 0 0 2px rgba(66,133,244,0.15) !important; /* Subtle focus ring */
+        box-shadow: 0 0 0 2px rgba(66,133,244,0.15) !important; /* Subtle focus ring, Google style */
     }
 
     /* Sidebar Styling */
     [data-testid="stSidebar"] {
-        background-color: #ffffff; /* Sidebar background */
-        padding: 16px !important;
-        box-shadow: 1px 0 2px 0 rgba(60,64,67,0.1), 1px 0 3px 1px rgba(60,64,67,0.1);
+        background-color: #ffffff; /* Sidebar background, often white in Google UIs */
+        padding: 16px !important; /* Consistent padding */
+        box-shadow: 1px 0 2px 0 rgba(60,64,67,0.1), 1px 0 3px 1px rgba(60,64,67,0.1); /* Subtle right shadow */
         border-right: 1px solid var(--border-color);
     }
 
     [data-testid="stSidebar"] .sidebar-content {
-        padding-top: 8px;
+        padding-top: 8px; /* Small top padding inside content area */
     }
 
     [data-testid="stSidebar"] p,
@@ -309,11 +315,14 @@ html_css = """
         color: var(--text-color) !important;
     }
 
+    /* Sidebar Radio Button (Navigation) Specifics */
     [data-testid="stSidebar"] .stRadio > label > div > p { /* Radio button labels in sidebar */
-        font-size: 0.875rem !important;
+        font-size: 0.875rem !important; /* 14px */
         color: var(--text-color) !important;
         padding: 0;
         margin: 0;
+        display: flex; /* To align icon and text if icon is part of this <p> */
+        align-items: center;
     }
 
     [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p { /* Selected radio label */
@@ -326,6 +335,8 @@ html_css = """
         border-radius: var(--border-radius);
         margin-bottom: 4px;
         transition: background-color 0.2s ease;
+        display: flex; /* For icon alignment if icon is direct child */
+        align-items: center;
     }
 
     [data-testid="stSidebar"] .stRadio > label:hover {
@@ -337,7 +348,7 @@ html_css = """
     }
 
     .welcome-text { /* User welcome text in sidebar */
-        font-size: 1rem;
+        font-size: 1rem; /* 16px */
         font-weight: 500;
         margin-bottom: 20px;
         text-align: center;
@@ -347,7 +358,7 @@ html_css = """
     }
 
     [data-testid="stSidebar"] [data-testid="stImage"] > img { /* Profile image in sidebar */
-        border-radius: 50%;
+        border-radius: 50%; /* Circular image */
         border: 2px solid var(--border-color);
         margin: 0 auto 12px auto;
         display: block;
@@ -365,27 +376,27 @@ html_css = """
 
     .stDataFrame table {
         width: 100%;
-        border-collapse: collapse;
+        border-collapse: collapse; /* Clean table lines */
     }
 
     .stDataFrame table thead th {
-        background-color: #f8f9fa; /* Light grey header */
+        background-color: #f8f9fa; /* Light grey header, common in Google tables */
         color: var(--text-muted-color);
         font-weight: 500;
         text-align: left;
         padding: 12px 16px;
         border-bottom: 1px solid var(--border-color);
-        font-size: 0.75rem; /* Smaller header text */
+        font-size: 0.75rem; /* Smaller header text (12px) */
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
 
     .stDataFrame table tbody td {
         padding: 12px 16px;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color); /* Lighter lines between rows */
         vertical-align: middle;
         color: var(--text-color);
-        font-size: 0.875rem;
+        font-size: 0.875rem; /* 14px */
     }
 
     .stDataFrame table tbody tr:last-child td {
@@ -393,10 +404,10 @@ html_css = """
     }
 
     .stDataFrame table tbody tr:hover {
-        background-color: #f8f9fa; /* Row hover effect */
+        background-color: #f1f3f4; /* Slightly darker hover for rows */
     }
 
-    /* Employee Progress Items (used in Goal Trackers) */
+    /* Employee Progress Items (used in Goal Trackers, Dashboard) */
     .employee-progress-item {
         border: 1px solid var(--border-color);
         border-radius: var(--border-radius);
@@ -410,13 +421,13 @@ html_css = """
     .employee-progress-item h6 {
         margin-top: 0;
         margin-bottom: 8px;
-        font-size: 0.875rem;
+        font-size: 0.875rem; /* 14px */
         color: var(--text-color);
         font-weight: 500;
     }
 
     .employee-progress-item p {
-        font-size: 0.75rem;
+        font-size: 0.75rem; /* 12px */
         color: var(--text-muted-color);
         margin-bottom: 8px;
     }
@@ -430,15 +441,15 @@ html_css = """
         width: 100%; /* Make buttons fill column width */
     }
 
-    /* Radio buttons used for horizontal choices (e.g., Allowance Type) */
+    /* Radio buttons used for horizontal choices (e.g., Allowance Type, Admin Actions) */
     div[role="radiogroup"] {
         display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
+        flex-wrap: wrap; /* Allow radios to wrap on smaller screens */
+        gap: 8px; /* Space between radio buttons */
         margin-bottom: 20px;
     }
 
-    div[role="radiogroup"] > label {
+    div[role="radiogroup"] > label { /* Individual radio button label container */
         background-color: white;
         color: var(--text-color);
         padding: 8px 16px;
@@ -446,20 +457,20 @@ html_css = """
         border: 1px solid var(--border-color);
         cursor: pointer;
         transition: all 0.2s ease;
-        font-size: 0.875rem;
-        font-weight: 400;
+        font-size: 0.875rem; /* 14px */
+        font-weight: 400; /* Regular weight for unselected */
     }
 
     div[role="radiogroup"] > label:hover {
-        background-color: #f8f9fa;
+        background-color: #f8f9fa; /* Light hover effect */
         border-color: var(--border-color); /* Keep border consistent on hover */
     }
 
-    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
-        background-color: rgba(66,133,244,0.1) !important; /* Light blue selected */
+    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label { /* Selected radio */
+        background-color: rgba(66,133,244,0.1) !important; /* Light blue selected background */
         color: var(--primary-color) !important;
         border-color: var(--primary-color) !important;
-        font-weight: 500;
+        font-weight: 500; /* Bolder text for selected */
     }
 
     .employee-section-header { /* Header for sections like "Records for [Employee Name]" */
@@ -467,11 +478,11 @@ html_css = """
         margin-top: 24px;
         border-bottom: 1px solid var(--border-color);
         padding-bottom: 8px;
-        font-size: 1.1rem;
+        font-size: 1.1rem; /* ~17-18px */
     }
 
     .record-type-header { /* Headers for "Field Activity Logs", "General Attendance", etc. */
-        font-size: 1rem;
+        font-size: 1rem; /* 16px */
         color: var(--text-color);
         margin-top: 20px;
         margin-bottom: 12px;
@@ -488,35 +499,35 @@ html_css = """
     /* Progress Bar */
     .stProgress > div > div { /* The actual progress bar fill */
         background-color: var(--primary-color) !important;
-        border-radius: var(--border-radius); /* Match container radius */
+        border-radius: var(--border-radius); /* Match container radius for smooth look */
     }
 
     .stProgress { /* The progress bar container */
         border-radius: var(--border-radius);
-        background-color: #f1f3f4; /* Lighter background for the track */
+        background-color: #e9ecef; /* Lighter background for the track (Google's choice often) */
     }
 
     /* Metric Widget Styling */
     div[data-testid="stMetricLabel"] {
-        font-size: 0.875rem !important;
+        font-size: 0.875rem !important; /* 14px */
         color: var(--text-muted-color) !important;
         font-weight: 400;
     }
 
     div[data-testid="stMetricValue"] {
-        font-size: 1.5rem !important; /* Slightly smaller than default for compactness */
+        font-size: 1.5rem !important; /* Approx 24px, slightly smaller than default for compactness */
         font-weight: 500;
         color: var(--text-color);
     }
-    /* No explicit style for delta, it will inherit text color or be set by Streamlit */
+    /* No explicit style for delta, it will inherit text color or be set by Streamlit based on positive/negative */
 
-    /* Custom Notification Boxes */
+    /* Custom Notification Boxes (Success, Error, Warning, Info) */
     .custom-notification {
         padding: 12px 16px;
         border-radius: var(--border-radius);
         margin-bottom: 16px;
-        font-size: 0.875rem;
-        border-left-width: 4px;
+        font-size: 0.875rem; /* 14px */
+        border-left-width: 4px; /* Accent border on the left */
         border-left-style: solid;
         display: flex;
         align-items: center;
@@ -525,7 +536,7 @@ html_css = """
     }
 
     .custom-notification.success {
-        background-color: #e6f4ea; /* Lighter green */
+        background-color: #e6f4ea; /* Lighter green, common for success messages */
         color: var(--text-color); /* Keep text readable */
         border-left-color: var(--success-color);
     }
@@ -551,15 +562,15 @@ html_css = """
     /* Badges for Status etc. */
     .badge {
         display: inline-block;
-        padding: 4px 8px; /* Smaller padding */
-        font-size: 0.75rem; /* Smaller font */
+        padding: 4px 8px; /* Smaller padding for a neater look */
+        font-size: 0.75rem; /* 12px, smaller font */
         font-weight: 500;
         line-height: 1;
         color: white;
         text-align: center;
         white-space: nowrap;
         vertical-align: baseline;
-        border-radius: 12px; /* Pill shape */
+        border-radius: 12px; /* Pill shape, common in Google UIs */
     }
 
     .badge.green { background-color: var(--success-color); }
@@ -568,7 +579,7 @@ html_css = """
     .badge.blue { background-color: var(--primary-color); }
     .badge.grey { background-color: var(--text-muted-color); }
 
-    /* Google Analytics-like cards (can be used with st.markdown) */
+    /* Google Analytics-like cards (can be used with st.markdown for custom KPIs) */
     .metric-card {
         background-color: white;
         border-radius: var(--border-radius);
@@ -579,7 +590,7 @@ html_css = """
     }
 
     .metric-card-title {
-        font-size: 0.75rem;
+        font-size: 0.75rem; /* 12px */
         color: var(--text-muted-color);
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -587,14 +598,14 @@ html_css = """
     }
 
     .metric-card-value {
-        font-size: 1.5rem;
+        font-size: 1.5rem; /* 24px */
         font-weight: 500;
         color: var(--text-color);
-        margin-bottom: 4px;
+        margin-bottom: 4px; /* Space between value and change indicator */
     }
 
-    .metric-card-change {
-        font-size: 0.75rem;
+    .metric-card-change { /* For delta values if you construct them manually */
+        font-size: 0.75rem; /* 12px */
         display: flex;
         align-items: center;
     }
@@ -603,55 +614,83 @@ html_css = """
     .metric-card-change.negative { color: var(--danger-color); }
 
     /* Google-style tabs (for st.tabs) */
-    .stTabs [role="tablist"] {
-        gap: 8px; /* Space between tab buttons */
-        margin-bottom: 16px;
-        border-bottom: none; /* Remove default Streamlit bottom border */
+    .stTabs [role="tablist"] { /* The container for tab buttons */
+        gap: 0px; /* Remove gap to make tabs touch if desired, or keep small gap e.g., 2px */
+        margin-bottom: 0px; /* Remove bottom margin to connect with tab content */
+        border-bottom: 1px solid var(--border-color); /* Underline for the whole tab bar */
     }
 
     .stTabs [role="tab"] { /* Individual tab button */
-        padding: 8px 16px;
-        border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top corners */
-        border: 1px solid var(--border-color);
-        border-bottom: none; /* Remove bottom border for inactive tabs to merge with content area */
-        background-color: #f8f9fa; /* Light background for inactive tabs */
+        padding: 10px 16px; /* Adjust padding for comfort */
+        border-radius: 0; /* Make tabs rectangular, or var(--border-radius) var(--border-radius) 0 0; for top rounded */
+        border: none; /* Remove individual borders */
+        border-bottom: 2px solid transparent; /* Placeholder for active indicator */
+        background-color: transparent; /* No background for inactive tabs */
         color: var(--text-muted-color);
-        font-size: 0.875rem;
-        font-weight: 400;
+        font-size: 0.875rem; /* 14px */
+        font-weight: 500; /* Medium weight for tabs */
         transition: all 0.2s ease;
-        margin-right: 0; /* Override Streamlit's default margin */
+        margin-right: 16px; /* Space between tabs */
+        position: relative;
+        top: 1px; /* Align with the bottom border of the tablist */
+    }
+    .stTabs [role="tab"]:last-child {
+        margin-right: 0;
     }
 
     .stTabs [role="tab"]:hover {
-        background-color: #f1f3f4; /* Slightly darker on hover */
-        color: var(--text-color);
+        background-color: transparent; /* No background change on hover for this style */
+        color: var(--text-color); /* Text color changes on hover */
     }
 
     .stTabs [aria-selected="true"] { /* Active tab */
-        background-color: white;
-        color: var(--primary-color);
-        border-color: var(--border-color); /* Ensure border matches content area */
-        border-bottom-color: white !important; /* Crucial: make bottom border white to "connect" with content */
+        background-color: transparent !important;
+        color: var(--primary-color) !important;
+        border-bottom: 2px solid var(--primary-color) !important; /* Active indicator line */
         font-weight: 500;
-        box-shadow: 0 -1px 2px 0 rgba(60,64,67,0.1); /* Subtle shadow to lift active tab */
-        position: relative; /* Allows z-index or to ensure it's above inactive tab borders */
-        z-index: 1;
+        box-shadow: none !important;
     }
-    /* Note: The content area of st.tabs might need its own border or background
-       if you want a fully enclosed look. This primarily styles the tab buttons. */
+    /* The content area of st.tabs (stTabPanel) is styled by Streamlit.
+       You might need to target [data-testid="stTabPanel"] for borders if needed. */
 
 
     /* Google-style date picker icon */
     .stDateInput input {
         /* Add a calendar icon using SVG background */
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='%235f6368'%3E%3Cpath d='M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='%235f6368'%3E%3Cpath d='M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: right 12px center;
-        padding-right: 36px !important; /* Ensure text doesn't overlap icon */
+        padding-right: 40px !important; /* Ensure text doesn't overlap icon */
+    }
+    
+    /* Styling for Material Symbols (used for navigation icons etc.) */
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 0,  /* 0 for outlined, 1 for filled */
+      'wght' 400, /* Font weight - 300 (Light) to 500 (Medium) is good for UI */
+      'GRAD' 0,  /* Optical grade */
+      'opsz' 20; /* Optical size (20 or 24 is common for UI) */
+      font-size: 20px; /* Explicit icon size, can match opsz */
+      vertical-align: text-bottom; /* Better alignment with text */
+      margin-right: 10px; /* Space between icon and text */
+      color: inherit; /* Inherit color from parent by default */
+    }
+
+    /* Sidebar specific icon styling */
+    [data-testid="stSidebar"] .material-symbols-outlined {
+        color: var(--text-muted-color); /* Default icon color in sidebar */
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+        font-size: 20px;
+    }
+    
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined,
+    [data-testid="stSidebar"] .stRadio > label:hover .material-symbols-outlined {
+        color: var(--primary-color); /* Icon color for selected or hovered radio item */
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20; /* Slightly bolder for active/hover */
     }
 
 </style>
-
+"""
 """
 st.markdown(html_css, unsafe_allow_html=True)
 
