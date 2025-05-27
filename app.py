@@ -1,8 +1,5 @@
 # Placeholder for the corrected Streamlit app.py code
 # Add your full working application logic here...
-# import streamlit as st # Commented out the initial one, as it's re-imported later.
-# st.title("Attendance Log System - Placeholder") # Removed this initial title
-
 
 import streamlit as st
 import pandas as pd
@@ -105,23 +102,52 @@ html_css = """
     .login-container {max-width: 480px; margin: 60px auto; border-top: 5px solid var(--secondary-color);}
     .login-container .stButton button {width: 100%; background-color: var(--secondary-color) !important; color: white !important; font-size: 1.1em; padding: 12px 20px; border-radius: var(--border-radius); border: none !important; font-weight: 600 !important; box-shadow: var(--box-shadow-sm) !important;}
     .login-container .stButton button:hover {background-color: var(--primary-color) !important; color: white !important; box-shadow: var(--box-shadow) !important;}
-    .stButton:not(.login-container .stButton) button {background-color: var(--success-color); color: white; padding: 10px 24px; border: none; border-radius: var(--border-radius); font-size: 1.05em; font-weight: 500; transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease; box-shadow: var(--box-shadow-sm); cursor: pointer;}
-    .stButton:not(.login-container .stButton) button:hover {background-color: #218838; transform: translateY(-2px); box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);}
-    .stButton:not(.login-container .stButton) button:active {transform: translateY(0px); box-shadow: var(--box-shadow-sm);}
-    .stButton button[id*="logout_button_sidebar"] {background-color: var(--danger-color) !important; border: 1px solid var(--danger-color) !important; color: white !important; font-weight: 500 !important;}
+    
+    /* General Button Styling (excluding login and logout) */
+    .stButton:not(.login-container .stButton):not([data-testid="stSidebar"] .stButton[id*="logout_button_sidebar"]) button {
+        background-color: var(--success-color); color: white; padding: 10px 24px; border: none; 
+        border-radius: var(--border-radius); font-size: 1.05em; font-weight: 500; 
+        transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease; 
+        box-shadow: var(--box-shadow-sm); cursor: pointer;
+    }
+    .stButton:not(.login-container .stButton):not([data-testid="stSidebar"] .stButton[id*="logout_button_sidebar"]) button:hover {
+        background-color: #218838; transform: translateY(-2px); box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);
+    }
+    .stButton:not(.login-container .stButton):not([data-testid="stSidebar"] .stButton[id*="logout_button_sidebar"]) button:active {
+        transform: translateY(0px); box-shadow: var(--box-shadow-sm);
+    }
+
+    /* Sidebar Navigation Buttons Styling */
+    [data-testid="stSidebar"] .stButton button { /* Targets all buttons in sidebar */
+        background-color: transparent !important;
+        color: var(--accent-color) !important;
+        border: 1px solid transparent !important; /* Keep border transparent or match sidebar bg for seamless look */
+        text-align: left !important;
+        padding: 10px 15px !important;
+        margin-bottom: 5px !important;
+        width: 100% !important; /* Make buttons full width */
+        font-weight: 500 !important;
+        border-radius: var(--border-radius) !important;
+    }
+    [data-testid="stSidebar"] .stButton button:hover {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        color: var(--card-bg-color) !important; /* Brighter text on hover */
+    }
+    /* Style for 'active' nav button (requires Python logic to add a class or rely on focus - tricky with st.button) */
+    /* A simpler way is to slightly change look of all sidebar buttons as above */
+
+
+    .stButton button[id*="logout_button_sidebar"] {background-color: var(--danger-color) !important; border: 1px solid var(--danger-color) !important; color: white !important; font-weight: 600 !important; text-align: center !important;}
     .stButton button[id*="logout_button_sidebar"]:hover {background-color: #c82333 !important; border-color: #c82333 !important;}
+
     .stTextInput input, .stNumberInput input, .stTextArea textarea, .stDateInput input, .stTimeInput input, .stSelectbox div[data-baseweb="select"] > div {border-radius: var(--border-radius) !important; border: 1px solid var(--input-border-color) !important; padding: 10px 12px !important; font-size: 1em !important; color: var(--text-color) !important; background-color: var(--card-bg-color) !important; transition: border-color 0.2s ease, box-shadow 0.2s ease;}
     .stTextInput input::placeholder, .stNumberInput input::placeholder, .stTextArea textarea::placeholder {color: var(--text-muted-color) !important; opacity: 1;}
     .stTextArea textarea {min-height: 120px;}
     .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus, .stDateInput input:focus, .stTimeInput input:focus, .stSelectbox div[data-baseweb="select"] > div:focus-within {border-color: var(--secondary-color) !important; box-shadow: 0 0 0 0.2rem rgba(32, 112, 192, 0.25) !important;}
     [data-testid="stSidebar"] {background-color: var(--primary-color); padding: 25px !important; box-shadow: 0.25rem 0 1rem rgba(0,0,0,0.1);}
     [data-testid="stSidebar"] .sidebar-content {padding-top: 10px;}
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] div:not([data-testid="stRadio"]) {color: #e9ecef !important;}
-    [data-testid="stSidebar"] .stRadio > label > div > p {font-size: 1.05em !important; color: var(--accent-color) !important; padding: 0; margin: 0;}
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {color: var(--card-bg-color) !important; font-weight: 600;}
-    [data-testid="stSidebar"] .stRadio > label {padding: 10px 15px; border-radius: var(--border-radius); margin-bottom: 6px; transition: background-color 0.2s ease;}
-    [data-testid="stSidebar"] .stRadio > label:hover {background-color: rgba(255, 255, 255, 0.08);}
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {background-color: rgba(255, 255, 255, 0.15);}
+    [data-testid="stSidebar"] p, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {color: #e9ecef !important;} /* General text in sidebar */
+    
     .welcome-text {font-size: 1.4em; font-weight: 600; margin-bottom: 25px; text-align: center; color: var(--card-bg-color) !important; border-bottom: 1px solid var(--accent-color); padding-bottom: 20px;}
     [data-testid="stSidebar"] [data-testid="stImage"] > img {border-radius: 50%; border: 3px solid var(--accent-color); margin: 0 auto 10px auto; display: block;}
     .stDataFrame {width: 100%; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--box-shadow-sm); margin-bottom: 25px;}
@@ -135,7 +161,7 @@ html_css = """
     .employee-progress-item p {font-size: 0.85em; color: var(--text-muted-color); margin-bottom: 8px;}
     .button-column-container > div[data-testid="stHorizontalBlock"] {gap: 20px;}
     .button-column-container .stButton button {width: 100%;}
-    div[role="radiogroup"] {display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;}
+    div[role="radiogroup"] {display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;} /* For main page radio buttons if any */
     div[role="radiogroup"] > label {background-color: #23578c; color: var(#ffffff); padding: 10px 18px; border-radius: var(--border-radius); border: 1px solid var(--input-border-color); cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; font-size: 0.95em; font-weight: 500;}
     div[role="radiogroup"] > label:hover {background-color: #4664a5; border-color: #adb5bd; color:#ffffff;}
     div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {background-color: var(--secondary-color) !important; color: white !important; border-color: var(--secondary-color) !important; font-weight: 500;}
@@ -146,11 +172,7 @@ html_css = """
     .stProgress {border-radius: var(--border-radius); background-color: #e9ecef;}
     div[data-testid="stMetricLabel"] {font-size: 0.95em !important; color: var(--text-muted-color) !important; font-weight: 500;}
     div[data-testid="stMetricValue"] {font-size: 1.8em !important; font-weight: 600; color: var(--primary-color);}
-    .custom-notification {padding: 15px 20px; border-radius: var(--border-radius); margin-bottom: 20px; font-size: 1em; border-left-width: 5px; border-left-style: solid; display: flex; align-items: center;}
-    .custom-notification.success {background-color: #d1e7dd; color: #0f5132; border-left-color: var(--success-color);}
-    .custom-notification.error {background-color: #f8d7da; color: #842029; border-left-color: var(--danger-color);}
-    .custom-notification.warning {background-color: #fff3cd; color: #664d03; border-left-color: var(--warning-color);}
-    .custom-notification.info {background-color: #cff4fc; color: #055160; border-left-color: var(--info-color);}
+    /* .custom-notification removed as st.toast is now primary for this */
     .badge {display: inline-block; padding: 0.35em 0.65em; font-size: 0.85em; font-weight: 600; line-height: 1; color: #fff; text-align: center; white-space: nowrap; vertical-align: baseline; border-radius: var(--border-radius);}
     .badge.green {background-color: var(--success-color);}
     .badge.red {background-color: var(--danger-color);}
@@ -185,21 +207,21 @@ if PILLOW_INSTALLED:
                 try: font = ImageFont.truetype("arial.ttf", 40)
                 except IOError: font = ImageFont.load_default()
                 text = user_key[:2].upper()
-                if hasattr(draw, 'textbbox'): # More modern PIL
+                if hasattr(draw, 'textbbox'):
                     bbox = draw.textbbox((0,0), text, font=font); text_width, text_height = bbox[2]-bbox[0], bbox[3]-bbox[1]
-                    text_x, text_y = (120-text_width)/2, (120-text_height)/2 - bbox[1] # Adjust y based on bbox[1]
-                elif hasattr(draw, 'textsize'): # Older PIL
+                    text_x, text_y = (120-text_width)/2, (120-text_height)/2 - bbox[1]
+                elif hasattr(draw, 'textsize'):
                     text_width, text_height = draw.textsize(text, font=font); text_x, text_y = (120-text_width)/2, (120-text_height)/2
-                else: # Fallback if textsize and textbbox not available
+                else:
                     text_x, text_y = 30,30
                 draw.text((text_x, text_y), text, fill=(28,78,128), font=font); img.save(img_path)
-            except Exception: pass # Ignore if placeholder creation fails
+            except Exception: pass
 
 # --- File Paths & Timezone & Directories ---
 ATTENDANCE_FILE = "attendance.csv"; ALLOWANCE_FILE = "allowances.csv"; GOALS_FILE = "goals.csv"; PAYMENT_GOALS_FILE = "payment_goals.csv"
 ACTIVITY_LOG_FILE = "activity_log.csv"
 ACTIVITY_PHOTOS_DIR = "activity_photos"
-ATTENDANCE_PHOTOS_DIR = "attendance_photos" # Used if attendance page still captures its own photos
+ATTENDANCE_PHOTOS_DIR = "attendance_photos"
 
 if not os.path.exists(ACTIVITY_PHOTOS_DIR):
     try: os.makedirs(ACTIVITY_PHOTOS_DIR)
@@ -212,7 +234,7 @@ TARGET_TIMEZONE = "Asia/Kolkata"
 try: tz = pytz.timezone(TARGET_TIMEZONE)
 except pytz.exceptions.UnknownTimeZoneError: st.error(f"Invalid TARGET_TIMEZONE: '{TARGET_TIMEZONE}'."); st.stop()
 def get_current_time_in_tz(): return datetime.now(timezone.utc).astimezone(tz)
-def get_quarter_str_for_year(year, for_current_display=False): # Parameter for_current_display not used, can be removed
+def get_quarter_str_for_year(year, for_current_display=False):
     now_month = get_current_time_in_tz().month
     if 1 <= now_month <= 3: return f"{year}-Q1"
     elif 4 <= now_month <= 6: return f"{year}-Q2"
@@ -225,37 +247,32 @@ def load_data(path, columns):
         try:
             if os.path.getsize(path) > 0:
                 df = pd.read_csv(path)
-                # Ensure all expected columns exist, add if missing
                 for col in columns:
-                    if col not in df.columns: df[col] = pd.NA # Use pd.NA for missing values
-                # Convert specific columns to numeric, coercing errors
+                    if col not in df.columns: df[col] = pd.NA
                 num_cols = ["Amount", "TargetAmount", "AchievedAmount", "Latitude", "Longitude"]
                 for nc in num_cols:
                     if nc in df.columns: df[nc] = pd.to_numeric(df[nc], errors='coerce')
                 return df
-            else: return pd.DataFrame(columns=columns) # File exists but is empty
-        except pd.errors.EmptyDataError: return pd.DataFrame(columns=columns) # Explicitly handle EmptyDataError
+            else: return pd.DataFrame(columns=columns)
+        except pd.errors.EmptyDataError: return pd.DataFrame(columns=columns)
         except Exception as e: st.error(f"Error loading {path}: {e}."); return pd.DataFrame(columns=columns)
     else:
-        # File does not exist, create it with headers
         df = pd.DataFrame(columns=columns);
         try: df.to_csv(path, index=False)
-        except Exception as e: st.warning(f"Could not create {path}: {e}") # Warn if creation fails
+        except Exception as e: st.warning(f"Could not create {path}: {e}")
         return df
 
-ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude"] # NO ImageFile for general attendance
+ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude"]
 ALLOWANCE_COLUMNS = ["Username", "Type", "Amount", "Reason", "Date"]
 GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
 PAYMENT_GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
 ACTIVITY_LOG_COLUMNS = ["Username", "Timestamp", "Description", "ImageFile", "Latitude", "Longitude"]
 
-# --- Load DataFrames globally ---
 attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS)
 allowance_df = load_data(ALLOWANCE_FILE, ALLOWANCE_COLUMNS)
 goals_df = load_data(GOALS_FILE, GOALS_COLUMNS)
 payment_goals_df = load_data(PAYMENT_GOALS_FILE, PAYMENT_GOALS_COLUMNS)
 activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS)
-
 
 # --- Session State & Login ---
 if "user_message" not in st.session_state: st.session_state.user_message = None
@@ -264,10 +281,14 @@ if "auth" not in st.session_state: st.session_state.auth = {"logged_in": False, 
 
 if not st.session_state.auth["logged_in"]:
     st.title("TrackSphere Login")
-    message_placeholder_login = st.empty()
+    # Message placeholder for login page (can use st.toast here too if preferred for consistency)
+    login_message_placeholder = st.empty()
     if st.session_state.user_message:
-        message_placeholder_login.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
-        st.session_state.user_message = None; st.session_state.message_type = None
+        login_message_placeholder.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
+        # Clear message after display
+        st.session_state.user_message = None
+        st.session_state.message_type = None
+
     st.markdown('<div class="login-container card">', unsafe_allow_html=True)
     st.markdown("<h3>🔐 Login</h3>", unsafe_allow_html=True)
     uname = st.text_input("Username", key="login_uname")
@@ -276,38 +297,42 @@ if not st.session_state.auth["logged_in"]:
         user_creds = USERS.get(uname)
         if user_creds and user_creds["password"] == pwd:
             st.session_state.auth = {"logged_in": True, "username": uname, "role": user_creds["role"]}
-            st.session_state.user_message = "Login successful!"; st.session_state.message_type = "success"; st.rerun()
-        else: st.error("Invalid username or password.") # This error displays directly, which is fine here.
+            st.session_state.user_message = "Login successful!" # Will be picked up by st.toast on rerun
+            st.session_state.message_type = "success"
+            st.rerun()
+        else: st.error("Invalid username or password.")
     st.markdown('</div>', unsafe_allow_html=True); st.stop()
 
 # --- Main Application ---
-current_user = st.session_state.auth # User is authenticated at this point
+current_user = st.session_state.auth
 
-# --- Global Message Display for Main Application ---
-# This will display messages set in st.session_state by various actions before a rerun.
-message_placeholder_main = st.empty()
-if "user_message" in st.session_state and st.session_state.user_message:
-    message_type_main = st.session_state.get("message_type", "info") # Default to info
-    message_placeholder_main.markdown(
-        f"<div class='custom-notification {message_type_main}'>{st.session_state.user_message}</div>",
-        unsafe_allow_html=True
-    )
-
-import streamlit as st
-import os
-
-# ✅ Step 1: Initialize navigation state BEFORE using it
+# ✅ Initialize navigation state BEFORE using it in sidebar
 if "nav" not in st.session_state:
-    st.session_state.nav = "📆 Attendance"  # default page
+    st.session_state.nav = "📆 Attendance"  # Default page
 
-# ✅ Step 2: Handle temporary messages and clear them
+# ✅ Handle temporary messages using st.toast and clear them
 if "user_message" in st.session_state and st.session_state.user_message:
+    msg_text = st.session_state.user_message
     msg_type = st.session_state.get("message_type", "info")
-    st.toast(st.session_state.user_message, icon="ℹ️" if msg_type == "info" else "❗")
+    
+    icon_map = {"success": "✅", "error": "❌", "warning": "⚠️", "info": "ℹ️"}
+    toast_icon = icon_map.get(msg_type, "ℹ️")
+    
+    # st.toast is more suitable for brief notifications
+    if msg_type == "success":
+        st.success(msg_text, icon=toast_icon)
+    elif msg_type == "error":
+        st.error(msg_text, icon=toast_icon)
+    elif msg_type == "warning":
+        st.warning(msg_text, icon=toast_icon)
+    else: # info
+        st.info(msg_text, icon=toast_icon)
+        
     st.session_state.user_message = None
     st.session_state.message_type = None
 
-# ✅ Step 3: Render Sidebar with clickable icons
+
+# --- Sidebar Navigation ---
 with st.sidebar:
     st.markdown(
         f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>",
@@ -315,7 +340,6 @@ with st.sidebar:
     )
 
     user_sidebar_info = USERS.get(current_user["username"], {})
-
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
         st.image(user_sidebar_info["profile_photo"], width=100)
 
@@ -323,62 +347,72 @@ with st.sidebar:
         f"<p style='text-align:center; font-size:0.9em; color: #e0e0e0;'>{user_sidebar_info.get('position', 'N/A')}</p>",
         unsafe_allow_html=True
     )
-
     st.markdown("---")
 
-    # Navigation buttons
     nav_options = {
-        "📆 Attendance": "attendance",
-        "📸 Upload activity Photo": "Upload_Activity_Photo",
-        "🧾 Allowance": "allowance",
-        "🎯 Goal Tracker": "goal_tracker",
-        "💰 Payment Collection Tracker": "Payment_Collection_Tracker",
-        "📊 View Logs": "view_logs"
+        "📆 Attendance": "attendance_page", # Using unique keys for buttons if labels are similar
+        "📸 Upload Activity Photo": "upload_activity_page",
+        "🧾 Allowance": "allowance_page",
+        "🎯 Goal Tracker": "goal_tracker_page",
+        "💰 Payment Collection Tracker": "payment_tracker_page",
+        "📊 View Logs": "view_logs_page"
     }
 
-    for label, nav_key in nav_options.items():
-        if st.button(label, key=f"nav_{nav_key}", use_container_width=True):
-            st.session_state.nav = label
+    # Determine active button for styling (optional, basic CSS provided)
+    active_style = """
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        color: var(--card-bg-color) !important;
+        font-weight: 600 !important;
+    """
+    default_style = "" # From CSS
+
+    for label, page_key_suffix in nav_options.items():
+        # Apply active style if this is the current page
+        button_key = f"nav_button_{page_key_suffix}"
+        
+        # For a more distinct active state with st.button, you could change the label or add an indicator
+        # Here, we rely on CSS which might be limited in dynamically styling the *specific* active button well.
+        # A common workaround is to use st.markdown to create custom HTML buttons if very specific active styling is needed.
+        # Or, as done here, slightly different styling for all sidebar buttons and rely on user knowing the current page.
+        
+        if st.button(label, key=button_key, use_container_width=True):
+            st.session_state.nav = label # Store the display label as the current page identifier
             st.rerun()
-
+    
     st.markdown("---")
-
-    if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True):
+    if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True): # This button has specific CSS
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.session_state.user_message = "Logged out successfully."
         st.session_state.message_type = "info"
         st.rerun()
 
-# ✅ Step 4: Use the selected nav option
-nav = st.session_state.nav
+# --- Main Content Logic ---
+nav_page_to_display = st.session_state.nav # Get the current page from session state
 
-
-
-#------------------------------------------------------------------------closed navbar
-
-# --- Main Content ---
-if nav == "📆 Attendance":
+if nav_page_to_display == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
-    st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Upload Activity Photo' section.", icon="ℹ️") # Updated info
+    st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Upload Activity Photo' section.", icon="ℹ️")
     st.markdown("---"); st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
     col1, col2 = st.columns(2); common_data = {"Username": current_user["username"], "Latitude": pd.NA, "Longitude": pd.NA}
 
     def process_general_attendance(attendance_type):
-        global attendance_df # Ensure we modify the global df
+        global attendance_df
         now_str_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
         new_entry_data = {"Type": attendance_type, "Timestamp": now_str_display, **common_data}
-        for col_name in ATTENDANCE_COLUMNS: # ATTENDANCE_COLUMNS no longer has ImageFile
+        for col_name in ATTENDANCE_COLUMNS:
             if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA
         new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
-        # It's generally better to reload data after a rerun rather than immediately after modification,
-        # but for now, we keep the existing pattern of concat, save, then set session state for message.
         temp_attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
         try:
             temp_attendance_df.to_csv(ATTENDANCE_FILE, index=False)
-            # attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS) # Data will be reloaded on rerun
-            st.session_state.user_message = f"{attendance_type} recorded at {now_str_display}."; st.session_state.message_type = "success"; st.rerun()
-        except Exception as e: st.session_state.user_message = f"Error saving attendance: {e}"; st.session_state.message_type = "error"; st.rerun()
+            st.session_state.user_message = f"{attendance_type} recorded at {now_str_display}."
+            st.session_state.message_type = "success"
+            st.rerun()
+        except Exception as e:
+            st.session_state.user_message = f"Error saving attendance: {e}"
+            st.session_state.message_type = "error"
+            st.rerun()
 
     with col1:
         if st.button("✅ Check In", key="check_in_btn_main_no_photo", use_container_width=True):
@@ -388,10 +422,10 @@ if nav == "📆 Attendance":
             process_general_attendance("Check-Out")
     st.markdown('</div></div>', unsafe_allow_html=True)
 
-elif nav == "📸 Upload Activity Photo":
+elif nav_page_to_display == "📸 Upload Activity Photo":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
-    current_lat = pd.NA; current_lon = pd.NA # Placeholder, actual location capture not implemented here
+    current_lat = pd.NA; current_lon = pd.NA
     with st.form(key="activity_photo_form"):
         st.markdown("<h6>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True)
         activity_description = st.text_area("Brief description of activity/visit:", key="activity_desc")
@@ -413,12 +447,16 @@ elif nav == "📸 Upload Activity Photo":
                 new_activity_entry = pd.DataFrame([new_activity_data], columns=ACTIVITY_LOG_COLUMNS)
                 temp_activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True)
                 temp_activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
-                # activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS) # Reloaded on rerun
-                st.session_state.user_message = "Activity photo and log uploaded!"; st.session_state.message_type = "success"; st.rerun()
-            except Exception as e: st.session_state.user_message = f"Error saving activity: {e}"; st.session_state.message_type = "error"; st.rerun()
+                st.session_state.user_message = "Activity photo and log uploaded!"
+                st.session_state.message_type = "success"
+                st.rerun()
+            except Exception as e:
+                st.session_state.user_message = f"Error saving activity: {e}"
+                st.session_state.message_type = "error"
+                st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == "🧾 Allowance":
+elif nav_page_to_display == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💼 Claim Allowance</h3>", unsafe_allow_html=True)
     st.markdown("<div class='form-field-label'><h6>Select Allowance Type:</h6></div>", unsafe_allow_html=True)
@@ -432,13 +470,17 @@ elif nav == "🧾 Allowance":
             temp_allowance_df = pd.concat([allowance_df, new_entry], ignore_index=True)
             try:
                 temp_allowance_df.to_csv(ALLOWANCE_FILE, index=False)
-                # allowance_df = load_data(ALLOWANCE_FILE, ALLOWANCE_COLUMNS) # Reloaded on rerun
-                st.session_state.user_message = f"Allowance for ₹{amount:.2f} submitted."; st.session_state.message_type = "success"; st.rerun()
-            except Exception as e: st.session_state.user_message = f"Error submitting allowance: {e}"; st.session_state.message_type = "error"; st.rerun()
-        else: st.warning("Please complete all fields with valid values.") # This warning shows directly, fine.
+                st.session_state.user_message = f"Allowance for ₹{amount:.2f} submitted."
+                st.session_state.message_type = "success"
+                st.rerun()
+            except Exception as e:
+                st.session_state.user_message = f"Error submitting allowance: {e}"
+                st.session_state.message_type = "error"
+                st.rerun()
+        else: st.warning("Please complete all fields with valid values.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == "🎯 Goal Tracker":
+elif nav_page_to_display == "🎯 Goal Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_GOAL_YEAR = 2025; current_quarter_for_display = get_quarter_str_for_year(TARGET_GOAL_YEAR)
@@ -506,14 +548,13 @@ elif nav == "🎯 Goal Tracker":
                             new_row_df=pd.DataFrame([new_row_data],columns=GOALS_COLUMNS); editable_goals_df=pd.concat([editable_goals_df,new_row_df],ignore_index=True); msg_verb="set"
                         try:
                             editable_goals_df.to_csv(GOALS_FILE,index=False)
-                            # goals_df=load_data(GOALS_FILE,GOALS_COLUMNS) # Reloaded on rerun
                             st.session_state.user_message=f"Goal for {selected_emp} ({selected_period}) {msg_verb}!"; st.session_state.message_type="success"; st.rerun()
                         except Exception as e: st.session_state.user_message=f"Error saving goal: {e}"; st.session_state.message_type="error"; st.rerun()
     else: # Employee View
         st.markdown("<h4>My Sales Goals (2025 - Quarterly)</h4>", unsafe_allow_html=True)
         my_goals = goals_df[goals_df["Username"].astype(str) == str(current_user["username"])].copy()
         for col in ["TargetAmount", "AchievedAmount"]: my_goals[col] = pd.to_numeric(my_goals[col], errors="coerce").fillna(0.0)
-        current_g_df = my_goals[my_goals["MonthYear"] == current_quarter_for_display] # Renamed to avoid conflict
+        current_g_df = my_goals[my_goals["MonthYear"] == current_quarter_for_display]
         st.markdown(f"<h5>Current Goal Period: {current_quarter_for_display}</h5>", unsafe_allow_html=True)
         if not current_g_df.empty:
             g = current_g_df.iloc[0]; target_amt = g["TargetAmount"]; achieved_amt = g["AchievedAmount"]
@@ -549,7 +590,7 @@ elif nav == "🎯 Goal Tracker":
                 else:
                     st.session_state.user_message = "Could not find your current goal to update."
                     st.session_state.message_type = "error"
-                    st.rerun() # Rerun to show message via global handler
+                    st.rerun()
         else: st.info(f"No goal set for {current_quarter_for_display}. Contact admin.")
         st.markdown("---"); st.markdown("<h5>My Past Goals (2025)</h5>", unsafe_allow_html=True)
         past_goals = my_goals[(my_goals["MonthYear"].astype(str).str.startswith(str(TARGET_GOAL_YEAR))) & (my_goals["MonthYear"].astype(str) != current_quarter_for_display)]
@@ -557,7 +598,7 @@ elif nav == "🎯 Goal Tracker":
         else: st.info(f"No past goal records for {TARGET_GOAL_YEAR}.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-elif nav == "💰 Payment Collection Tracker":
+elif nav_page_to_display == "💰 Payment Collection Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💰 Payment Collection Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_YEAR_PAYMENT = 2025; current_quarter_display_payment = get_quarter_str_for_year(TARGET_YEAR_PAYMENT)
@@ -592,10 +633,9 @@ elif nav == "💰 Payment Collection Tracker":
                     st.markdown("<h6>Overall Team Collection Performance:</h6>",unsafe_allow_html=True)
                     team_bar_fig_payment = create_team_progress_bar_chart(summary_df_payment,title="Team Collection Target vs. Achieved",target_col="Target",achieved_col="Achieved")
                     if team_bar_fig_payment:
-                        # Custom color for achieved bars in payment chart
                         for bar_group in team_bar_fig_payment.axes[0].containers:
-                            if bar_group.get_label()=='Achieved': # Make sure this label matches what's set in create_team_progress_bar_chart
-                                for bar in bar_group: bar.set_color('#2070c0') # Payment achieved color
+                            if bar_group.get_label()=='Achieved':
+                                for bar in bar_group: bar.set_color('#2070c0')
                         st.pyplot(team_bar_fig_payment,use_container_width=True)
                     else: st.info("No collection data to plot for team bar chart.")
                 else: st.info(f"No payment collection data for {current_quarter_display_payment}.")
@@ -611,16 +651,16 @@ elif nav == "💰 Payment Collection Tracker":
                 if not existing_payment_goal.empty:
                     g_payment=existing_payment_goal.iloc[0]; desc_payment=g_payment.get("GoalDescription",""); tgt_payment_val=float(pd.to_numeric(g_payment.get("TargetAmount",0.0),errors='coerce') or 0.0)
                     ach_payment_val=float(pd.to_numeric(g_payment.get("AchievedAmount",0.0),errors='coerce') or 0.0); stat_payment=g_payment.get("Status","Not Started")
-                    st.info(f"Editing payment goal for {selected_emp_payment} - {selected_period_payment}") # Added info
+                    st.info(f"Editing payment goal for {selected_emp_payment} - {selected_period_payment}")
                 with st.form(f"form_payment_{selected_emp_payment}_{selected_period_payment}_admin"):
-                    new_desc_payment=st.text_input("Collection Goal Description",value=desc_payment,key=f"desc_pay_{selected_emp_payment}_{selected_period_payment}_p_admin") # Changed from text_area
+                    new_desc_payment=st.text_input("Collection Goal Description",value=desc_payment,key=f"desc_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
                     new_tgt_payment=st.number_input("Target Collection (INR)",value=tgt_payment_val,min_value=0.0,step=1000.0,key=f"target_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
                     new_ach_payment=st.number_input("Collected Amount (INR)",value=ach_payment_val,min_value=0.0,step=500.0,key=f"achieved_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
-                    new_status_payment=st.selectbox("Status",status_options_payment,index=status_options_payment.index(stat_payment),key=f"status_pay_{selected_emp_payment}_{selected_period_payment}_p_admin") # Changed from radio
+                    new_status_payment=st.selectbox("Status",status_options_payment,index=status_options_payment.index(stat_payment),key=f"status_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
                     submitted_payment=st.form_submit_button("Save Goal")
                 if submitted_payment:
                     if not new_desc_payment.strip(): st.warning("Description required.")
-                    elif new_tgt_payment <= 0 and new_status_payment not in ["Cancelled","Not Started", "On Hold"]: st.warning("Target > 0 required unless status is Cancelled, Not Started or On Hold.") # Adjusted condition
+                    elif new_tgt_payment <= 0 and new_status_payment not in ["Cancelled","Not Started", "On Hold"]: st.warning("Target > 0 required unless status is Cancelled, Not Started or On Hold.")
                     else:
                         editable_payment_goals_df=payment_goals_df.copy(); existing_pg_indices=editable_payment_goals_df[(editable_payment_goals_df["Username"]==selected_emp_payment)&(editable_payment_goals_df["MonthYear"]==selected_period_payment)].index
                         if not existing_pg_indices.empty: editable_payment_goals_df.loc[existing_pg_indices[0]]=[selected_emp_payment,selected_period_payment,new_desc_payment,new_tgt_payment,new_ach_payment,new_status_payment]; msg_payment="updated"
@@ -631,14 +671,13 @@ elif nav == "💰 Payment Collection Tracker":
                             new_row_df_p=pd.DataFrame([new_row_data_p],columns=PAYMENT_GOALS_COLUMNS); editable_payment_goals_df=pd.concat([editable_payment_goals_df,new_row_df_p],ignore_index=True); msg_payment="set"
                         try:
                             editable_payment_goals_df.to_csv(PAYMENT_GOALS_FILE,index=False)
-                            # payment_goals_df=load_data(PAYMENT_GOALS_FILE,PAYMENT_GOALS_COLUMNS) # Reloaded on rerun
                             st.session_state.user_message=f"Payment goal {msg_payment} for {selected_emp_payment} ({selected_period_payment})"; st.session_state.message_type="success"; st.rerun()
                         except Exception as e: st.session_state.user_message=f"Error saving payment goal: {e}"; st.session_state.message_type="error"; st.rerun()
     else: # Employee View
         st.markdown("<h4>My Payment Collection Goals (2025)</h4>", unsafe_allow_html=True)
         user_goals_payment = payment_goals_df[payment_goals_df["Username"]==current_user["username"]].copy()
         user_goals_payment[["TargetAmount","AchievedAmount"]] = user_goals_payment[["TargetAmount","AchievedAmount"]].apply(pd.to_numeric,errors="coerce").fillna(0.0)
-        current_payment_goal_period_df = user_goals_payment[user_goals_payment["MonthYear"]==current_quarter_display_payment] # Renamed
+        current_payment_goal_period_df = user_goals_payment[user_goals_payment["MonthYear"]==current_quarter_display_payment]
         st.markdown(f"<h5>Current Quarter: {current_quarter_display_payment}</h5>", unsafe_allow_html=True)
         if not current_payment_goal_period_df.empty:
             g_pay=current_payment_goal_period_df.iloc[0]; tgt_pay=g_pay["TargetAmount"]; ach_pay=g_pay["AchievedAmount"]
@@ -673,7 +712,7 @@ elif nav == "💰 Payment Collection Tracker":
                 else:
                     st.session_state.user_message = "Could not find your current payment goal to update."
                     st.session_state.message_type = "error"
-                    st.rerun() # Rerun to show message via global handler
+                    st.rerun()
         else: st.info(f"No collection goal for {current_quarter_display_payment}.")
         st.markdown("<h5>Past Quarters</h5>", unsafe_allow_html=True)
         past_payment_goals = user_goals_payment[user_goals_payment["MonthYear"]!=current_quarter_display_payment]
@@ -681,7 +720,7 @@ elif nav == "💰 Payment Collection Tracker":
         else: st.info("No past collection goals.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == "📊 View Logs":
+elif nav_page_to_display == "📊 View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📊 View Logs</h3>", unsafe_allow_html=True)
     def display_activity_logs_with_photos(df_logs, user_name_for_header):
@@ -699,14 +738,14 @@ elif nav == "📊 View Logs":
                     image_path_to_display = os.path.join(ACTIVITY_PHOTOS_DIR, str(row['ImageFile']))
                     if os.path.exists(image_path_to_display):
                         try: st.image(image_path_to_display, width=150)
-                        except Exception as img_e: st.warning(f"Img err: {img_e}") # Show specific image error
+                        except Exception as img_e: st.warning(f"Img err: {img_e}")
                     else: st.caption(f"Img missing")
     def display_attendance_logs(df_logs, user_name_for_header):
         if df_logs.empty: st.warning(f"No general attendance records for {user_name_for_header}."); return
         df_logs_sorted = df_logs.sort_values(by="Timestamp", ascending=False).copy()
         st.markdown(f"<h5>General Attendance Records for: {user_name_for_header}</h5>", unsafe_allow_html=True)
         columns_to_show = ["Type", "Timestamp"]
-        if 'Latitude' in df_logs_sorted.columns and 'Longitude' in df_logs_sorted.columns: # Check if columns exist
+        if 'Latitude' in df_logs_sorted.columns and 'Longitude' in df_logs_sorted.columns:
             df_logs_sorted['Location'] = df_logs_sorted.apply(
                 lambda row: f"Lat: {row['Latitude']:.4f}, Lon: {row['Longitude']:.4f}"
                 if pd.notna(row['Latitude']) and pd.notna(row['Longitude']) else "Not Recorded", axis=1
@@ -716,18 +755,16 @@ elif nav == "📊 View Logs":
 
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: View Employee Records</h4>", unsafe_allow_html=True)
-        # Ensure USERS keys are strings if selected_employee_log is compared to string DFs
-        employee_name_list = list(USERS.keys())
-        if "admin" in employee_name_list: employee_name_list.remove("admin") # Exclude admin from this dropdown
+        employee_name_list = [uname for uname in USERS.keys() if USERS[uname]["role"] == "employee"]
 
-        selected_employee_log = st.selectbox("Select Employee:", employee_name_list, key="log_employee_select_admin_activity")
+        selected_employee_log = st.selectbox("Select Employee:", employee_name_list, key="log_employee_select_admin_activity", index=0 if employee_name_list else None) # Add index
 
-        if selected_employee_log: # Proceed only if an employee is selected
+        if selected_employee_log:
             emp_activity_log = activity_log_df[activity_log_df["Username"] == selected_employee_log]
             display_activity_logs_with_photos(emp_activity_log, selected_employee_log)
             st.markdown("<br><hr><br>", unsafe_allow_html=True)
             emp_attendance_log = attendance_df[attendance_df["Username"] == selected_employee_log]
-            display_attendance_logs(emp_attendance_log, selected_employee_log) # Using simplified version
+            display_attendance_logs(emp_attendance_log, selected_employee_log)
             st.markdown("---"); st.markdown(f"<h5>Allowances for {selected_employee_log}</h5>", unsafe_allow_html=True)
             emp_allowance_log = allowance_df[allowance_df["Username"] == selected_employee_log]
             if not emp_allowance_log.empty: st.dataframe(emp_allowance_log.sort_values(by="Date", ascending=False).reset_index(drop=True), use_container_width=True)
@@ -740,16 +777,17 @@ elif nav == "📊 View Logs":
             emp_payment_goals_log = payment_goals_df[payment_goals_df["Username"] == selected_employee_log]
             if not emp_payment_goals_log.empty: st.dataframe(emp_payment_goals_log.sort_values(by="MonthYear", ascending=False).reset_index(drop=True), use_container_width=True)
             else: st.warning("No payment collection goals records found")
-        else:
-            st.info("Please select an employee to view their logs.")
-
+        elif employee_name_list : # If there are employees but none selected yet (e.g. if index=None initially)
+             st.info("Please select an employee to view their logs.")
+        else: # No employees exist
+            st.info("No employee records to display.")
     else: # Employee view
         st.markdown("<h4>My Records</h4>", unsafe_allow_html=True)
         my_activity_log = activity_log_df[activity_log_df["Username"] == current_user["username"]]
         display_activity_logs_with_photos(my_activity_log, current_user["username"])
         st.markdown("<br><hr><br>", unsafe_allow_html=True)
         my_attendance_log = attendance_df[attendance_df["Username"] == current_user["username"]]
-        display_attendance_logs(my_attendance_log, current_user["username"]) # Using simplified version
+        display_attendance_logs(my_attendance_log, current_user["username"])
         st.markdown("---"); st.markdown("<h5>My Allowances</h5>", unsafe_allow_html=True)
         my_allowance_log = allowance_df[allowance_df["Username"] == current_user["username"]]
         if not my_allowance_log.empty: st.dataframe(my_allowance_log.sort_values(by="Date", ascending=False).reset_index(drop=True), use_container_width=True)
