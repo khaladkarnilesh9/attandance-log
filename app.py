@@ -593,11 +593,25 @@ elif nav == "📸 Upload Activity Photo":
         img_file_buffer_activity = st.camera_input("Take a picture of your activity/visit", key="activity_camera_input")
         submit_activity_photo = st.form_submit_button("⬆️ Upload Photo and Log Activity")
 
+elif nav == "📸 Upload Activity Photo":
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
+    current_lat, current_lon = pd.NA, pd.NA # Location capture not implemented here
+    with st.form(key="activity_photo_form"):
+        st.markdown("<h6>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True)
+        activity_description = st.text_area("Brief description of activity/visit:", key="activity_desc", help="E.g., Met with Client X at their office regarding Project Y.")
+        img_file_buffer_activity = st.camera_input("Take a picture of your activity/visit", key="activity_camera_input")
+        submit_activity_photo = st.form_submit_button("⬆️ Upload Photo and Log Activity")
+
     if submit_activity_photo:
-        if img_file_buffer_activity is None: st.warning("Please take a picture before submitting.")
-        elif not activity_description.strip(): st.warning("Please provide a description for the activity.")
+        if img_file_buffer_activity is None:
+            st.warning("Please take a picture before submitting.")
+        elif not activity_description.strip():
+            st.warning("Please provide a description for the activity.")
         else:
-            global activity_log_df # To update the global df
+            # ***** CORRECTED PLACEMENT OF GLOBAL DECLARATION *****
+            global activity_log_df # Declare global at the start of this block
+
             now_for_filename = get_current_time_in_tz().strftime("%Y%m%d_%H%M%S")
             now_for_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
             image_filename_activity = f"{current_user['username']}_activity_{now_for_filename}.jpg"
@@ -609,12 +623,15 @@ elif nav == "📸 Upload Activity Photo":
                     if col_name not in new_activity_data: new_activity_data[col_name] = pd.NA
                 new_activity_entry = pd.DataFrame([new_activity_data], columns=ACTIVITY_LOG_COLUMNS)
 
+                # Now, activity_log_df is correctly understood as the global one for reading and writing
                 temp_activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True)
                 temp_activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
                 activity_log_df = temp_activity_log_df # Update in-memory df
                 st.session_state.user_message = "Activity photo and log uploaded!"; st.session_state.message_type = "success"; st.rerun()
-            except Exception as e: st.session_state.user_message = f"Error saving activity: {e}"; st.session_state.message_type = "error"; st.rerun()
+            except Exception as e:
+                st.session_state.user_message = f"Error saving activity: {e}"; st.session_state.message_type = "error"; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
