@@ -292,16 +292,22 @@ if "user_message" in st.session_state and st.session_state.user_message:
         f"<div class='custom-notification {message_type_main}'>{st.session_state.user_message}</div>",
         unsafe_allow_html=True
     )
-    # Clear the message after displaying it so it doesn't reappear
-    st.session_state.user_message = None
-    st.session_state.message_type = None
 
-nav = st.session_state.nav
+import streamlit as st
+import os
 
-# Initialize navigation state
+# ✅ Step 1: Initialize navigation state BEFORE using it
 if "nav" not in st.session_state:
     st.session_state.nav = "📆 Attendance"  # default page
 
+# ✅ Step 2: Handle temporary messages and clear them
+if "user_message" in st.session_state and st.session_state.user_message:
+    msg_type = st.session_state.get("message_type", "info")
+    st.toast(st.session_state.user_message, icon="ℹ️" if msg_type == "info" else "❗")
+    st.session_state.user_message = None
+    st.session_state.message_type = None
+
+# ✅ Step 3: Render Sidebar with clickable icons
 with st.sidebar:
     st.markdown(
         f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>",
@@ -320,7 +326,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Define nav options as icon + label
+    # Navigation buttons
     nav_options = {
         "📆 Attendance": "attendance",
         "📸 Upload Photo": "upload_photo",
@@ -342,6 +348,11 @@ with st.sidebar:
         st.session_state.user_message = "Logged out successfully."
         st.session_state.message_type = "info"
         st.rerun()
+
+# ✅ Step 4: Use the selected nav option
+nav = st.session_state.nav
+
+
 
 #------------------------------------------------------------------------closed navbar
 
