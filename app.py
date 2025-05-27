@@ -1,8 +1,7 @@
-
 # Placeholder for the corrected Streamlit app.py code
 # Add your full working application logic here...
-import streamlit as st
-st.title("Attendance Log System - Placeholder")
+# import streamlit as st # Commented out the initial one, as it's re-imported later.
+# st.title("Attendance Log System - Placeholder") # Removed this initial title
 
 
 import streamlit as st
@@ -186,14 +185,15 @@ if PILLOW_INSTALLED:
                 try: font = ImageFont.truetype("arial.ttf", 40)
                 except IOError: font = ImageFont.load_default()
                 text = user_key[:2].upper()
-                if hasattr(draw, 'textbbox'):
+                if hasattr(draw, 'textbbox'): # More modern PIL
                     bbox = draw.textbbox((0,0), text, font=font); text_width, text_height = bbox[2]-bbox[0], bbox[3]-bbox[1]
-                    text_x, text_y = (120-text_width)/2, (120-text_height)/2 - bbox[1]
-                elif hasattr(draw, 'textsize'):
+                    text_x, text_y = (120-text_width)/2, (120-text_height)/2 - bbox[1] # Adjust y based on bbox[1]
+                elif hasattr(draw, 'textsize'): # Older PIL
                     text_width, text_height = draw.textsize(text, font=font); text_x, text_y = (120-text_width)/2, (120-text_height)/2
-                else: text_x, text_y = 30,30
+                else: # Fallback if textsize and textbbox not available
+                    text_x, text_y = 30,30
                 draw.text((text_x, text_y), text, fill=(28,78,128), font=font); img.save(img_path)
-            except Exception: pass
+            except Exception: pass # Ignore if placeholder creation fails
 
 # --- File Paths & Timezone & Directories ---
 ATTENDANCE_FILE = "attendance.csv"; ALLOWANCE_FILE = "allowances.csv"; GOALS_FILE = "goals.csv"; PAYMENT_GOALS_FILE = "payment_goals.csv"
@@ -212,7 +212,7 @@ TARGET_TIMEZONE = "Asia/Kolkata"
 try: tz = pytz.timezone(TARGET_TIMEZONE)
 except pytz.exceptions.UnknownTimeZoneError: st.error(f"Invalid TARGET_TIMEZONE: '{TARGET_TIMEZONE}'."); st.stop()
 def get_current_time_in_tz(): return datetime.now(timezone.utc).astimezone(tz)
-def get_quarter_str_for_year(year, for_current_display=False):
+def get_quarter_str_for_year(year, for_current_display=False): # Parameter for_current_display not used, can be removed
     now_month = get_current_time_in_tz().month
     if 1 <= now_month <= 3: return f"{year}-Q1"
     elif 4 <= now_month <= 6: return f"{year}-Q2"
@@ -225,19 +225,22 @@ def load_data(path, columns):
         try:
             if os.path.getsize(path) > 0:
                 df = pd.read_csv(path)
+                # Ensure all expected columns exist, add if missing
                 for col in columns:
-                    if col not in df.columns: df[col] = pd.NA
+                    if col not in df.columns: df[col] = pd.NA # Use pd.NA for missing values
+                # Convert specific columns to numeric, coercing errors
                 num_cols = ["Amount", "TargetAmount", "AchievedAmount", "Latitude", "Longitude"]
                 for nc in num_cols:
                     if nc in df.columns: df[nc] = pd.to_numeric(df[nc], errors='coerce')
                 return df
-            else: return pd.DataFrame(columns=columns)
-        except pd.errors.EmptyDataError: return pd.DataFrame(columns=columns)
+            else: return pd.DataFrame(columns=columns) # File exists but is empty
+        except pd.errors.EmptyDataError: return pd.DataFrame(columns=columns) # Explicitly handle EmptyDataError
         except Exception as e: st.error(f"Error loading {path}: {e}."); return pd.DataFrame(columns=columns)
     else:
+        # File does not exist, create it with headers
         df = pd.DataFrame(columns=columns);
         try: df.to_csv(path, index=False)
-        except Exception as e: st.warning(f"Could not create {path}: {e}")
+        except Exception as e: st.warning(f"Could not create {path}: {e}") # Warn if creation fails
         return df
 
 ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude"] # NO ImageFile for general attendance
@@ -274,16 +277,25 @@ if not st.session_state.auth["logged_in"]:
         if user_creds and user_creds["password"] == pwd:
             st.session_state.auth = {"logged_in": True, "username": uname, "role": user_creds["role"]}
             st.session_state.user_message = "Login successful!"; st.session_state.message_type = "success"; st.rerun()
-        else: st.error("Invalid username or password.")
+        else: st.error("Invalid username or password.") # This error displays directly, which is fine here.
     st.markdown('</div>', unsafe_allow_html=True); st.stop()
 
 # --- Main Application ---
+current_user = st.session_state.auth # User is authenticated at this point
 
-# Assuming user is already authenticated and stored in session_state
-current_user = st.session_state.get("auth", {"username": "Unknown", "role": "employee"})
+# --- Global Message Display for Main Application ---
+# This will display messages set in st.session_state by various actions before a rerun.
+message_placeholder_main = st.empty()
+if "user_message" in st.session_state and st.session_state.user_message:
+    message_type_main = st.session_state.get("message_type", "info") # Default to info
+    message_placeholder_main.markdown(
+        f"<div class='custom-notification {message_type_main}'>{st.session_state.user_message}</div>",
+        unsafe_allow_html=True
+    )
+    # Clear the message after displaying it so it doesn't reappear
+    st.session_state.user_message = None
+    st.session_state.message_type = None
 
-# Ensure this is defined BEFORE using current_user
-current_user = st.session_state.get("auth", {"username": "Unknown", "role": "employee"})
 
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
@@ -334,12 +346,14 @@ if nav == "📆 Attendance":
         for col_name in ATTENDANCE_COLUMNS: # ATTENDANCE_COLUMNS no longer has ImageFile
             if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA
         new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
-        attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
+        # It's generally better to reload data after a rerun rather than immediately after modification,
+        # but for now, we keep the existing pattern of concat, save, then set session state for message.
+        temp_attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
         try:
-            attendance_df.to_csv(ATTENDANCE_FILE, index=False)
-            attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS) # Reload global df
+            temp_attendance_df.to_csv(ATTENDANCE_FILE, index=False)
+            # attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS) # Data will be reloaded on rerun
             st.session_state.user_message = f"{attendance_type} recorded at {now_str_display}."; st.session_state.message_type = "success"; st.rerun()
-        except Exception as e: st.session_state.user_message = f"Error: {e}"; st.session_state.message_type = "error"; st.rerun()
+        except Exception as e: st.session_state.user_message = f"Error saving attendance: {e}"; st.session_state.message_type = "error"; st.rerun()
 
     with col1:
         if st.button("✅ Check In", key="check_in_btn_main_no_photo", use_container_width=True):
@@ -352,7 +366,7 @@ if nav == "📆 Attendance":
 elif nav == "📸 Upload Activity Photo":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
-    current_lat = pd.NA; current_lon = pd.NA
+    current_lat = pd.NA; current_lon = pd.NA # Placeholder, actual location capture not implemented here
     with st.form(key="activity_photo_form"):
         st.markdown("<h6>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True)
         activity_description = st.text_area("Brief description of activity/visit:", key="activity_desc")
@@ -372,11 +386,11 @@ elif nav == "📸 Upload Activity Photo":
                 for col_name in ACTIVITY_LOG_COLUMNS:
                     if col_name not in new_activity_data: new_activity_data[col_name] = pd.NA
                 new_activity_entry = pd.DataFrame([new_activity_data], columns=ACTIVITY_LOG_COLUMNS)
-                activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True)
-                activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
-                activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS)
+                temp_activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True)
+                temp_activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
+                # activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS) # Reloaded on rerun
                 st.session_state.user_message = "Activity photo and log uploaded!"; st.session_state.message_type = "success"; st.rerun()
-            except Exception as e: st.error(f"Error: {e}"); st.session_state.user_message = f"Error: {e}"; st.session_state.message_type = "error"; st.rerun()
+            except Exception as e: st.session_state.user_message = f"Error saving activity: {e}"; st.session_state.message_type = "error"; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif nav == "🧾 Allowance":
@@ -389,10 +403,14 @@ elif nav == "🧾 Allowance":
     if st.button("Submit Allowance Request", key="submit_allowance_btn_main", use_container_width=True):
         if a_type and amount > 0 and reason.strip():
             date_str = get_current_time_in_tz().strftime("%Y-%m-%d"); new_entry_data = {"Username": current_user["username"], "Type": a_type, "Amount": amount, "Reason": reason, "Date": date_str}
-            new_entry = pd.DataFrame([new_entry_data], columns=ALLOWANCE_COLUMNS); allowance_df = pd.concat([allowance_df, new_entry], ignore_index=True)
-            try: allowance_df.to_csv(ALLOWANCE_FILE, index=False); st.session_state.user_message = f"Allowance for ₹{amount:.2f} submitted."; st.session_state.message_type = "success"; st.rerun()
-            except Exception as e: st.session_state.user_message = f"Error: {e}"; st.session_state.message_type = "error"; st.rerun()
-        else: st.warning("Please complete all fields with valid values.")
+            new_entry = pd.DataFrame([new_entry_data], columns=ALLOWANCE_COLUMNS)
+            temp_allowance_df = pd.concat([allowance_df, new_entry], ignore_index=True)
+            try:
+                temp_allowance_df.to_csv(ALLOWANCE_FILE, index=False)
+                # allowance_df = load_data(ALLOWANCE_FILE, ALLOWANCE_COLUMNS) # Reloaded on rerun
+                st.session_state.user_message = f"Allowance for ₹{amount:.2f} submitted."; st.session_state.message_type = "success"; st.rerun()
+            except Exception as e: st.session_state.user_message = f"Error submitting allowance: {e}"; st.session_state.message_type = "error"; st.rerun()
+        else: st.warning("Please complete all fields with valid values.") # This warning shows directly, fine.
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif nav == "🎯 Goal Tracker":
@@ -439,7 +457,7 @@ elif nav == "🎯 Goal Tracker":
             else:
                 selected_emp = st.radio("Select Employee:", employee_options, key="goal_emp_radio_admin_set", horizontal=True)
                 quarter_options = [f"{TARGET_GOAL_YEAR}-Q{i}" for i in range(1,5)]; selected_period = st.radio("Goal Period:", quarter_options, key="goal_period_radio_admin_set", horizontal=True)
-                temp_goals_df = goals_df.copy(); existing_g = temp_goals_df[(temp_goals_df["Username"].astype(str)==str(selected_emp)) & (temp_goals_df["MonthYear"].astype(str)==str(selected_period))]
+                temp_goals_df_edit = goals_df.copy(); existing_g = temp_goals_df_edit[(temp_goals_df_edit["Username"].astype(str)==str(selected_emp)) & (temp_goals_df_edit["MonthYear"].astype(str)==str(selected_period))]
                 g_desc,g_target,g_achieved,g_status = "",0.0,0.0,"Not Started"
                 if not existing_g.empty:
                     g_data=existing_g.iloc[0]; g_desc=g_data.get("GoalDescription",""); g_target=float(pd.to_numeric(g_data.get("TargetAmount",0.0),errors='coerce') or 0.0)
@@ -463,17 +481,17 @@ elif nav == "🎯 Goal Tracker":
                             new_row_df=pd.DataFrame([new_row_data],columns=GOALS_COLUMNS); editable_goals_df=pd.concat([editable_goals_df,new_row_df],ignore_index=True); msg_verb="set"
                         try:
                             editable_goals_df.to_csv(GOALS_FILE,index=False)
-                            goals_df=load_data(GOALS_FILE,GOALS_COLUMNS)
+                            # goals_df=load_data(GOALS_FILE,GOALS_COLUMNS) # Reloaded on rerun
                             st.session_state.user_message=f"Goal for {selected_emp} ({selected_period}) {msg_verb}!"; st.session_state.message_type="success"; st.rerun()
-                        except Exception as e: st.error(f"Error saving goal: {e}")
+                        except Exception as e: st.session_state.user_message=f"Error saving goal: {e}"; st.session_state.message_type="error"; st.rerun()
     else: # Employee View
         st.markdown("<h4>My Sales Goals (2025 - Quarterly)</h4>", unsafe_allow_html=True)
         my_goals = goals_df[goals_df["Username"].astype(str) == str(current_user["username"])].copy()
         for col in ["TargetAmount", "AchievedAmount"]: my_goals[col] = pd.to_numeric(my_goals[col], errors="coerce").fillna(0.0)
-        current_g = my_goals[my_goals["MonthYear"] == current_quarter_for_display]
+        current_g_df = my_goals[my_goals["MonthYear"] == current_quarter_for_display] # Renamed to avoid conflict
         st.markdown(f"<h5>Current Goal Period: {current_quarter_for_display}</h5>", unsafe_allow_html=True)
-        if not current_g.empty:
-            g = current_g.iloc[0]; target_amt = g["TargetAmount"]; achieved_amt = g["AchievedAmount"]
+        if not current_g_df.empty:
+            g = current_g_df.iloc[0]; target_amt = g["TargetAmount"]; achieved_amt = g["AchievedAmount"]
             st.markdown(f"**Description:** {g.get('GoalDescription', 'N/A')}")
             col_metrics_sales, col_chart_sales = st.columns([0.63,0.37])
             with col_metrics_sales:
@@ -496,10 +514,17 @@ elif nav == "🎯 Goal Tracker":
                     editable_goals_df.loc[idx[0],"Status"]=new_status
                     try:
                         editable_goals_df.to_csv(GOALS_FILE,index=False)
-                        goals_df = load_data(GOALS_FILE, GOALS_COLUMNS)
-                        st.success("Achievement updated!"); st.rerun()
-                    except Exception as e: st.error(f"Error: {e}")
-                else: st.error("Could not find your current goal to update.")
+                        st.session_state.user_message = "Achievement updated!"
+                        st.session_state.message_type = "success"
+                        st.rerun()
+                    except Exception as e:
+                        st.session_state.user_message = f"Error updating achievement: {e}"
+                        st.session_state.message_type = "error"
+                        st.rerun()
+                else:
+                    st.session_state.user_message = "Could not find your current goal to update."
+                    st.session_state.message_type = "error"
+                    st.rerun() # Rerun to show message via global handler
         else: st.info(f"No goal set for {current_quarter_for_display}. Contact admin.")
         st.markdown("---"); st.markdown("<h5>My Past Goals (2025)</h5>", unsafe_allow_html=True)
         past_goals = my_goals[(my_goals["MonthYear"].astype(str).str.startswith(str(TARGET_GOAL_YEAR))) & (my_goals["MonthYear"].astype(str) != current_quarter_for_display)]
@@ -542,9 +567,10 @@ elif nav == "💰 Payment Collection Tracker":
                     st.markdown("<h6>Overall Team Collection Performance:</h6>",unsafe_allow_html=True)
                     team_bar_fig_payment = create_team_progress_bar_chart(summary_df_payment,title="Team Collection Target vs. Achieved",target_col="Target",achieved_col="Achieved")
                     if team_bar_fig_payment:
+                        # Custom color for achieved bars in payment chart
                         for bar_group in team_bar_fig_payment.axes[0].containers:
-                            if bar_group.get_label()=='Achieved':
-                                for bar in bar_group: bar.set_color('#2070c0')
+                            if bar_group.get_label()=='Achieved': # Make sure this label matches what's set in create_team_progress_bar_chart
+                                for bar in bar_group: bar.set_color('#2070c0') # Payment achieved color
                         st.pyplot(team_bar_fig_payment,use_container_width=True)
                     else: st.info("No collection data to plot for team bar chart.")
                 else: st.info(f"No payment collection data for {current_quarter_display_payment}.")
@@ -555,20 +581,21 @@ elif nav == "💰 Payment Collection Tracker":
             else:
                 selected_emp_payment=st.radio("Select Employee:",employees_for_payment_goal,key="payment_emp_radio_admin_set",horizontal=True)
                 quarters_payment=[f"{TARGET_YEAR_PAYMENT}-Q{i}" for i in range(1,5)]; selected_period_payment=st.radio("Quarter:",quarters_payment,key="payment_period_radio_admin_set",horizontal=True)
-                temp_payment_goals_df=payment_goals_df.copy(); existing_payment_goal=temp_payment_goals_df[(temp_payment_goals_df["Username"]==selected_emp_payment)&(temp_payment_goals_df["MonthYear"]==selected_period_payment)]
+                temp_payment_goals_df_edit=payment_goals_df.copy(); existing_payment_goal=temp_payment_goals_df_edit[(temp_payment_goals_df_edit["Username"]==selected_emp_payment)&(temp_payment_goals_df_edit["MonthYear"]==selected_period_payment)]
                 desc_payment,tgt_payment_val,ach_payment_val,stat_payment = "",0.0,0.0,"Not Started"
                 if not existing_payment_goal.empty:
                     g_payment=existing_payment_goal.iloc[0]; desc_payment=g_payment.get("GoalDescription",""); tgt_payment_val=float(pd.to_numeric(g_payment.get("TargetAmount",0.0),errors='coerce') or 0.0)
                     ach_payment_val=float(pd.to_numeric(g_payment.get("AchievedAmount",0.0),errors='coerce') or 0.0); stat_payment=g_payment.get("Status","Not Started")
+                    st.info(f"Editing payment goal for {selected_emp_payment} - {selected_period_payment}") # Added info
                 with st.form(f"form_payment_{selected_emp_payment}_{selected_period_payment}_admin"):
-                    new_desc_payment=st.text_input("Collection Goal Description",value=desc_payment,key=f"desc_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
+                    new_desc_payment=st.text_input("Collection Goal Description",value=desc_payment,key=f"desc_pay_{selected_emp_payment}_{selected_period_payment}_p_admin") # Changed from text_area
                     new_tgt_payment=st.number_input("Target Collection (INR)",value=tgt_payment_val,min_value=0.0,step=1000.0,key=f"target_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
                     new_ach_payment=st.number_input("Collected Amount (INR)",value=ach_payment_val,min_value=0.0,step=500.0,key=f"achieved_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
-                    new_status_payment=st.selectbox("Status",status_options_payment,index=status_options_payment.index(stat_payment),key=f"status_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
+                    new_status_payment=st.selectbox("Status",status_options_payment,index=status_options_payment.index(stat_payment),key=f"status_pay_{selected_emp_payment}_{selected_period_payment}_p_admin") # Changed from radio
                     submitted_payment=st.form_submit_button("Save Goal")
                 if submitted_payment:
                     if not new_desc_payment.strip(): st.warning("Description required.")
-                    elif new_tgt_payment <= 0 and new_status_payment not in ["Cancelled","Not Started"]: st.warning("Target > 0 required.")
+                    elif new_tgt_payment <= 0 and new_status_payment not in ["Cancelled","Not Started", "On Hold"]: st.warning("Target > 0 required unless status is Cancelled, Not Started or On Hold.") # Adjusted condition
                     else:
                         editable_payment_goals_df=payment_goals_df.copy(); existing_pg_indices=editable_payment_goals_df[(editable_payment_goals_df["Username"]==selected_emp_payment)&(editable_payment_goals_df["MonthYear"]==selected_period_payment)].index
                         if not existing_pg_indices.empty: editable_payment_goals_df.loc[existing_pg_indices[0]]=[selected_emp_payment,selected_period_payment,new_desc_payment,new_tgt_payment,new_ach_payment,new_status_payment]; msg_payment="updated"
@@ -579,17 +606,17 @@ elif nav == "💰 Payment Collection Tracker":
                             new_row_df_p=pd.DataFrame([new_row_data_p],columns=PAYMENT_GOALS_COLUMNS); editable_payment_goals_df=pd.concat([editable_payment_goals_df,new_row_df_p],ignore_index=True); msg_payment="set"
                         try:
                             editable_payment_goals_df.to_csv(PAYMENT_GOALS_FILE,index=False)
-                            payment_goals_df=load_data(PAYMENT_GOALS_FILE,PAYMENT_GOALS_COLUMNS)
+                            # payment_goals_df=load_data(PAYMENT_GOALS_FILE,PAYMENT_GOALS_COLUMNS) # Reloaded on rerun
                             st.session_state.user_message=f"Payment goal {msg_payment} for {selected_emp_payment} ({selected_period_payment})"; st.session_state.message_type="success"; st.rerun()
-                        except Exception as e: st.error(f"Error saving data: {e}")
+                        except Exception as e: st.session_state.user_message=f"Error saving payment goal: {e}"; st.session_state.message_type="error"; st.rerun()
     else: # Employee View
         st.markdown("<h4>My Payment Collection Goals (2025)</h4>", unsafe_allow_html=True)
         user_goals_payment = payment_goals_df[payment_goals_df["Username"]==current_user["username"]].copy()
         user_goals_payment[["TargetAmount","AchievedAmount"]] = user_goals_payment[["TargetAmount","AchievedAmount"]].apply(pd.to_numeric,errors="coerce").fillna(0.0)
-        current_payment_goal_period = user_goals_payment[user_goals_payment["MonthYear"]==current_quarter_display_payment]
+        current_payment_goal_period_df = user_goals_payment[user_goals_payment["MonthYear"]==current_quarter_display_payment] # Renamed
         st.markdown(f"<h5>Current Quarter: {current_quarter_display_payment}</h5>", unsafe_allow_html=True)
-        if not current_payment_goal_period.empty:
-            g_pay=current_payment_goal_period.iloc[0]; tgt_pay=g_pay["TargetAmount"]; ach_pay=g_pay["AchievedAmount"]
+        if not current_payment_goal_period_df.empty:
+            g_pay=current_payment_goal_period_df.iloc[0]; tgt_pay=g_pay["TargetAmount"]; ach_pay=g_pay["AchievedAmount"]
             st.markdown(f"**Goal:** {g_pay.get('GoalDescription','')}")
             col_metrics_pay,col_chart_pay=st.columns([0.63,0.37])
             with col_metrics_pay:
@@ -611,10 +638,17 @@ elif nav == "💰 Payment Collection Tracker":
                     editable_payment_goals_df.loc[idx_pay[0],"Status"]="Achieved" if new_ach_val_payment >= tgt_pay and tgt_pay > 0 else "In Progress"
                     try:
                         editable_payment_goals_df.to_csv(PAYMENT_GOALS_FILE,index=False)
-                        payment_goals_df = load_data(PAYMENT_GOALS_FILE, PAYMENT_GOALS_COLUMNS)
-                        st.success("Collection updated."); st.rerun()
-                    except Exception as e: st.error(f"Error: {e}")
-                else: st.error("Could not find your current goal to update.")
+                        st.session_state.user_message = "Collection updated."
+                        st.session_state.message_type = "success"
+                        st.rerun()
+                    except Exception as e:
+                        st.session_state.user_message = f"Error updating collection: {e}"
+                        st.session_state.message_type = "error"
+                        st.rerun()
+                else:
+                    st.session_state.user_message = "Could not find your current payment goal to update."
+                    st.session_state.message_type = "error"
+                    st.rerun() # Rerun to show message via global handler
         else: st.info(f"No collection goal for {current_quarter_display_payment}.")
         st.markdown("<h5>Past Quarters</h5>", unsafe_allow_html=True)
         past_payment_goals = user_goals_payment[user_goals_payment["MonthYear"]!=current_quarter_display_payment]
@@ -640,39 +674,51 @@ elif nav == "📊 View Logs":
                     image_path_to_display = os.path.join(ACTIVITY_PHOTOS_DIR, str(row['ImageFile']))
                     if os.path.exists(image_path_to_display):
                         try: st.image(image_path_to_display, width=150)
-                        except: st.warning(f"Img err") # Simplified error
+                        except Exception as img_e: st.warning(f"Img err: {img_e}") # Show specific image error
                     else: st.caption(f"Img missing")
     def display_attendance_logs(df_logs, user_name_for_header):
         if df_logs.empty: st.warning(f"No general attendance records for {user_name_for_header}."); return
         df_logs_sorted = df_logs.sort_values(by="Timestamp", ascending=False).copy()
         st.markdown(f"<h5>General Attendance Records for: {user_name_for_header}</h5>", unsafe_allow_html=True)
         columns_to_show = ["Type", "Timestamp"]
-        if 'Latitude' in df_logs_sorted.columns and 'Longitude' in df_logs_sorted.columns:
-            df_logs_sorted['Location'] = df_logs_sorted.apply(lambda row: f"Lat: {row['Latitude']:.4f}, Lon: {row['Longitude']:.4f}" if pd.notna(row['Latitude']) and pd.notna(row['Longitude']) else "Not Recorded", axis=1)
+        if 'Latitude' in df_logs_sorted.columns and 'Longitude' in df_logs_sorted.columns: # Check if columns exist
+            df_logs_sorted['Location'] = df_logs_sorted.apply(
+                lambda row: f"Lat: {row['Latitude']:.4f}, Lon: {row['Longitude']:.4f}"
+                if pd.notna(row['Latitude']) and pd.notna(row['Longitude']) else "Not Recorded", axis=1
+            )
             columns_to_show.append('Location')
         st.dataframe(df_logs_sorted[columns_to_show], use_container_width=True, hide_index=True)
 
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: View Employee Records</h4>", unsafe_allow_html=True)
-        selected_employee_log = st.selectbox("Select Employee:", list(USERS.keys()), key="log_employee_select_admin_activity")
-        emp_activity_log = activity_log_df[activity_log_df["Username"] == selected_employee_log]
-        display_activity_logs_with_photos(emp_activity_log, selected_employee_log)
-        st.markdown("<br><hr><br>", unsafe_allow_html=True)
-        emp_attendance_log = attendance_df[attendance_df["Username"] == selected_employee_log]
-        display_attendance_logs(emp_attendance_log, selected_employee_log) # Using simplified version
-        st.markdown("---"); st.markdown(f"<h5>Allowances for {selected_employee_log}</h5>", unsafe_allow_html=True)
-        emp_allowance_log = allowance_df[allowance_df["Username"] == selected_employee_log]
-        if not emp_allowance_log.empty: st.dataframe(emp_allowance_log.sort_values(by="Date", ascending=False), use_container_width=True)
-        else: st.warning("No allowance records found")
-        st.markdown(f"<h5>Sales Goals for {selected_employee_log}</h5>", unsafe_allow_html=True)
-        emp_goals_log = goals_df[goals_df["Username"] == selected_employee_log]
-        if not emp_goals_log.empty: st.dataframe(emp_goals_log.sort_values(by="MonthYear", ascending=False), use_container_width=True)
-        else: st.warning("No sales goals records found")
-        st.markdown(f"<h5>Payment Collection Goals for {selected_employee_log}</h5>", unsafe_allow_html=True)
-        emp_payment_goals_log = payment_goals_df[payment_goals_df["Username"] == selected_employee_log]
-        if not emp_payment_goals_log.empty: st.dataframe(emp_payment_goals_log.sort_values(by="MonthYear", ascending=False), use_container_width=True)
-        else: st.warning("No payment collection goals records found")
-    else:
+        # Ensure USERS keys are strings if selected_employee_log is compared to string DFs
+        employee_name_list = list(USERS.keys())
+        if "admin" in employee_name_list: employee_name_list.remove("admin") # Exclude admin from this dropdown
+
+        selected_employee_log = st.selectbox("Select Employee:", employee_name_list, key="log_employee_select_admin_activity")
+
+        if selected_employee_log: # Proceed only if an employee is selected
+            emp_activity_log = activity_log_df[activity_log_df["Username"] == selected_employee_log]
+            display_activity_logs_with_photos(emp_activity_log, selected_employee_log)
+            st.markdown("<br><hr><br>", unsafe_allow_html=True)
+            emp_attendance_log = attendance_df[attendance_df["Username"] == selected_employee_log]
+            display_attendance_logs(emp_attendance_log, selected_employee_log) # Using simplified version
+            st.markdown("---"); st.markdown(f"<h5>Allowances for {selected_employee_log}</h5>", unsafe_allow_html=True)
+            emp_allowance_log = allowance_df[allowance_df["Username"] == selected_employee_log]
+            if not emp_allowance_log.empty: st.dataframe(emp_allowance_log.sort_values(by="Date", ascending=False).reset_index(drop=True), use_container_width=True)
+            else: st.warning("No allowance records found")
+            st.markdown(f"<h5>Sales Goals for {selected_employee_log}</h5>", unsafe_allow_html=True)
+            emp_goals_log = goals_df[goals_df["Username"] == selected_employee_log]
+            if not emp_goals_log.empty: st.dataframe(emp_goals_log.sort_values(by="MonthYear", ascending=False).reset_index(drop=True), use_container_width=True)
+            else: st.warning("No sales goals records found")
+            st.markdown(f"<h5>Payment Collection Goals for {selected_employee_log}</h5>", unsafe_allow_html=True)
+            emp_payment_goals_log = payment_goals_df[payment_goals_df["Username"] == selected_employee_log]
+            if not emp_payment_goals_log.empty: st.dataframe(emp_payment_goals_log.sort_values(by="MonthYear", ascending=False).reset_index(drop=True), use_container_width=True)
+            else: st.warning("No payment collection goals records found")
+        else:
+            st.info("Please select an employee to view their logs.")
+
+    else: # Employee view
         st.markdown("<h4>My Records</h4>", unsafe_allow_html=True)
         my_activity_log = activity_log_df[activity_log_df["Username"] == current_user["username"]]
         display_activity_logs_with_photos(my_activity_log, current_user["username"])
@@ -681,15 +727,14 @@ elif nav == "📊 View Logs":
         display_attendance_logs(my_attendance_log, current_user["username"]) # Using simplified version
         st.markdown("---"); st.markdown("<h5>My Allowances</h5>", unsafe_allow_html=True)
         my_allowance_log = allowance_df[allowance_df["Username"] == current_user["username"]]
-        if not my_allowance_log.empty: st.dataframe(my_allowance_log.sort_values(by="Date", ascending=False), use_container_width=True)
+        if not my_allowance_log.empty: st.dataframe(my_allowance_log.sort_values(by="Date", ascending=False).reset_index(drop=True), use_container_width=True)
         else: st.warning("No allowance records found for you")
         st.markdown("<h5>My Sales Goals</h5>", unsafe_allow_html=True)
         my_goals_log = goals_df[goals_df["Username"] == current_user["username"]]
-        if not my_goals_log.empty: st.dataframe(my_goals_log.sort_values(by="MonthYear", ascending=False), use_container_width=True)
+        if not my_goals_log.empty: st.dataframe(my_goals_log.sort_values(by="MonthYear", ascending=False).reset_index(drop=True), use_container_width=True)
         else: st.warning("No sales goals records found for you")
         st.markdown("<h5>My Payment Collection Goals</h5>", unsafe_allow_html=True)
         my_payment_goals_log = payment_goals_df[payment_goals_df["Username"] == current_user["username"]]
-        if not my_payment_goals_log.empty: st.dataframe(my_payment_goals_log.sort_values(by="MonthYear", ascending=False), use_container_width=True)
+        if not my_payment_goals_log.empty: st.dataframe(my_payment_goals_log.sort_values(by="MonthYear", ascending=False).reset_index(drop=True), use_container_width=True)
         else: st.warning("No payment collection goals records found for you")
     st.markdown('</div>', unsafe_allow_html=True)
-
