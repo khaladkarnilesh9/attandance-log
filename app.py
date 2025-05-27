@@ -726,40 +726,34 @@ else:
 
 st.markdown('</div>', unsafe_allow_html=True)
 
+if nav == "📆 Attendance":
+    # Code for Attendance
+    pass
+
+elif nav == "📸 Upload Photo":
+    # Code for Upload Photo
+    pass
 
 elif nav == "🧾 Allowance":
+    # ✅ Your Allowance code goes here
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3 class='card-title'>💼 Claim Allowance</h3>", unsafe_allow_html=True) 
+    st.markdown("<h3 class='card-title'>💼 Claim Allowance</h3>", unsafe_allow_html=True)
 
-    with st.form(key="allowance_form_content_final_v2"): 
-        st.markdown("<h6 class='form-field-label-custom'>Select Allowance Type:</h6>", unsafe_allow_html=True) 
-        a_type = st.radio(
-            "", 
-            ["Travel", "Dinner", "Medical", "Internet", "Other"], 
-            key="allowance_type_radio_content_final_v2", 
-            horizontal=True, 
-            label_visibility='collapsed'
-        ) 
+    with st.form(key="allowance_form_content_final_v2"):
+        st.markdown("<h6 class='form-field-label-custom'>Select Allowance Type:</h6>", unsafe_allow_html=True)
+        a_type = st.radio("", ["Travel", "Dinner", "Medical", "Internet", "Other"],
+                          key="allowance_type_radio_content_final_v2",
+                          horizontal=True,
+                          label_visibility='collapsed')
 
-        amount = st.number_input(
-            "Enter Amount (INR):", 
-            min_value=0.01, 
-            step=10.0, 
-            format="%.2f", 
-            key="allowance_amount_content_final_v2"
-        ) 
+        amount = st.number_input("Enter Amount (INR):", min_value=0.01, step=10.0, format="%.2f",
+                                 key="allowance_amount_content_final_v2")
 
-        reason = st.text_area(
-            "Reason for Allowance:", 
-            key="allowance_reason_content_final_v2", 
-            placeholder="Please provide a clear justification..."
-        ) 
+        reason = st.text_area("Reason for Allowance:", key="allowance_reason_content_final_v2",
+                              placeholder="Please provide a clear justification...")
 
-        submitted_allowance = st.form_submit_button(
-            "Submit Allowance Request", 
-            use_container_width=True, 
-            key="submit_allowance_btn_content_final_v2"
-        ) 
+        submitted_allowance = st.form_submit_button("Submit Allowance Request", use_container_width=True,
+                                                    key="submit_allowance_btn_content_final_v2")
 
         if submitted_allowance:
             global allowance_df
@@ -773,10 +767,10 @@ elif nav == "🧾 Allowance":
                     "Reason": reason,
                     "Date": date_str
                 }
-                new_entry = pd.DataFrame([new_entry_data], columns=ALLOWANCE_COLUMNS)
 
+                new_entry = pd.DataFrame([new_entry_data], columns=ALLOWANCE_COLUMNS)
                 allowance_df = pd.concat([allowance_df, new_entry], ignore_index=True)
-                
+
                 try:
                     allowance_df.to_csv(ALLOWANCE_FILE, index=False)
                     st.session_state.user_message = f"Allowance for ₹{amount:.2f} submitted."
