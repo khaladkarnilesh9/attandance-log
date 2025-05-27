@@ -82,83 +82,306 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     return fig
 
 html_css = """
+/* CSS for Google AI Studio Look & Feel */
 <style>
+    @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
     :root {
-        --primary-color: #1c4e80; --secondary-color: #2070c0; --accent-color: #70a1d7;
-        --success-color: #28a745; --danger-color: #dc3545; --warning-color: #ffc107; --info-color: #17a2b8;
-        --body-bg-color: #f4f6f9; --card-bg-color: #ffffff; --text-color: #343a40; --text-muted-color: #6c757d;
-        --border-color: #dee2e6; --input-border-color: #ced4da;
-        --font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-        --border-radius: 0.375rem; --border-radius-lg: 0.5rem;
-        --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075); --box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --google-blue: #1A73E8; /* Updated Google Blue */
+        --google-red: #D93025;
+        --google-yellow: #F9AB00;
+        --google-green: #1E8E3E;
+
+        --primary-text-color: #202124; 
+        --secondary-text-color: #5F6368; 
+        --disabled-text-color: #9AA0A6;
+        
+        --sidebar-bg-color: #FFFFFF; 
+        --sidebar-text-color: #3C4043; 
+        --sidebar-icon-color: #5F6368; /* For icons if used outside radio labels */
+        --sidebar-active-bg: #E8F0FE; 
+        --sidebar-active-text: var(--google-blue);
+        --sidebar-active-icon: var(--google-blue); /* For icons if used outside radio labels */
+        --sidebar-hover-bg: #F1F3F4; 
+        
+        --body-bg-color: #F8F9FA; 
+        --card-bg-color: #FFFFFF;
+        --border-color: #DADCE0; 
+        --input-border-color: #DADCE0;
+        --input-focus-border: var(--google-blue);
+        --input-bg-color: #FFFFFF;
+
+        --font-family-main: 'Roboto', 'Inter', sans-serif;
+        --border-radius: 8px;
+        --border-radius-sm: 4px;
+        --card-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+        --button-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 0 1px 0 rgba(60,64,67,0.15);
     }
-    body {font-family: var(--font-family-sans-serif); background-color: var(--body-bg-color); color: var(--text-color); line-height: 1.6; font-weight: 400;}
-    h1, h2, h3, h4, h5, h6 {color: var(--primary-color); font-weight: 600;}
-    .main .block-container > div:first-child > div:first-child > div:first-child > h1 {text-align: center; font-size: 2.6em; font-weight: 700; padding-bottom: 25px; border-bottom: 3px solid var(--accent-color); margin-bottom: 40px; letter-spacing: -0.5px;}
-    .card {background-color: var(--card-bg-color); padding: 30px; border-radius: var(--border-radius-lg); box-shadow: var(--box-shadow); margin-bottom: 35px; border: 1px solid var(--border-color);}
-    .card h3 {margin-top: 0; color: var(--primary-color); border-bottom: 2px solid #e9ecef; padding-bottom: 15px; margin-bottom: 25px; font-size: 1.75em;}
-    .card h4 {color: var(--secondary-color); margin-top: 30px; margin-bottom: 20px; font-size: 1.4em; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;}
-    .card h5 {font-size: 1.15em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px;}
-    .card h6 {font-size: 0.95em; color: var(--text-muted-color); margin-top: 0px; margin-bottom: 15px; font-weight: 500;}
-    .form-field-label h6 {font-size: 1em; color: var(--text-muted-color); margin-top: 20px; margin-bottom: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
-    .login-container {max-width: 480px; margin: 60px auto; border-top: 5px solid var(--secondary-color);}
-    .login-container .stButton button {width: 100%; background-color: var(--secondary-color) !important; color: white !important; font-size: 1.1em; padding: 12px 20px; border-radius: var(--border-radius); border: none !important; font-weight: 600 !important; box-shadow: var(--box-shadow-sm) !important;}
-    .login-container .stButton button:hover {background-color: var(--primary-color) !important; color: white !important; box-shadow: var(--box-shadow) !important;}
-    .stButton:not(.login-container .stButton) button {background-color: var(--success-color); color: white; padding: 10px 24px; border: none; border-radius: var(--border-radius); font-size: 1.05em; font-weight: 500; transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease; box-shadow: var(--box-shadow-sm); cursor: pointer;}
-    .stButton:not(.login-container .stButton) button:hover {background-color: #218838; transform: translateY(-2px); box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);}
-    .stButton:not(.login-container .stButton) button:active {transform: translateY(0px); box-shadow: var(--box-shadow-sm);}
-    .stButton button[id*="logout_button_sidebar"] {background-color: var(--danger-color) !important; border: 1px solid var(--danger-color) !important; color: white !important; font-weight: 500 !important;}
-    .stButton button[id*="logout_button_sidebar"]:hover {background-color: #c82333 !important; border-color: #c82333 !important;}
-    .stTextInput input, .stNumberInput input, .stTextArea textarea, .stDateInput input, .stTimeInput input, .stSelectbox div[data-baseweb="select"] > div {border-radius: var(--border-radius) !important; border: 1px solid var(--input-border-color) !important; padding: 10px 12px !important; font-size: 1em !important; color: var(--text-color) !important; background-color: var(--card-bg-color) !important; transition: border-color 0.2s ease, box-shadow 0.2s ease;}
-    .stTextInput input::placeholder, .stNumberInput input::placeholder, .stTextArea textarea::placeholder {color: var(--text-muted-color) !important; opacity: 1;}
-    .stTextArea textarea {min-height: 120px;}
-    .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus, .stDateInput input:focus, .stTimeInput input:focus, .stSelectbox div[data-baseweb="select"] > div:focus-within {border-color: var(--secondary-color) !important; box-shadow: 0 0 0 0.2rem rgba(32, 112, 192, 0.25) !important;}
-    [data-testid="stSidebar"] {background-color: var(--primary-color); padding: 25px !important; box-shadow: 0.25rem 0 1rem rgba(0,0,0,0.1);}
-    [data-testid="stSidebar"] .sidebar-content {padding-top: 10px;}
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] div:not([data-testid="stRadio"]) {color: #e9ecef !important;}
-    [data-testid="stSidebar"] .stRadio > label > div > p {font-size: 1.05em !important; color: var(--accent-color) !important; padding: 0; margin: 0;}
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {color: var(--card-bg-color) !important; font-weight: 600;}
-    [data-testid="stSidebar"] .stRadio > label {padding: 10px 15px; border-radius: var(--border-radius); margin-bottom: 6px; transition: background-color 0.2s ease;}
-    [data-testid="stSidebar"] .stRadio > label:hover {background-color: rgba(255, 255, 255, 0.08);}
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {background-color: rgba(255, 255, 255, 0.15);}
-    .welcome-text {font-size: 1.4em; font-weight: 600; margin-bottom: 25px; text-align: center; color: var(--card-bg-color) !important; border-bottom: 1px solid var(--accent-color); padding-bottom: 20px;}
-    [data-testid="stSidebar"] [data-testid="stImage"] > img {border-radius: 50%; border: 3px solid var(--accent-color); margin: 0 auto 10px auto; display: block;}
-    .stDataFrame {width: 100%; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--box-shadow-sm); margin-bottom: 25px;}
-    .stDataFrame table {width: 100%; border-collapse: collapse;}
-    .stDataFrame table thead th {background-color: #e9ecef; color: var(--primary-color); font-weight: 600; text-align: left; padding: 14px 18px; border-bottom: 2px solid var(--border-color); font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px;}
-    .stDataFrame table tbody td {padding: 12px 18px; border-bottom: 1px solid #f1f3f5; vertical-align: middle; color: var(--text-color); font-size: 0.9em;}
-    .stDataFrame table tbody tr:last-child td {border-bottom: none;}
-    .stDataFrame table tbody tr:hover {background-color: #f8f9fa;}
-    .employee-progress-item {border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 15px; text-align: center; background-color: #fdfdfd; margin-bottom: 10px;}
-    .employee-progress-item h6 {margin-top: 0; margin-bottom: 5px; font-size: 1em; color: var(--primary-color);}
-    .employee-progress-item p {font-size: 0.85em; color: var(--text-muted-color); margin-bottom: 8px;}
-    .button-column-container > div[data-testid="stHorizontalBlock"] {gap: 20px;}
-    .button-column-container .stButton button {width: 100%;}
-    div[role="radiogroup"] {display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;}
-    div[role="radiogroup"] > label {background-color: #23578c; color: var(#ffffff); padding: 10px 18px; border-radius: var(--border-radius); border: 1px solid var(--input-border-color); cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; font-size: 0.95em; font-weight: 500;}
-    div[role="radiogroup"] > label:hover {background-color: #4664a5; border-color: #adb5bd; color:#ffffff;}
-    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {background-color: var(--secondary-color) !important; color: white !important; border-color: var(--secondary-color) !important; font-weight: 500;}
-    .employee-section-header {color: var(--secondary-color); margin-top: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 1.35em;}
-    .record-type-header {font-size: 1.2em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px; font-weight: 600;}
-    div[data-testid="stImage"] > img {border-radius: var(--border-radius-lg); border: 1px solid var(--border-color); box-shadow: var(--box-shadow-sm);}
-    .stProgress > div > div {background-color: var(--secondary-color) !important; border-radius: var(--border-radius);}
-    .stProgress {border-radius: var(--border-radius); background-color: #e9ecef;}
-    div[data-testid="stMetricLabel"] {font-size: 0.95em !important; color: var(--text-muted-color) !important; font-weight: 500;}
-    div[data-testid="stMetricValue"] {font-size: 1.8em !important; font-weight: 600; color: var(--primary-color);}
-    .custom-notification {padding: 15px 20px; border-radius: var(--border-radius); margin-bottom: 20px; font-size: 1em; border-left-width: 5px; border-left-style: solid; display: flex; align-items: center;}
-    .custom-notification.success {background-color: #d1e7dd; color: #0f5132; border-left-color: var(--success-color);}
-    .custom-notification.error {background-color: #f8d7da; color: #842029; border-left-color: var(--danger-color);}
-    .custom-notification.warning {background-color: #fff3cd; color: #664d03; border-left-color: var(--warning-color);}
-    .custom-notification.info {background-color: #cff4fc; color: #055160; border-left-color: var(--info-color);}
-    .badge {display: inline-block; padding: 0.35em 0.65em; font-size: 0.85em; font-weight: 600; line-height: 1; color: #fff; text-align: center; white-space: nowrap; vertical-align: baseline; border-radius: var(--border-radius);}
-    .badge.green {background-color: var(--success-color);}
-    .badge.red {background-color: var(--danger-color);}
-    .badge.orange {background-color: var(--warning-color);}
-    .badge.blue {background-color: var(--secondary-color);}
-    .badge.grey {background-color: var(--text-muted-color);}
-</style>
-"""
+
+    body, .main {
+        font-family: var(--font-family-main);
+        background-color: var(--body-bg-color) !important;
+        color: var(--primary-text-color);
+    }
+
+    /* General Typography & Headers */
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--primary-text-color);
+        font-weight: 500; /* Google often uses slightly lighter bold */
+    }
+    /* Main page title (if any, generally handled by card titles) */
+    .main .block-container > div:first-child > div:first-child > div:first-child > h1 {
+        font-size: 22px; /* Google style title */
+        font-weight: 500;
+        padding-bottom: 16px;
+        margin-bottom: 24px;
+        color: var(--primary-text-color);
+        border-bottom: 1px solid var(--border-color);
+        text-align: left;
+    }
+
+    /* Card Styling */
+    .card {
+        background-color: var(--card-bg-color);
+        padding: 24px;
+        border-radius: var(--border-radius);
+        box-shadow: none; /* Google cards often have border, not shadow */
+        border: 1px solid var(--border-color);
+        margin-bottom: 24px;
+    }
+    .card h3 { /* Titles within cards */
+        margin-top: 0;
+        color: var(--primary-text-color);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 16px;
+        margin-bottom: 20px;
+        font-size: 18px; /* Google card title size */
+        font-weight: 500;
+        line-height: 24px;
+    }
+    .card h4 { font-size: 16px; font-weight: 500; margin-bottom: 12px; }
+    .card h5 { font-size: 14px; font-weight: 500; color: var(--secondary-text-color); margin-bottom: 8px; }
+    .card h6 { font-size: 12px; font-weight: 400; color: var(--secondary-text-color); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
+
+
+    /* Sidebar Styling */
+    [data-testid="stSidebar"] {
+        background-color: var(--sidebar-bg-color) !important;
+        padding: 16px 0px !important; /* Remove horizontal padding from sidebar itself */
+        border-right: 1px solid var(--border-color) !important;
+        box-shadow: none !important;
+    }
+    [data-testid="stSidebar"] .main-sidebar-content-wrapper { /* Custom class if you wrap sidebar content */
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    [data-testid="stSidebar"] .sidebar-content { /* Streamlit's inner sidebar content div */
+        padding-top: 0px !important;
+        flex-grow: 1; /* Allows logout to be pushed down */
+    }
+
+    .welcome-text { /* Your custom class for welcome message */
+        font-size: 16px;
+        font-weight: 500;
+        padding: 16px 16px 12px 24px; /* Google-like padding */
+        color: var(--primary-text-color) !important;
+    }
+    [data-testid="stSidebar"] [data-testid="stImage"] > img {
+        border-radius: 50%;
+        border: 1px solid var(--border-color); /* Subtle border */
+        margin: 0px 0px 4px 24px; /* Match padding */
+        width: 36px !important; /* Google avatar size */
+        height: 36px !important;
+    }
+    [data-testid="stSidebar"] p[style*="text-align:left"] { /* User position */
+        font-size: 13px;
+        color: var(--secondary-text-color) !important;
+        margin-left: 24px !important;
+        margin-top: 0px !important;
+        margin-bottom: 16px !important;
+    }
+    [data-testid="stSidebar"] hr {
+        margin: 16px 24px !important; /* Match padding */
+        border-color: var(--border-color) !important;
+    }
+    .menu-label { /* Your custom MENU label */
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--secondary-text-color);
+        padding: 16px 24px 8px 24px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    /* Styling for st.radio in Sidebar to mimic Google Nav */
+    [data-testid="stSidebar"] div[data-testid="stRadio"] label { /* Targets each radio item's label */
+        display: flex !important;
+        align-items: center !important;
+        padding: 10px 24px 10px 21px !important; /* Adjust left padding for active border */
+        border-radius: 0 var(--border-radius) var(--border-radius) 0 !important; /* Pill shape on right */
+        margin: 2px 0 !important; /* Margin between items, no right margin on label itself */
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        color: var(--sidebar-text-color) !important;
+        border-left: 3px solid transparent !important; /* For active indicator */
+        transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out, border-left-color 0.1s ease-in-out;
+        width: 100%; /* Make label take full width of its container */
+    }
+    [data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {
+        background-color: var(--sidebar-hover-bg) !important;
+        color: var(--primary-text-color) !important;
+    }
+    [data-testid="stSidebar"] div[data-testid="stRadio"] label > div[data-baseweb="radio"] { /* The actual radio input circle */
+        display: none !important; /* Hide it */
+    }
+    /* Active Navigation Item (st.radio) */
+    [data-testid="stSidebar"] div[data-testid="stRadio"] div[aria-checked="true"] + label { /* Label of the checked radio */
+        background-color: var(--sidebar-active-bg) !important;
+        color: var(--sidebar-active-text) !important;
+        font-weight: 500 !important; /* Slightly bolder for active */
+        border-left: 3px solid var(--sidebar-active-icon) !important;
+    }
+    /* If you use emojis in st.radio labels, they will inherit the label's color. */
+    /* Example: "🗓️ Attendance" - the emoji is part of the text. */
+
+
+    /* Logout Section & Button */
+    .logout-section { margin-top: auto; /* Pushes to bottom in flex container */ }
+    .logout-section hr { margin: 16px 24px !important; }
+    [data-testid="stSidebar"] .stButton button[id*="logout_button_sidebar"] {
+        display: flex !important; align-items: center !important; justify-content: flex-start !important;
+        padding: 10px 24px 10px 21px !important; border-radius: 0 var(--border-radius) var(--border-radius) 0 !important; margin: 2px 0 !important;
+        width: 100% !important; background-color: transparent !important; color: var(--sidebar-text-color) !important;
+        font-size: 14px !important; font-weight: 400 !important; border: none !important; text-align: left;
+        border-left: 3px solid transparent !important;
+    }
+    [data-testid="stSidebar"] .stButton button[id*="logout_button_sidebar"]:hover {
+        background-color: var(--sidebar-hover-bg) !important; color: var(--google-red) !important;
+    }
+    [data-testid="stSidebar"] .stButton button[id*="logout_button_sidebar"]::before { /* Icon for logout */
+        font-family: 'Material Icons'; content: 'logout'; margin-right: 16px; font-size: 20px; vertical-align: middle;
+        color: var(--sidebar-icon-color); /* Default icon color */
+    }
+    [data-testid="stSidebar"] .stButton button[id*="logout_button_sidebar"]:hover::before {
+        color: var(--google-red) !important; /* Icon color on hover */
+    }
+
+    /* Main Content Buttons (outside sidebar) */
+    .stButton:not([data-testid="stSidebar"] .stButton) button {
+        background-color: var(--google-blue) !important;
+        color: white !important;
+        padding: 8px 16px !important; /* Google button padding */
+        border: none !important;
+        border-radius: var(--border-radius-sm) !important; /* Smaller radius for content buttons */
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        text-transform: none; /* Google buttons often not uppercase */
+        box-shadow: var(--button-shadow) !important;
+        transition: background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+    }
+    .stButton:not([data-testid="stSidebar"] .stButton) button:hover {
+        background-color: #185ABC !important; /* Darker blue */
+        box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 2px 5px 2px rgba(60,64,67,0.15) !important; /* Elevated shadow on hover */
+    }
+    /* Specific action buttons */
+    .stButton button[id*="check_in_btn"], 
+    .stButton button[id*="submit_allowance_btn"], 
+    .stButton button[id*="form_submit_button"] { /* Assuming this key is used for form submits */
+        background-color: var(--google-green) !important;
+    }
+    .stButton button[id*="check_in_btn"]:hover, 
+    .stButton button[id*="submit_allowance_btn"]:hover,
+    .stButton button[id*="form_submit_button"]:hover {
+        background-color: #1A7A34 !important; /* Darker Green */
+    }
+    .stButton button[id*="check_out_btn"] {
+        background-color: var(--google-yellow) !important;
+        color: var(--primary-text-color) !important;
+    }
+    .stButton button[id*="check_out_btn"]:hover {
+        background-color: #F09A00 !important; /* Darker Yellow */
+    }
+
+    /* Input Fields */
+    .stTextInput input, 
+    .stNumberInput input, 
+    .stTextArea textarea, 
+    .stDateInput input, 
+    .stTimeInput input, 
+    .stSelectbox div[data-baseweb="select"] > div {
+        border-radius: var(--border-radius-sm) !important;
+        border: 1px solid var(--input-border-color) !important;
+        padding: 10px 12px !important;
+        font-size: 14px !important;
+        color: var(--primary-text-color) !important;
+        background-color: var(--input-bg-color) !important;
+        transition: border-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+    }
+    .stTextInput input:focus, 
+    .stNumberInput input:focus, 
+    .stTextArea textarea:focus, 
+    .stDateInput input:focus, 
+    .stTimeInput input:focus, 
+    .stSelectbox div[data-baseweb="select"] > div:focus-within {
+        border-color: var(--input-focus-border) !important;
+        box-shadow: 0 0 0 1px var(--input-focus-border) !important;
+    }
+    .stTextArea textarea { min-height: 90px; }
+    div[data-testid="stForm"] { border: none; padding: 0; } /* Remove default form border */
+
+
+    /* DataFrames */
+    .stDataFrame { border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: none; }
+    .stDataFrame table thead th { 
+        background-color: var(--body-bg-color); /* Consistent with page bg */
+        color: var(--secondary-text-color); font-weight: 500; 
+        border-bottom: 1px solid var(--border-color); 
+        font-size: 13px; text-transform:none; padding: 10px 12px;
+    }
+    .stDataFrame table tbody td { 
+        color: var(--primary-text-color); font-size: 13px; 
+        border-bottom: 1px solid var(--border-color); padding: 10px 12px;
+    }
+    .stDataFrame table tbody tr:last-child td { border-bottom: none; }
+    .stDataFrame table tbody tr:hover { background-color: var(--sidebar-hover-bg); }
+
+    /* Metrics */
+    div[data-testid="stMetricLabel"] {font-size: 12px !important; color: var(--secondary-text-color) !important; font-weight: 400; text-transform: none; margin-bottom: 2px;}
+    div[data-testid="stMetricValue"] {font-size: 20px !important; font-weight: 500; color: var(--primary-text-color); line-height: 26px;}
+    
+    /* Employee Progress Item (Donut chart containers) */
+    .employee-progress-item { 
+        border: 1px solid var(--border-color); 
+        background-color: var(--card-bg-color); 
+        border-radius: var(--border-radius); 
+        padding:16px; text-align:center;
+    }
+    .employee-progress-item h6 {margin-top:0; margin-bottom:4px; font-size:14px; color: var(--primary-text-color); font-weight: 500;}
+    .employee-progress-item p {font-size:13px; color: var(--secondary-text-color); margin-bottom:8px;}
+    
+    /* Headers for log sections */
+    .record-type-header { 
+        font-size: 16px; color: var(--primary-text-color); 
+        margin-top: 24px; margin-bottom: 10px; font-weight: 500; 
+        padding-bottom: 8px; border-bottom: 1px solid var(--border-color); 
+    }
+
+    /* Login Page Specifics */
+    .login-page-container { /* Ensures login form is centered on page */
+        display: flex; justify-content: center; align-items: center; min-height: 90vh; padding: 20px;
+    }
+    .login-container.card { /* The login card itself */
+        max-width: 400px; width: 100%; padding: 32px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--card-shadow);
+    }
+    .login-container h3 {
+        text-align:center; margin-bottom:24px; font-size: 20px;
+    }
+</style>"""
 st.markdown(html_css, unsafe_allow_html=True)
 
 # --- Credentials & User Info ---
