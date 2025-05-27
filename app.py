@@ -93,10 +93,10 @@ html_css = """
     :root {
         --primary-color: #4285F4;  /* Google blue */
         --secondary-color: #34A853;  /* Google green */
-        --accent-color: #EA4335;  /* Google red */
+        --accent-color: #6d8ec5;  /* Google red */
         --yellow-color: #FBBC05;  /* Google yellow */
         --success-color: #34A853;
-        --danger-color: #EA4335;
+        --danger-color: #6d8ec5;
         --warning-color: #FBBC05;
         --info-color: #4285F4;
         --body-bg-color: #f8f9fa; /* Light grey, common in Google UIs */
