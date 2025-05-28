@@ -1,0 +1,11 @@
+StoreID,StoreName,ContactPerson,ContactPhone,Address,VillageTown,District,State,Pincode,GSTIN,StoreType
+S001,Gujarat Agro Seeds,Mitesh Bhai,9825011111,"Shop No. 5, APMC Market",Bhavnagar City,Bhavnagar,Gujarat,364001,24AAAAA0000A1Z1,Retailer
+S002,Maharashtra FarmNeeds,Sunita Pawar,9922022222,"Pune-Nashik Highway, Near Bus Stand",Chakan,Pune,Maharashtra,410501,27BBBBB0000B1Z2,Distributor
+S003,Rajasthan Kisan Sahayak,Om Prakash Ji,9414033333,Station Road,Kota Junction,Kota,Rajasthan,324002,08CCCCC0000C1Z3,Retailer
+S004,Punjab Agri Solutions,Gurpreet Singh,9876544444,"GT Road, Industrial Area",Ludhiana,Ludhiana,Punjab,141003,03DDDDD0000D1Z4,Distributor
+S005,UP Krishi Kendra,Anil Kumar Verma,97XXXXX5555,"Civil Lines, Opp. Tehsil",Bareilly,Bareilly,Uttar Pradesh,243001,09EEEEE0000E1Z5,Retailer
+S006,Tamil Nadu Organic Farms,K. Selvam,96XXXXX6666,Farmers Market Complex,Erode,Erode,Tamil Nadu,638001,,Cooperative
+S007,Karnataka Bio Inputs,Rajesh Gowda,95XXXXX7777,"Mysore Road, Industrial Estate",Bengaluru,Bengaluru Urban,Karnataka,560026,29FFFFF0000F1Z6,Retailer
+S008,Andhra Agri Emporium,Venkat Rao,93XXXXX8888,"Near Rythu Bazar, Main Road",Guntur,Guntur,Andhra Pradesh,522002,37GGGGG0000G1Z7,Distributor
+S009,Kerala Agro Services,Thomas Varghese,92XXXXX9999,"MC Road, Plantation Area",Kottayam,Kottayam,Kerala,686001,,Retailer
+S010,MP Agri Mart,Deepak Sahu,91XXXXX0000,"Nehru Chowk, Wholesale Market",Indore,Indore,Madhya Pradesh,452001,23HHHHH0000H1Z8,Retailer
