@@ -896,7 +896,7 @@ with st.sidebar:
         "📸 Upload Activity Photo",
         "🧾 Allowance",
         "🎯 Goal Tracker",
-        "💰 Payment Collection Tracker",
+        "💰 Payment Collection",
         "📊 View Logs"
     ]
 
