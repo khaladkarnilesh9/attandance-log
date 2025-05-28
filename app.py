@@ -307,8 +307,8 @@ orders_df = load_data(ORDERS_FILE, ORDERS_COLUMNS, parse_dates_cols=['OrderDate'
 order_summary_df = load_data(ORDER_SUMMARY_FILE, ORDER_SUMMARY_COLUMNS, parse_dates_cols=['OrderDate', 'ExpectedDeliveryDate'])
 
 def generate_order_id():
-    global order_summary_df
     if order_summary_df.empty or "OrderID" not in order_summary_df.columns or order_summary_df["OrderID"].isnull().all(): return "ORD-00001"
+    global order_summary_df
     existing_ids_series = order_summary_df["OrderID"].astype(str).str.extract(r'ORD-(\d+)')
     if existing_ids_series.empty or existing_ids_series[0].isnull().all(): return "ORD-00001"
     valid_numeric_ids = pd.to_numeric(existing_ids_series[0], errors='coerce').dropna()
@@ -554,6 +554,7 @@ elif nav == "Create Order" and current_user_auth['role'] == 'sales_person':
         with col_qty_co: st.session_state.current_quantity_order = st.number_input("Quantity *", min_value=1, value=st.session_state.current_quantity_order, step=1, key="co_qty_input_key_v4")
         def add_item_to_order_cb_co_v4():
             if st.session_state.current_product_id_symplanta and st.session_state.current_quantity_order > 0:
+                global orders_df, order_summary_df
                 prod_info_co_v4 = products_df[products_df['ProductVariantID'] == st.session_state.current_product_id_symplanta]
                 if prod_info_co_v4.empty: st.error("Selected product not found.", icon="❌"); return
                 prod_info_co_v4 = prod_info_co_v4.iloc[0]
@@ -595,7 +596,6 @@ elif nav == "Create Order" and current_user_auth['role'] == 'sales_person':
                 store_info_co_v4 = stores_df[stores_df['StoreID'] == final_store_id_co_v4]
                 if not store_info_co_v4.empty: store_name_co_v4 = store_info_co_v4['StoreName'].iloc[0]
                 else: st.error("Selected store details not found.", icon="❌"); st.stop()
-                global orders_df, order_summary_df
                 new_order_id_co_v4 = generate_order_id(); order_date_co_submit_v4 = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
                 new_items_list_co_v4 = [{"OrderID":new_order_id_co_v4, "OrderDate":order_date_co_submit_v4, "Salesperson":salesperson_name_display_co, "StoreID":final_store_id_co_v4, "ProductVariantID":item_v4['ProductVariantID'], "SKU":item_v4['SKU'], "ProductName":item_v4['ProductName'], "Quantity":item_v4['Quantity'], "UnitOfMeasure":item_v4['UnitOfMeasure'], "UnitPrice":item_v4['UnitPrice'], "LineTotal":item_v4['LineTotal']} for item_v4 in st.session_state.order_line_items]
                 new_orders_df_co_v4 = pd.DataFrame(new_items_list_co_v4, columns=ORDERS_COLUMNS); temp_orders_df_co_v4 = pd.concat([orders_df, new_orders_df_co_v4], ignore_index=True)
