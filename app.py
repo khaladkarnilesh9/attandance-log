@@ -896,7 +896,7 @@ with st.sidebar:
         "📸 Upload Activity Photo",
         "🧾 Allowance",
         "🎯 Goal Tracker",
-        "💰 Payment Collection Tracker",
+        "💰 Payment Collection",
         "📊 View Logs"
     ]
 
@@ -1123,9 +1123,9 @@ elif nav == "🎯 Goal Tracker":
         else: st.info(f"No past goal records for {TARGET_GOAL_YEAR}.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-elif nav == "💰 Payment Collection Tracker":
+elif nav == "💰 Payment Collection":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3>💰 Payment Collection Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
+    st.markdown("<h3>💰 Payment Collection (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_YEAR_PAYMENT = 2025; current_quarter_display_payment = get_quarter_str_for_year(TARGET_YEAR_PAYMENT)
     status_options_payment = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
     if current_user["role"] == "admin":
