@@ -367,8 +367,8 @@ html_css = """
 
     /* Radio Buttons in Main Content */
     div[role="radiogroup"] > label {
-        background-color: white;
-        color: var(--text-color);
+        background-color: #1a73e8;
+        color:#ffffff;
         padding: 8px 16px;
         border-radius: var(--border-radius);
         border: 1px solid var(--border-color);
