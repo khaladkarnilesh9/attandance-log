@@ -82,35 +82,38 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     
 html_css = """
 <style>
-    /* Import Google Fonts (Roboto for text) */
+    /* Import Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-    
-    /* Import Google Material Symbols Outlined (for icons) */
     @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
     :root {
-        --primary-color: #4285F4;  /* Google blue */
-        --secondary-color: #34A853;  /* Google green */
-        --accent-color: #EA4335;  /* Google red */
-        --yellow-color: #FBBC05;  /* Google yellow */
-        --success-color: #34A853;
-        --danger-color: #EA4335;
-        --warning-color: #FBBC05;
-        --info-color: #4285F4;
-        --body-bg-color: #f8f9fa; /* Light grey, common in Google UIs */
+        /* Color Variables */
+        --primary-color: #4285F4;
+        --secondary-color: #34A853;
+        --accent-color: #EA4335;
+        --yellow-color: #FBBC05;
+        --sidebar-bg: #1a73e8;
+        --sidebar-text: rgba(255, 255, 255, 0.9);
+        --sidebar-text-active: white;
+        --sidebar-divider: rgba(255, 255, 255, 0.2);
+        --body-bg-color: #f8f9fa;
         --card-bg-color: #ffffff;
-        --text-color: #202124; /* Google's primary text color */
-        --text-muted-color: #5f6368; /* Google's secondary text color */
-        --border-color: #dadce0; /* Google's common border color */
+        --text-color: #202124;
+        --text-muted-color: #5f6368;
+        --border-color: #dadce0;
         --input-border-color: #dadce0;
+        
+        /* Typography */
         --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        --border-radius: 8px; /* Slightly more rounded like Google's newer designs */
+        
+        /* Spacing & Effects */
+        --border-radius: 8px;
         --border-radius-lg: 12px;
-        --box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* Google-like shadow */
+        --box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
         --box-shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.1);
-        --sidebar-bg: #1a73e8; /* Google AI Studio blue sidebar */
     }
 
+    /* Base Styles */
     body {
         font-family: var(--font-family);
         background-color: var(--body-bg-color);
@@ -121,20 +124,25 @@ html_css = """
 
     h1, h2, h3, h4, h5, h6 {
         color: var(--text-color);
-        font-weight: 500; /* Slightly bolder headings */
-        letter-spacing: -0.25px; /* Common in Google typography for larger text */
+        font-weight: 500;
+        letter-spacing: -0.25px;
     }
 
-    /* Main page title (Streamlit's default h1) */
+    /* Main Content Area */
+    .main .block-container {
+        padding: 2rem 3rem !important;
+        max-width: 1200px !important;
+    }
+
     .main .block-container > div:first-child > div:first-child > div:first-child > h1 {
-        text-align: left; /* Default is left, but good to be explicit */
-        font-size: 1.75rem; /* Approx 28px */
+        font-size: 1.75rem;
         font-weight: 500;
         padding-bottom: 16px;
         margin-bottom: 24px;
         border-bottom: 1px solid var(--border-color);
     }
 
+    /* Cards */
     .card {
         background-color: var(--card-bg-color);
         padding: 24px;
@@ -144,175 +152,156 @@ html_css = """
         border: 1px solid var(--border-color);
     }
 
-    .card h3 { /* Section titles within cards */
+    .card h3 {
         margin-top: 0;
         color: var(--text-color);
         padding-bottom: 12px;
         margin-bottom: 20px;
-        font-size: 1.25rem; /* Approx 20px */
+        font-size: 1.25rem;
         font-weight: 500;
         display: flex;
         align-items: center;
     }
 
-    .card h3:before { /* Decorative accent bar for card h3 */
+    .card h3:before {
         content: "";
         display: inline-block;
         width: 4px;
-        height: 20px; /* Adjusted to match typical line height of h3 */
+        height: 20px;
         background-color: var(--primary-color);
         margin-right: 12px;
         border-radius: 2px;
     }
 
-    /* Sidebar Styling - Google AI Studio inspired */
+    /* Sidebar Styles */
     [data-testid="stSidebar"] {
         background-color: var(--sidebar-bg) !important;
-        padding: 16px !important;
+        padding: 0 !important;
+        width: 280px !important;
         box-shadow: none !important;
         border-right: none !important;
-        width: 280px !important;
     }
 
     [data-testid="stSidebar"] .sidebar-content {
-        padding-top: 8px;
-    }
-
-    [data-testid="stSidebar"] p,
-    [data-testid="stSidebar"] h1,
-    [data-testid="stSidebar"] h2,
-    [data-testid="stSidebar"] h3,
-    [data-testid="stSidebar"] div:not([data-testid="stRadio"]) {
-        color: white !important;
-    }
-
-    /* Sidebar Radio Button (Navigation) */
-    [data-testid="stSidebar"] .stRadio > label > div > p {
-        font-size: 0.875rem !important;
-        color: rgba(255, 255, 255, 0.8) !important;
         padding: 0;
-        margin: 0;
+    }
+
+    /* Sidebar Navigation Items */
+    [data-testid="stSidebar"] .stRadio > label {
+        display: block;
+        padding: 12px 24px !important;
+        margin: 0 !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+        border-bottom: 1px solid var(--sidebar-divider) !important;
+        transition: background 0.2s ease;
+    }
+
+    [data-testid="stSidebar"] .stRadio > label:last-child {
+        border-bottom: none !important;
+    }
+
+    [data-testid="stSidebar"] .stRadio > label > div > p {
+        color: var(--sidebar-text) !important;
+        font-size: 0.875rem !important;
+        font-weight: 400 !important;
+        margin: 0 !important;
+        padding: 0 !important;
         display: flex;
         align-items: center;
     }
 
-    [data-testid="stSidebar"] .stRadio > label {
-        padding: 10px 16px !important;
-        border-radius: var(--border-radius) !important;
-        margin-bottom: 4px !important;
-        transition: all 0.2s ease !important;
-        display: flex !important;
-        align-items: center !important;
-        background-color: transparent !important;
-    }
-
-    [data-testid="stSidebar"] .stRadio > label:hover {
-        background-color: rgba(255, 255, 255, 0.1) !important;
-    }
-
-    /* Selected sidebar item */
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {
-        background-color: rgba(255, 255, 255, 0.2) !important;
-    }
-
     [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
-        color: white !important;
+        color: var(--sidebar-text-active) !important;
         font-weight: 500 !important;
     }
 
-    /* Sidebar icons */
+    /* Sidebar Icons */
     [data-testid="stSidebar"] .material-symbols-outlined {
-        color: rgba(255, 255, 255, 0.8) !important;
+        color: inherit !important;
+        font-size: 20px !important;
+        margin-right: 16px !important;
+        vertical-align: middle;
         font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
-        font-size: 20px;
-        margin-right: 12px;
     }
 
     [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined {
-        color: white !important;
         font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important;
     }
 
-    /* Welcome text in sidebar */
+    /* Sidebar Header */
     .welcome-text {
+        color: white !important;
         font-size: 1rem !important;
         font-weight: 500 !important;
-        margin-bottom: 24px !important;
-        text-align: left !important;
-        color: white !important;
-        padding-bottom: 16px !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+        padding: 24px 24px 16px !important;
+        margin: 0 !important;
+        border-bottom: 1px solid var(--sidebar-divider) !important;
     }
 
-    /* Profile image in sidebar */
+    /* Profile Image */
     [data-testid="stSidebar"] [data-testid="stImage"] > img {
         border-radius: 50%;
         border: 2px solid rgba(255, 255, 255, 0.2);
-        margin: 0 auto 16px auto;
+        margin: 16px auto !important;
         display: block;
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
     }
 
-    /* Logout button in sidebar */
+    /* Logout Button */
     .stButton button[id*="logout_button_sidebar"] {
-        background-color: transparent !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        color: white !important;
-        font-weight: 500 !important;
-        margin-top: 24px !important;
+        background: transparent !important;
+        border: none !important;
+        color: var(--sidebar-text) !important;
+        font-weight: 400 !important;
+        padding: 12px 24px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        text-align: left !important;
+        border-radius: 0 !important;
+        border-top: 1px solid var(--sidebar-divider) !important;
+        border-bottom: 1px solid var(--sidebar-divider) !important;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
     }
 
     .stButton button[id*="logout_button_sidebar"]:hover {
-        background-color: rgba(255, 255, 255, 0.1) !important;
+        background: rgba(255, 255, 255, 0.1) !important;
     }
 
-    /* Main content area */
-    .main .block-container {
-        padding: 2rem 3rem !important;
+    .stButton button[id*="logout_button_sidebar"] .material-symbols-outlined {
+        margin-right: 16px !important;
     }
 
-    /* Google AI Studio-like cards */
-    .card {
-        background-color: white;
-        border-radius: var(--border-radius);
-        padding: 24px;
-        box-shadow: var(--box-shadow-sm);
-        border: 1px solid var(--border-color);
-        margin-bottom: 24px;
+    /* Form Elements */
+    .stTextInput input,
+    .stNumberInput input,
+    .stTextArea textarea,
+    .stDateInput input,
+    .stTimeInput input,
+    .stSelectbox div[data-baseweb="select"] > div {
+        border-radius: var(--border-radius) !important;
+        border: 1px solid var(--input-border-color) !important;
+        padding: 10px 12px !important;
+        font-size: 0.875rem !important;
+        color: var(--text-color) !important;
+        background-color: var(--card-bg-color) !important;
     }
 
-    /* Google-style tabs */
-    .stTabs [role="tablist"] {
-        border-bottom: 1px solid var(--border-color);
-        margin-bottom: 0;
+    .stTextInput input:focus,
+    .stNumberInput input:focus,
+    .stTextArea textarea:focus,
+    .stDateInput input:focus,
+    .stTimeInput input:focus,
+    .stSelectbox div[data-baseweb="select"] > div:focus-within {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 2px rgba(66,133,244,0.15) !important;
     }
 
-    .stTabs [role="tab"] {
-        padding: 10px 16px;
-        border: none;
-        background-color: transparent;
-        color: var(--text-muted-color);
-        font-weight: 500;
-        transition: all 0.2s ease;
-    }
-
-    .stTabs [aria-selected="true"] {
-        color: var(--primary-color) !important;
-        border-bottom: 2px solid var(--primary-color) !important;
-    }
-
-    /* Material Symbols styling */
-    .material-symbols-outlined {
-        font-variation-settings:
-        'FILL' 0,
-        'wght' 400,
-        'GRAD' 0,
-        'opsz' 20;
-        font-size: 20px;
-        vertical-align: middle;
-        margin-right: 8px;
-    }
-
-    /* Button styling */
+    /* Buttons */
     .stButton button {
         background-color: var(--primary-color) !important;
         color: white !important;
@@ -325,54 +314,36 @@ html_css = """
 
     .stButton button:hover {
         background-color: #3367d6 !important;
-        box-shadow: none !important;
     }
 
-    /* Input fields */
-    .stTextInput input,
-    .stNumberInput input,
-    .stTextArea textarea,
-    .stDateInput input,
-    .stTimeInput input,
-    .stSelectbox div[data-baseweb="select"] > div {
-        border-radius: var(--border-radius) !important;
-        border: 1px solid var(--input-border-color) !important;
-        padding: 10px 12px !important;
-        font-size: 0.875rem !important;
-    }
-
-    /* Focus styles for inputs */
-    .stTextInput input:focus,
-    .stNumberInput input:focus,
-    .stTextArea textarea:focus,
-    .stDateInput input:focus,
-    .stTimeInput input:focus,
-    .stSelectbox div[data-baseweb="select"] > div:focus-within {
-        border-color: var(--primary-color) !important;
-        box-shadow: 0 0 0 2px rgba(66,133,244,0.15) !important;
-    }
-
-    /* Radio buttons in main content */
-    div[role="radiogroup"] > label {
-        background-color: white;
-        color: var(--text-color);
-        padding: 8px 16px;
-        border-radius: var(--border-radius);
+    /* DataFrames */
+    .stDataFrame {
         border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--box-shadow-sm);
     }
 
-    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
-        background-color: rgba(66, 133, 244, 0.1) !important;
+    /* Tabs */
+    .stTabs [role="tablist"] {
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 0;
+    }
+
+    .stTabs [role="tab"] {
+        padding: 10px 16px;
+        border: none;
+        background-color: transparent;
+        color: var(--text-muted-color);
+        font-weight: 500;
+    }
+
+    .stTabs [aria-selected="true"] {
         color: var(--primary-color) !important;
-        border-color: var(--primary-color) !important;
+        border-bottom: 2px solid var(--primary-color) !important;
     }
 
-    /* Progress bar */
-    .stProgress > div > div {
-        background-color: var(--primary-color) !important;
-    }
-
-    /* Metric cards */
+    /* Metrics */
     div[data-testid="stMetricLabel"] {
         font-size: 0.875rem !important;
         color: var(--text-muted-color) !important;
@@ -382,8 +353,34 @@ html_css = """
         font-size: 1.5rem !important;
         font-weight: 500 !important;
     }
-</style>
 
+    /* Progress Bars */
+    .stProgress > div > div {
+        background-color: var(--primary-color) !important;
+        border-radius: var(--border-radius);
+    }
+
+    .stProgress {
+        border-radius: var(--border-radius);
+        background-color: #e9ecef;
+    }
+
+    /* Radio Buttons in Main Content */
+    div[role="radiogroup"] > label {
+        background-color: white;
+        color: var(--text-color);
+        padding: 8px 16px;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+    }
+
+    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
+        background-color: rgba(66, 133, 244, 0.1) !important;
+        color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+    }
+</style>
 """
 
 st.markdown(html_css, unsafe_allow_html=True)
