@@ -893,7 +893,7 @@ with st.sidebar:
 
     nav_options = [
         "📆 Attendance",
-        "📸 Upload Activity Photo",
+        "📸 Activity",
         "🧾 Allowance",
         "🎯 Goal Tracker",
         "💰 Payment Collection",
@@ -926,7 +926,7 @@ with st.sidebar:
 if nav == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
-    st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Upload Activity Photo' section.", icon="ℹ️") # Updated info
+    st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Activity' section.", icon="ℹ️") # Updated info
     st.markdown("---"); st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
     col1, col2 = st.columns(2); common_data = {"Username": current_user["username"], "Latitude": pd.NA, "Longitude": pd.NA}
 
@@ -954,7 +954,7 @@ if nav == "📆 Attendance":
             process_general_attendance("Check-Out")
     st.markdown('</div></div>', unsafe_allow_html=True)
 
-elif nav == "📸 Upload Activity Photo":
+elif nav == "📸 Activity":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
     current_lat = pd.NA; current_lon = pd.NA # Placeholder, actual location capture not implemented here
