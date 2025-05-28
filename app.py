@@ -59,98 +59,296 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
 
 # --- CSS Styling ---
 html_css = """
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-    :root {
-        --primary-color: #4285F4; --secondary-color: #34A853; --accent-color: #EA4335; --yellow-color: #FBBC05;
-        --success-color: #34A853; --danger-color: #EA4335; --warning-color: #FBBC05; --info-color: #4285F4;
-        --body-bg-color: #f8f9fa; --card-bg-color: #ffffff; --text-color: #202124; --text-muted-color: #5f6368;
-        --border-color: #dadce0; --input-border-color: #dadce0;
-        --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        --border-radius: 8px; --border-radius-lg: 12px;
-        --box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-        --box-shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.1);
-    }
-    body { font-family: var(--font-family); background-color: var(--body-bg-color); color: var(--text-color); line-height: 1.5; font-weight: 400; }
-    h1, h2, h3, h4, h5, h6 { color: var(--text-color); font-weight: 500; letter-spacing: -0.25px; }
-    .main .block-container > div:first-child > div:first-child > div:first-child > h1 { text-align: left; font-size: 1.75rem; font-weight: 500; padding-bottom: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); }
-    .card { background-color: var(--card-bg-color); padding: 24px; border-radius: var(--border-radius); box-shadow: var(--box-shadow-sm); margin-bottom: 24px; border: 1px solid var(--border-color); }
-    .card h3 { margin-top: 0; color: var(--text-color); padding-bottom: 12px; margin-bottom: 20px; font-size: 1.25rem; font-weight: 500; display: flex; align-items: center; }
-    .card h3:before { content: ""; display: inline-block; width: 4px; height: 20px; background-color: var(--primary-color); margin-right: 12px; border-radius: 2px; }
-    .card h4 { color: var(--text-color); margin-top: 24px; margin-bottom: 16px; font-size: 1.1rem; font-weight: 500; }
-    .card h5 { font-size: 1rem; color: var(--text-color); margin-top: 20px; margin-bottom: 12px; font-weight: 500; }
-    .card h6 { font-size: 0.875rem; color: var(--text-muted-color); margin-top: 0; margin-bottom: 12px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.5px; }
-    .form-field-label h6 { font-size: 0.875rem; color: var(--text-muted-color); margin-top: 16px; margin-bottom: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-    .login-container { max-width: 480px; margin: 60px auto; border-top: 4px solid var(--primary-color); }
-    .login-container .stButton button { width: 100%; background-color: var(--primary-color) !important; color: white !important; font-size: 1rem; padding: 12px 20px; border-radius: var(--border-radius); border: none !important; font-weight: 500 !important; box-shadow: none !important; transition: background-color 0.2s ease; }
-    .login-container .stButton button:hover { background-color: #3367d6 !important; color: white !important; box-shadow: none !important; }
-    .stButton:not(.login-container .stButton) button { background-color: var(--primary-color); color: white; padding: 10px 20px; border: none; border-radius: var(--border-radius); font-size: 0.875rem; font-weight: 500; transition: background-color 0.2s ease; box-shadow: none; cursor: pointer; }
-    .stButton:not(.login-container .stButton) button:hover { background-color: #3367d6; box-shadow: none; }
-    .stButton button[type="submit"] { background-color: var(--primary-color); } .stButton button[type="submit"]:hover { background-color: #3367d6; }
-    .stButton button[id*="logout_button_sidebar"] { background-color: var(--danger-color) !important; border: none !important; color: white !important; font-weight: 500 !important; }
-    .stButton button[id*="logout_button_sidebar"]:hover { background-color: #d33426 !important; }
-    .stTextInput input, .stNumberInput input, .stTextArea textarea, .stDateInput input, .stTimeInput input, .stSelectbox div[data-baseweb="select"] > div { border-radius: var(--border-radius) !important; border: 1px solid var(--input-border-color) !important; padding: 10px 12px !important; font-size: 0.875rem !important; color: var(--text-color) !important; background-color: var(--card-bg-color) !important; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
-    .stTextInput input::placeholder, .stNumberInput input::placeholder, .stTextArea textarea::placeholder { color: var(--text-muted-color) !important; opacity: 1; }
-    .stTextArea textarea { min-height: 100px; }
-    .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus, .stDateInput input:focus, .stTimeInput input:focus, .stSelectbox div[data-baseweb="select"] > div:focus-within { border-color: var(--primary-color) !important; box-shadow: 0 0 0 2px rgba(66,133,244,0.15) !important; }
-    [data-testid="stSidebar"] { background-color: #ffffff; padding: 16px !important; box-shadow: 1px 0 2px 0 rgba(60,64,67,0.1), 1px 0 3px 1px rgba(60,64,67,0.1); border-right: 1px solid var(--border-color); }
-    [data-testid="stSidebar"] .sidebar-content { padding-top: 8px; }
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] div:not([data-testid="stRadio"]) { color: var(--text-color) !important; }
-    [data-testid="stSidebar"] .stRadio > label > div > p { font-size: 0.875rem !important; color: var(--text-color) !important; padding: 0; margin: 0; display: flex; align-items: center; }
-    [data-testid="stSidebar"] .stRadio > label { padding: 8px 12px; border-radius: var(--border-radius); margin-bottom: 4px; transition: background-color 0.2s ease; display: flex; align-items: center; }
-    [data-testid="stSidebar"] .stRadio > label:hover { background-color: rgba(66,133,244,0.08); }
-    .welcome-text { font-size: 1rem; font-weight: 500; margin-bottom: 20px; text-align: center; color: var(--text-color) !important; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
-    [data-testid="stSidebar"] [data-testid="stImage"] > img { border-radius: 50%; border: 2px solid var(--border-color); margin: 0 auto 12px auto; display: block; }
-    .stDataFrame { width: 100%; border: 1px solid var(--border-color); border-radius: var(--border-radius); overflow: hidden; box-shadow: var(--box-shadow-sm); margin-bottom: 20px; }
-    .stDataFrame table { width: 100%; border-collapse: collapse; }
-    .stDataFrame table thead th { background-color: #f8f9fa; color: var(--text-muted-color); font-weight: 500; text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
-    .stDataFrame table tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border-color); vertical-align: middle; color: var(--text-color); font-size: 0.875rem; }
-    .stDataFrame table tbody tr:last-child td { border-bottom: none; }
-    .stDataFrame table tbody tr:hover { background-color: #f1f3f4; }
-    .employee-progress-item { border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 16px; text-align: center; background-color: var(--card-bg-color); margin-bottom: 12px; box-shadow: var(--box-shadow-sm); }
-    .employee-progress-item h6 { margin-top: 0; margin-bottom: 8px; font-size: 0.875rem; color: var(--text-color); font-weight: 500; }
-    .employee-progress-item p { font-size: 0.75rem; color: var(--text-muted-color); margin-bottom: 8px; }
-    .button-column-container > div[data-testid="stHorizontalBlock"] { gap: 16px; }
-    .button-column-container .stButton button { width: 100%; }
-    div[role="radiogroup"] { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-    div[role="radiogroup"] > label { background-color: white; color: var(--text-color); padding: 8px 16px; border-radius: var(--border-radius); border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s ease; font-size: 0.875rem; font-weight: 400; }
-    div[role="radiogroup"] > label:hover { background-color: #f8f9fa; border-color: var(--border-color); }
-    .employee-section-header { color: var(--text-color); margin-top: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 1.1rem; }
-    .record-type-header { font-size: 1rem; color: var(--text-color); margin-top: 20px; margin-bottom: 12px; font-weight: 500; }
-    div[data-testid="stImage"] > img { border-radius: var(--border-radius); border: 1px solid var(--border-color); box-shadow: var(--box-shadow-sm); }
-    .stProgress > div > div { background-color: var(--primary-color) !important; border-radius: var(--border-radius); }
-    .stProgress { border-radius: var(--border-radius); background-color: #e9ecef; }
-    div[data-testid="stMetricLabel"] { font-size: 0.875rem !important; color: var(--text-muted-color) !important; font-weight: 400; }
-    div[data-testid="stMetricValue"] { font-size: 1.5rem !important; font-weight: 500; color: var(--text-color); }
-    .custom-notification { padding: 12px 16px; border-radius: var(--border-radius); margin-bottom: 16px; font-size: 0.875rem; border-left-width: 4px; border-left-style: solid; display: flex; align-items: center; background-color: white; box-shadow: var(--box-shadow-sm); }
-    .custom-notification.success { background-color: #e6f4ea; color: var(--text-color); border-left-color: var(--success-color); }
-    .custom-notification.error { background-color: #fce8e6; color: var(--text-color); border-left-color: var(--danger-color); }
-    .custom-notification.warning { background-color: #fef7e0; color: var(--text-color); border-left-color: var(--warning-color); }
-    .custom-notification.info { background-color: #e8f0fe; color: var(--text-color); border-left-color: var(--info-color); }
-    .badge { display: inline-block; padding: 4px 8px; font-size: 0.75rem; font-weight: 500; line-height: 1; color: white; text-align: center; white-space: nowrap; vertical-align: baseline; border-radius: 12px; }
-    .badge.green { background-color: var(--success-color); } .badge.red { background-color: var(--danger-color); } .badge.orange { background-color: var(--warning-color); } .badge.blue { background-color: var(--primary-color); } .badge.grey { background-color: var(--text-muted-color); }
-    .metric-card { background-color: white; border-radius: var(--border-radius); padding: 16px; box-shadow: var(--box-shadow-sm); border: 1px solid var(--border-color); margin-bottom: 16px; }
-    .metric-card-title { font-size: 0.75rem; color: var(--text-muted-color); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-    .metric-card-value { font-size: 1.5rem; font-weight: 500; color: var(--text-color); margin-bottom: 4px; }
-    .metric-card-change { font-size: 0.75rem; display: flex; align-items: center; }
-    .metric-card-change.positive { color: var(--success-color); } .metric-card-change.negative { color: var(--danger-color); }
-    .stTabs [role="tablist"] { gap: 0px; margin-bottom: 0px; border-bottom: 1px solid var(--border-color); }
-    .stTabs [role="tab"] { padding: 10px 16px; border-radius: 0; border: none; border-bottom: 2px solid transparent; background-color: transparent; color: var(--text-muted-color); font-size: 0.875rem; font-weight: 500; transition: all 0.2s ease; margin-right: 16px; position: relative; top: 1px; }
-    .stTabs [role="tab"]:last-child { margin-right: 0; }
-    .stTabs [role="tab"]:hover { background-color: transparent; color: var(--text-color); }
-    .stTabs [aria-selected="true"] { background-color: transparent !important; color: var(--primary-color) !important; border-bottom: 2px solid var(--primary-color) !important; font-weight: 500; box-shadow: none !important; }
-    .stDateInput input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='%235f6368'%3E%3Cpath d='M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 40px !important; }
-    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20; font-size: 20px; vertical-align: text-bottom; margin-right: 10px; color: inherit; }
-    [data-testid="stSidebar"] .material-symbols-outlined { color: var(--text-muted-color); font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20; font-size: 20px; }
-    div[role="radiogroup"] div[data-baseweb="radio"] input[type="radio"]:checked + label, div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label { background-color: rgba(66, 133, 244, 0.15) !important; color: var(--primary-color) !important; border-color: var(--primary-color) !important; font-weight: 500 !important; }
-    div[role="radiogroup"] input[type="radio"]:checked + div[data-testid="stRadioMark"], div[role="radiogroup"] input[type="radio"]:checked + label div[data-testid="stRadioMark"] { background-color: var(--primary-color) !important; border-color: var(--primary-color) !important; box-shadow: inset 0 0 0 4px var(--card-bg-color) !important; }
-    div[role="radiogroup"] input[type="radio"]:checked + label::before { background-color: var(--primary-color) !important; border-color: var(--primary-color) !important; }
-    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label, [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label { background-color: rgba(66, 133, 244, 0.15) !important; }
-    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label > div > p, [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p { color: var(--primary-color) !important; font-weight: 500 !important; }
-    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label .material-symbols-outlined, [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined { color: var(--primary-color) !important; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important; }
-    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + div[data-testid="stRadioMark"], [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label div[data-testid="stRadioMark"] { background-color: var(--primary-color) !important; border-color: var(--primary-color) !important; box-shadow: inset 0 0 0 4px #ffffff !important; }
-    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label::before { background-color: var(--primary-color) !important; border-color: var(--primary-color) !important; }
+/* --- Google AI Studio / Cloud Console Inspired Styles --- */
+
+/* Import Google Fonts (Roboto for text & Material Symbols for icons) */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+:root {
+    --gg-blue-500: #4285F4;    /* Primary Blue */
+    --gg-green-500: #34A853;  /* Primary Green */
+    --gg-red-500: #EA4335;    /* Primary Red */
+    --gg-yellow-500: #FBBC05; /* Primary Yellow */
+    
+    --gg-grey-50: #f8f9fa;   /* Backgrounds, very light */
+    --gg-grey-100: #f1f3f4;  /* Lighter backgrounds, dividers */
+    --gg-grey-200: #e8eaed;  /* Light borders, disabled elements */
+    --gg-grey-300: #dadce0;  /* Borders */
+    --gg-grey-400: #bdc1c6;  /* Icons, tertiary text */
+    --gg-grey-500: #9aa0a6;  /* Secondary icons, help text */
+    --gg-grey-600: #80868b;  /* Secondary text */
+    --gg-grey-700: #5f6368;  /* Primary text (darker variant) */
+    --gg-grey-800: #3c4043;  /* Headings, primary text (darker) */
+    --gg-grey-900: #202124;  /* Very dark text, almost black */
+
+    --font-family-sans-serif: 'Roboto', Arial, sans-serif;
+    --body-bg: var(--gg-grey-50);
+    --text-color-primary: var(--gg-grey-900);
+    --text-color-secondary: var(--gg-grey-700);
+    --text-color-disabled: var(--gg-grey-500);
+    
+    --surface-color: #ffffff; /* Card backgrounds, pop-ups */
+    --border-color-default: var(--gg-grey-300);
+    --border-color-light: var(--gg-grey-200);
+
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px; /* Default */
+    
+    --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, .3), 0 1px 3px 1px rgba(60, 64, 67, .15);
+    --shadow-md: 0 1px 3px 0 rgba(60, 64, 67, .3), 0 4px 8px 3px rgba(60, 64, 67, .15);
+}
+
+/* --- Base & Typography --- */
+body {
+    font-family: var(--font-family-sans-serif);
+    background-color: var(--body-bg);
+    color: var(--text-color-primary);
+    line-height: 1.6;
+    font-size: 14px; /* Common base font size for interfaces */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-color-primary);
+    font-weight: 400; /* Google often uses normal weight for headings */
+    margin-top: 1.5em;
+    margin-bottom: 0.75em;
+}
+h1 { font-size: 1.8rem; letter-spacing: -0.01em; } /* ~28px */
+h2 { font-size: 1.5rem; letter-spacing: -0.005em; } /* ~24px */
+h3 { font-size: 1.25rem; } /* ~20px */
+h4 { font-size: 1rem; }    /* ~16px */
+h5 { font-size: 0.875rem; font-weight: 500; } /* ~14px, often bolder for subheads */
+h6 { font-size: 0.75rem; font-weight: 500; text-transform: uppercase; color: var(--text-color-secondary); letter-spacing: 0.05em; } /* ~12px */
+
+/* Main page title (Streamlit's default h1) */
+.main .block-container > div:first-child > div:first-child > div:first-child > h1 {
+    font-size: 24px; 
+    font-weight: 400;
+    color: var(--gg-grey-800);
+    padding-bottom: 16px; 
+    margin-bottom: 24px; 
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+/* --- Cards & Surfaces --- */
+.card {
+    background-color: var(--surface-color); 
+    padding: 20px 24px; 
+    border-radius: var(--border-radius-md); 
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); /* Softer shadow */
+    margin-bottom: 24px; 
+    border: 1px solid var(--border-color-default);
+}
+.card h3 { /* Section titles within cards */
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--gg-grey-800);
+    margin-top: 0; 
+    padding-bottom: 12px; 
+    margin-bottom: 20px; 
+    border-bottom: 1px solid var(--border-color-light);
+    display: flex;
+    align-items: center;
+}
+.card h3 .material-symbols-outlined { /* Icon inside card h3 */
+    font-size: 22px;
+    color: var(--gg-grey-600);
+    margin-right: 10px;
+}
+
+/* --- Buttons --- */
+.stButton button {
+    font-family: var(--font-family-sans-serif);
+    font-weight: 500;
+    border-radius: var(--border-radius-sm);
+    padding: 8px 16px;
+    font-size: 14px;
+    border: 1px solid transparent;
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    box-shadow: none;
+}
+/* Primary Button Style (used for submit types or with type="primary") */
+.stButton button[type="submit"], /* For forms */
+.stButton button:not([kind="secondary"]):not([kind="minimal"]):not([kind="destructive"]) { /* Default to primary if not specified kind */
+    background-color: var(--gg-blue-500) !important;
+    color: white !important;
+    border-color: var(--gg-blue-500) !important;
+}
+.stButton button[type="submit"]:hover,
+.stButton button:not([kind="secondary"]):not([kind="minimal"]):not([kind="destructive"]):hover {
+    background-color: #1a73e8 !important; /* Darker Google Blue */
+    border-color: #1a73e8 !important;
+}
+.stButton button[type="submit"]:focus,
+.stButton button:not([kind="secondary"]):not([kind="minimal"]):not([kind="destructive"]):focus {
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.3) !important;
+}
+/* Secondary/Outline Button Style */
+.stButton button[kind="secondary"] { /* You'd use st.button("Text", type="secondary") or add class */
+    background-color: transparent !important;
+    color: var(--gg-blue-500) !important;
+    border-color: var(--gg-grey-300) !important;
+}
+.stButton button[kind="secondary"]:hover {
+    background-color: rgba(66, 133, 244, 0.08) !important;
+    border-color: var(--gg-blue-500) !important;
+}
+.stButton button[id*="logout_button_sidebar"] {
+    background-color: transparent !important;
+    color: var(--gg-red-500) !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
+    padding: 8px 0px !important; /* Minimal padding for text-like button */
+}
+.stButton button[id*="logout_button_sidebar"]:hover {
+    background-color: rgba(234, 67, 53, 0.08) !important;
+}
+
+/* --- Input Fields --- */
+.stTextInput input, .stNumberInput input, .stTextArea textarea, 
+.stDateInput input, .stTimeInput input, 
+.stSelectbox div[data-baseweb="select"] > div {
+    font-family: var(--font-family-sans-serif);
+    font-size: 14px !important;
+    color: var(--text-color-primary) !important;
+    background-color: var(--surface-color) !important;
+    border: 1px solid var(--border-color-default) !important;
+    border-radius: var(--border-radius-sm) !important;
+    padding: 8px 12px !important; /* Adjusted padding */
+    box-shadow: none !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus,
+.stDateInput input:focus, .stTimeInput input:focus,
+.stSelectbox div[data-baseweb="select"] > div:focus-within {
+    border-color: var(--gg-blue-500) !important;
+    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2) !important; /* Focus ring */
+}
+.stTextArea textarea { min-height: 80px; }
+.stDateInput input { /* Date picker icon styling from before */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='%235f6368'%3E%3Cpath d='M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; padding-right: 36px !important;
+}
+
+/* --- Sidebar --- */
+[data-testid="stSidebar"] {
+    background-color: var(--gg-grey-50); /* Lightest grey for sidebar background */
+    border-right: 1px solid var(--border-color-light);
+    padding: 16px !important;
+    box-shadow: none; /* Often no shadow or very subtle */
+}
+.welcome-text { /* Sidebar welcome text */
+    font-size: 1rem; font-weight: 500; margin-bottom: 16px; padding-bottom: 16px;
+    text-align: left; padding-left: 8px; border-bottom: 1px solid var(--border-color-light);
+    color: var(--text-color-primary) !important;
+}
+[data-testid="stSidebar"] .stRadio > label { /* Nav items */
+    padding: 10px 12px; border-radius: var(--border-radius-sm); margin-bottom: 2px;
+    transition: background-color 0.1s ease-in-out; display: flex; align-items: center;
+}
+[data-testid="stSidebar"] .stRadio > label:hover { background-color: var(--gg-grey-100); }
+[data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {
+    background-color: #e8f0fe; /* Light blue for selected nav item (GCP style) */
+    font-weight: 500;
+}
+[data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p,
+[data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined {
+    color: var(--gg-blue-500) !important; /* Blue text/icon for selected */
+}
+[data-testid="stSidebar"] .stRadio > label > div > p { font-size: 14px !important; color: var(--gg-grey-800) !important; }
+[data-testid="stSidebar"] .material-symbols-outlined {
+    color: var(--gg-grey-600); font-size: 20px; margin-right: 12px;
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'opsz' 20;
+}
+[data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'opsz' 20 !important; /* Slightly bolder selected icon */
+}
+
+
+/* --- DataFrames --- */
+.stDataFrame { border: 1px solid var(--border-color-light); border-radius: var(--border-radius-sm); box-shadow: none; }
+.stDataFrame table thead th { background-color: var(--gg-grey-50); color: var(--text-color-secondary); font-weight: 500; font-size: 13px; padding: 10px 16px; border-bottom: 1px solid var(--border-color-light); text-transform: none; letter-spacing: 0; }
+.stDataFrame table tbody td { padding: 10px 16px; font-size: 14px; border-bottom: 1px solid var(--border-color-light); }
+.stDataFrame table tbody tr:last-child td { border-bottom: none; }
+.stDataFrame table tbody tr:hover { background-color: var(--gg-grey-100); }
+
+/* --- Tabs --- */
+.stTabs [role="tablist"] { border-bottom: 1px solid var(--border-color-default); margin-bottom: 0; }
+.stTabs [role="tab"] {
+    padding: 12px 16px; color: var(--text-color-secondary); font-size: 14px; font-weight: 500;
+    border: none; border-bottom: 3px solid transparent; margin-right: 24px; border-radius: 0;
+    background-color: transparent !important;
+}
+.stTabs [role="tab"]:hover { color: var(--gg-blue-500); background-color: transparent !important;}
+.stTabs [aria-selected="true"] {
+    color: var(--gg-blue-500) !important;
+    border-bottom: 3px solid var(--gg-blue-500) !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* --- Metric Cards (for Dashboard) --- */
+.stMetric { /* Target Streamlit's metric component directly */
+    background-color: var(--surface-color);
+    padding: 16px;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--border-color-light);
+    /* box-shadow: var(--shadow-sm); */ /* Optional shadow */
+}
+div[data-testid="stMetricLabel"] { font-size: 13px !important; color: var(--text-color-secondary) !important; font-weight: 400; text-transform: uppercase; margin-bottom: 4px;}
+div[data-testid="stMetricValue"] { font-size: 28px !important; font-weight: 400; color: var(--text-color-primary); line-height: 1.2; }
+div[data-testid="stMetricDelta"] { font-size: 13px !important; font-weight: 500; }
+/* Streamlit handles delta color (green/red) automatically */
+
+/* --- Custom Notification & Badges (from your previous CSS, slightly tweaked) --- */
+.custom-notification { padding: 12px 16px; border-radius: var(--border-radius-sm); margin-bottom: 16px; font-size: 14px; border-left-width: 4px; border-left-style: solid; display: flex; align-items: center; background-color: var(--surface-color); border: 1px solid var(--border-color-light); border-left-width: 4px;}
+.custom-notification.success { border-left-color: var(--gg-green-500); background-color: #e6f4ea; }
+.custom-notification.error { border-left-color: var(--gg-red-500); background-color: #fce8e6; }
+.custom-notification.warning { border-left-color: var(--gg-yellow-500); background-color: #fef7e0; }
+.custom-notification.info { border-left-color: var(--gg-blue-500); background-color: #e8f0fe; }
+
+.badge { display: inline-block; padding: 3px 8px; font-size: 12px; font-weight: 500; line-height: 1.4; color: white; text-align: center; border-radius: 16px; /* Pill shape */ }
+.badge.green { background-color: var(--gg-green-500); } .badge.red { background-color: var(--gg-red-500); }
+.badge.orange { background-color: var(--gg-yellow-500); color: var(--text-color-primary); } /* Yellow needs dark text */
+.badge.blue { background-color: var(--gg-blue-500); } .badge.grey { background-color: var(--gg-grey-500); }
+
+
+/* Aggressive Radio Button Overrides (Blue Theme) */
+div[role="radiogroup"] div[data-baseweb="radio"] input[type="radio"]:checked + label,
+div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
+    background-color: rgba(66, 133, 244, 0.1) !important; /* Lighter blue background */
+    color: var(--gg-blue-500) !important;
+    border-color: var(--gg-blue-500) !important;
+    font-weight: 500 !important;
+}
+div[role="radiogroup"] input[type="radio"]:checked + div[data-testid="stRadioMark"],
+div[role="radiogroup"] input[type="radio"]:checked + label div[data-testid="stRadioMark"] {
+    background-color: var(--gg-blue-500) !important;
+    border-color: var(--gg-blue-500) !important;
+    box-shadow: inset 0 0 0 3px var(--surface-color) !important; /* Inner white circle effect */
+}
+[data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label,
+[data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {
+    background-color: #e8f0fe !important; /* Specific light blue for sidebar selected nav */
+}
+[data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label > div > p,
+[data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
+    color: var(--gg-blue-500) !important;
+    font-weight: 500 !important;
+}
+[data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label .material-symbols-outlined,
+[data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined {
+    color: var(--gg-blue-500) !important;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'opsz' 20 !important;
+}
+[data-testid="stSidebar"] .stRadio input[type="radio"]:checked + div[data-testid="stRadioMark"],
+[data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label div[data-testid="stRadioMark"] {
+    background-color: var(--gg-blue-500) !important;
+    border-color: var(--gg-blue-500) !important;
+    box-shadow: inset 0 0 0 3px var(--gg-grey-50) !important; /* Sidebar background for inner circle */
+}
 </style>
 """
 st.set_page_config(layout="wide", page_title="Symplanta TrackSphere")
