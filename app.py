@@ -307,8 +307,8 @@ orders_df = load_data(ORDERS_FILE, ORDERS_COLUMNS, parse_dates_cols=['OrderDate'
 order_summary_df = load_data(ORDER_SUMMARY_FILE, ORDER_SUMMARY_COLUMNS, parse_dates_cols=['OrderDate', 'ExpectedDeliveryDate'])
 
 def generate_order_id():
-    if order_summary_df.empty or "OrderID" not in order_summary_df.columns or order_summary_df["OrderID"].isnull().all(): return "ORD-00001"
     global order_summary_df
+    if order_summary_df.empty or "OrderID" not in order_summary_df.columns or order_summary_df["OrderID"].isnull().all(): return "ORD-00001"
     existing_ids_series = order_summary_df["OrderID"].astype(str).str.extract(r'ORD-(\d+)')
     if existing_ids_series.empty or existing_ids_series[0].isnull().all(): return "ORD-00001"
     valid_numeric_ids = pd.to_numeric(existing_ids_series[0], errors='coerce').dropna()
@@ -553,8 +553,8 @@ elif nav == "Create Order" and current_user_auth['role'] == 'sales_person':
             st.session_state.current_product_id_symplanta = selected_prod_variant_id_co # Store ProductVariantID
         with col_qty_co: st.session_state.current_quantity_order = st.number_input("Quantity *", min_value=1, value=st.session_state.current_quantity_order, step=1, key="co_qty_input_key_v4")
         def add_item_to_order_cb_co_v4():
-            if st.session_state.current_product_id_symplanta and st.session_state.current_quantity_order > 0:
                 global orders_df, order_summary_df
+            if st.session_state.current_product_id_symplanta and st.session_state.current_quantity_order > 0:
                 prod_info_co_v4 = products_df[products_df['ProductVariantID'] == st.session_state.current_product_id_symplanta]
                 if prod_info_co_v4.empty: st.error("Selected product not found.", icon="❌"); return
                 prod_info_co_v4 = prod_info_co_v4.iloc[0]
