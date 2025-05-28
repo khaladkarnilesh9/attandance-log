@@ -81,8 +81,6 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     return fig
 
 html_css = """
-html_css = """
-html_css = """
 <style>
     /* Import Google Fonts (Roboto for text) */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
@@ -924,7 +922,7 @@ with st.sidebar:
 
 # --- Main Content ---
 if nav == "📆 Attendance":
-    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown('<div class="Nilesh">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
     st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Upload Activity Photo' section.", icon="ℹ️") # Updated info
     st.markdown("---"); st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
