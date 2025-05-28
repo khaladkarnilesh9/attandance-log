@@ -173,21 +173,22 @@ html_css = """
         border-radius: 2px;
     }
 
-    /* Sidebar Styles */
+        /* Sidebar Styles - Simplified Text Navigation */
     [data-testid="stSidebar"] {
         background-color: var(--sidebar-bg) !important;
-        color:#ffffff
         padding: 0 !important;
-        width: 280px !important;
-        box-shadow: none !important;
-        border-right: none !important;
     }
 
-    [data-testid="stSidebar"] .sidebar-content {
-        padding: 0;
+    /* Welcome Header */
+    [data-testid="stSidebar"] .welcome-text {
+        color: white !important;
+        font-weight: 500 !important;
+        padding: 24px 24px 16px !important;
+        margin: 0 !important;
+        border-bottom: 1px solid var(--sidebar-divider) !important;
     }
 
-    /* Sidebar Navigation Items */
+    /* Navigation Items - Plain Text with Dividers */
     [data-testid="stSidebar"] .stRadio > label {
         display: block;
         padding: 12px 24px !important;
@@ -195,102 +196,33 @@ html_css = """
         background: transparent !important;
         border-radius: 0 !important;
         border-bottom: 1px solid var(--sidebar-divider) !important;
-        transition: background 0.2s ease;
+        transition: none !important;
     }
 
-    [data-testid="stSidebar"] .stRadio > label:last-child {
-        border-bottom: none !important;
+    /* Remove button styling */
+    [data-testid="stSidebar"] .stRadio > label:hover {
+        background: transparent !important;
     }
 
+    /* Text Styling */
     [data-testid="stSidebar"] .stRadio > label > div > p {
         color: var(--sidebar-text) !important;
-        font-size: 0.875rem !important;
+        font-size: 14px !important;
         font-weight: 400 !important;
         margin: 0 !important;
-        padding: 0 !important;
-        display: flex;
-        align-items: center;
     }
 
+    /* Active Item Styling */
     [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
         color: var(--sidebar-text-active) !important;
         font-weight: 500 !important;
     }
 
-    /* Sidebar Icons */
-    [data-testid="stSidebar"] .material-symbols-outlined {
-        color: inherit !important;
-        font-size: 20px !important;
-        margin-right: 16px !important;
-        vertical-align: middle;
-        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+    /* Remove last divider */
+    [data-testid="stSidebar"] .stRadio > label:last-child {
+        border-bottom: none !important;
     }
 
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined {
-        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important;
-    }
-
-    /* Sidebar Header */
-    .welcome-text {
-        color: white !important;
-        font-size: 1rem !important;
-        font-weight: 500 !important;
-        padding: 24px 24px 16px !important;
-        margin: 0 !important;
-        border-bottom: 1px solid var(--sidebar-divider) !important;
-    }
-
-    /* Profile Image */
-    [data-testid="stSidebar"] [data-testid="stImage"] > img {
-        border-radius: 50%;
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        margin: 16px auto !important;
-        display: block;
-        width: 80px;
-        height: 80px;
-        object-fit: cover;
-    }
-
-    /* Logout Button */
-    .stButton button[id*="logout_button_sidebar"] {
-        background: transparent !important;
-        border: none !important;
-        color: var(--sidebar-text) !important;
-        font-weight: 400 !important;
-        padding: 12px 24px !important;
-        margin: 0 !important;
-        width: 100% !important;
-        text-align: left !important;
-        border-radius: 0 !important;
-        border-top: 1px solid var(--sidebar-divider) !important;
-        border-bottom: 1px solid var(--sidebar-divider) !important;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-    }
-
-    .stButton button[id*="logout_button_sidebar"]:hover {
-        background: rgba(255, 255, 255, 0.1) !important;
-    }
-
-    .stButton button[id*="logout_button_sidebar"] .material-symbols-outlined {
-        margin-right: 16px !important;
-    }
-
-    /* Form Elements */
-    .stTextInput input,
-    .stNumberInput input,
-    .stTextArea textarea,
-    .stDateInput input,
-    .stTimeInput input,
-    .stSelectbox div[data-baseweb="select"] > div {
-        border-radius: var(--border-radius) !important;
-        border: 1px solid var(--input-border-color) !important;
-        padding: 10px 12px !important;
-        font-size: 0.875rem !important;
-        color: var(--text-color) !important;
-        background-color: var(--card-bg-color) !important;
-    }
 
     .stTextInput input:focus,
     .stNumberInput input:focus,
