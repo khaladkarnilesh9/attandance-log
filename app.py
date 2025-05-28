@@ -539,32 +539,118 @@ elif nav == "Create Order" and current_user_auth['role'] == 'sales_person':
         grand_total_co_v5 = subtotal_co_v5 - st.session_state.order_discount + st.session_state.order_tax
         with col_summary2_co_v5: st.markdown(f"<div style='text-align:right; margin-top:20px;'><p style='margin-bottom:2px;'>Subtotal:  <strong>₹{subtotal_co_v5:,.2f}</strong></p><p style='margin-bottom:2px;color:var(--danger-color);'>Discount:  - ₹{st.session_state.order_discount:,.2f}</p><p style='margin-bottom:2px;'>Tax:  + ₹{st.session_state.order_tax:,.2f}</p><h4 style='margin-top:5px;border-top:1px solid var(--border-color);padding-top:5px;'>Grand Total:  ₹{grand_total_co_v5:,.2f}</h4></div>", unsafe_allow_html=True)
         st.session_state.order_notes = st.text_area("Order Notes / Payment Mode / Expected Delivery", value=st.session_state.order_notes, key="co_notes_val_key_v5", placeholder="E.g., UPI, Deliver by Tuesday")
+
+        # This block is part of the: elif nav == "Create Order" and current_user_auth['role'] == 'sales_person':
+
+    # ... (Code for displaying line items and calculating subtotal_co_v5, grand_total_co_v5, and order_notes)
+    # This part calculates the totals that will be displayed to the user *before* they click submit.
+    # These variables (subtotal_co_v5, grand_total_co_v5) are available in this outer scope.
+    if st.session_state.order_line_items:
+        # ... (This is where you display items and the summary: subtotal_co_v5, grand_total_co_v5 are calculated here)
+        # For example:
+        # subtotal_co_v5 = sum(item['LineTotal'] for item in st.session_state.order_line_items)
+        # grand_total_co_v5 = subtotal_co_v5 - st.session_state.order_discount + st.session_state.order_tax
+        # st.session_state.order_notes = st.text_area(...)
+        # ...
         
-        if st.button("✅ Submit Order", key="co_submit_order_btn_key_v5", type="primary", use_container_width=True):
-            final_store_id_co_v5 = st.session_state.order_store_select; store_name_co_v5 = "N/A"
-            if not final_store_id_co_v5: st.error("Store selection is mandatory.", icon="🏬")
-            elif not st.session_state.order_line_items: st.error("Cannot submit an empty order.", icon="🛒")
+        # THE SUBMIT BUTTON LOGIC STARTS HERE
+        if st.button("✅ Submit Order", key="co_submit_order_btn_key_v5_corrected", type="primary", use_container_width=True): # New key
+            final_store_id_co_submit = st.session_state.order_store_select # Use a distinct variable name for this scope
+            store_name_co_submit = "N/A"
+
+            # Initial client-side validations
+            if not final_store_id_co_submit:
+                st.error("Store selection is mandatory.", icon="🏬")
+            elif not st.session_state.order_line_items:
+                st.error("Cannot submit an empty order. Please add products.", icon="🛒")
             else:
-                # Declare global here, as this is the scope of assignment
+                # --- This 'else' block is the core submission logic ---
+                # Declare globals AT THE VERY BEGINNING of this specific block
                 global orders_df, order_summary_df 
+
+                # Fetch store name again safely within this block
+                store_info_submit = stores_df[stores_df['StoreID'] == final_store_id_co_submit]
+                if not store_info_submit.empty:
+                    store_name_co_submit = store_info_submit['StoreName'].iloc[0]
+                else:
+                    st.error("Selected store details not found. Please refresh and try again.", icon="❌")
+                    st.stop() # Stop if store info is suddenly invalid
+
+                # Recalculate totals for submission to ensure accuracy from current session state
+                # This is safer than relying on variables calculated outside the button's direct scope,
+                # though in Streamlit's execution model, they should be the same if no rerun happened.
+                current_subtotal_submit = sum(item['LineTotal'] for item in st.session_state.order_line_items)
+                current_discount_submit = st.session_state.order_discount # Value from the number_input
+                current_tax_submit = st.session_state.order_tax         # Value from the number_input
+                current_grand_total_submit = current_subtotal_submit - current_discount_submit + current_tax_submit
+                current_notes_submit = st.session_state.order_notes.strip()
+
+                new_order_id_submit = generate_order_id() 
+                order_date_submit_final = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
                 
-                store_info_co_v5 = stores_df[stores_df['StoreID'] == final_store_id_co_v5]
-                if not store_info_co_v5.empty: store_name_co_v5 = store_info_co_v5['StoreName'].iloc[0]
-                else: st.error("Selected store details not found.", icon="❌"); st.stop()
-                new_order_id_co_v5 = generate_order_id(); order_date_co_submit_v5 = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
-                new_items_list_co_v5 = [{"OrderID":new_order_id_co_v5, "OrderDate":order_date_co_submit_v5, "Salesperson":salesperson_name_display_co, "StoreID":final_store_id_co_v5, "ProductVariantID":item_v5['ProductVariantID'], "SKU":item_v5['SKU'], "ProductName":item_v5['ProductName'], "Quantity":item_v5['Quantity'], "UnitOfMeasure":item_v5['UnitOfMeasure'], "UnitPrice":item_v5['UnitPrice'], "LineTotal":item_v5['LineTotal']} for item_v5 in st.session_state.order_line_items]
-                new_orders_df_co_v5 = pd.DataFrame(new_items_list_co_v5, columns=ORDERS_COLUMNS); temp_orders_df_co_v5 = pd.concat([orders_df, new_orders_df_co_v5], ignore_index=True)
-                summary_data_co_v5 = {"OrderID":new_order_id_co_v5, "OrderDate":order_date_co_submit_v5, "Salesperson":salesperson_name_display_co, "StoreID":final_store_id_co_v5, "StoreName":store_name_co_v5, "Subtotal":subtotal_co_v5, "DiscountAmount":st.session_state.order_discount, "TaxAmount":st.session_state.order_tax, "GrandTotal":grand_total_co_v5, "Notes":st.session_state.order_notes.strip(), "PaymentMode":pd.NA, "ExpectedDeliveryDate":pd.NA}
-                new_summary_df_co_v5 = pd.DataFrame([summary_data_co_v5], columns=ORDER_SUMMARY_COLUMNS); temp_summary_df_co_v5 = pd.concat([order_summary_df, new_summary_df_co_v5], ignore_index=True)
+                new_items_list_submit = []
+                for item_data_submit in st.session_state.order_line_items:
+                    new_items_list_submit.append({
+                        "OrderID": new_order_id_submit, 
+                        "OrderDate": order_date_submit_final, 
+                        "Salesperson": salesperson_name_display_co, # This was defined earlier in the page
+                        "StoreID": final_store_id_co_submit, 
+                        "ProductVariantID": item_data_submit['ProductVariantID'], 
+                        "SKU": item_data_submit['SKU'], 
+                        "ProductName": item_data_submit['ProductName'], 
+                        "Quantity": item_data_submit['Quantity'], 
+                        "UnitOfMeasure": item_data_submit['UnitOfMeasure'], 
+                        "UnitPrice": item_data_submit['UnitPrice'], 
+                        "LineTotal": item_data_submit['LineTotal']
+                    })
+                
+                new_orders_df_submit = pd.DataFrame(new_items_list_submit, columns=ORDERS_COLUMNS)
+                temp_orders_df_submit = pd.concat([orders_df, new_orders_df_submit], ignore_index=True)
+                
+                summary_data_submit = {
+                    "OrderID": new_order_id_submit, 
+                    "OrderDate": order_date_submit_final, 
+                    "Salesperson": salesperson_name_display_co, 
+                    "StoreID": final_store_id_co_submit, 
+                    "StoreName": store_name_co_submit, 
+                    "Subtotal": current_subtotal_submit, 
+                    "DiscountAmount": current_discount_submit, 
+                    "TaxAmount": current_tax_submit, 
+                    "GrandTotal": current_grand_total_submit, 
+                    "Notes": current_notes_submit, 
+                    "PaymentMode": pd.NA, 
+                    "ExpectedDeliveryDate": pd.NA
+                }
+                new_summary_df_submit = pd.DataFrame([summary_data_submit], columns=ORDER_SUMMARY_COLUMNS)
+                temp_summary_df_submit = pd.concat([order_summary_df, new_summary_df_submit], ignore_index=True)
+                
                 try:
-                    temp_orders_df_co_v5.to_csv(ORDERS_FILE, index=False); temp_summary_df_co_v5.to_csv(ORDER_SUMMARY_FILE, index=False)
-                    orders_df = temp_orders_df_co_v5; order_summary_df = temp_summary_df_co_v5
-                    st.session_state.user_message = f"Order {new_order_id_co_v5} for '{store_name_co_v5}' submitted!"; st.session_state.message_type = "success"
-                    st.session_state.order_line_items = []; st.session_state.current_product_id_symplanta = None; st.session_state.current_quantity_order = 1; st.session_state.order_store_select = None; st.session_state.order_notes = ""; st.session_state.order_discount = 0.0; st.session_state.order_tax = 0.0
+                    temp_orders_df_submit.to_csv(ORDERS_FILE, index=False)
+                    temp_summary_df_submit.to_csv(ORDER_SUMMARY_FILE, index=False)
+                    
+                    orders_df = temp_orders_df_submit
+                    order_summary_df = temp_summary_df_submit
+                    
+                    st.session_state.user_message = f"Order {new_order_id_submit} for '{store_name_co_submit}' submitted successfully!"
+                    st.session_state.message_type = "success"
+                    # Clear form state by resetting session state variables
+                    st.session_state.order_line_items = []
+                    st.session_state.current_product_id_symplanta = None 
+                    st.session_state.current_quantity_order = 1
+                    st.session_state.order_store_select = None # Crucial to reset store selection
+                    st.session_state.order_notes = ""
+                    st.session_state.order_discount = 0.0
+                    st.session_state.order_tax = 0.0
                     st.rerun()
-                except Exception as e_co_submit_v5: st.session_state.user_message = f"Error submitting order: {e_co_submit_v5}"; st.session_state.message_type = "error"; st.rerun()
-    else: st.markdown("<br>", unsafe_allow_html=True); st.info("Add products to the order to see summary and submit.", icon="💡")
-    st.markdown("</div>", unsafe_allow_html=True)
+                except Exception as e_co_submit_final: 
+                    st.session_state.user_message = f"Error submitting order: {e_co_submit_final}"
+                    st.session_state.message_type = "error"
+                    st.rerun()
+    else: # This 'else' corresponds to 'if st.session_state.order_line_items:'
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.info("Add products to the order to see summary and submit.", icon="💡")
+    st.markdown("</div>", unsafe_allow_html=True) # Closes the main card for "Create Order" page
+
 
 elif nav == "Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
