@@ -896,7 +896,7 @@ with st.sidebar:
         "📸 Activity",
         "🧾 Allowance",
         "🎯 Goal Tracker",
-        "💰 Payment Collection",
+        "💰 Collection",
         "📊 View Logs"
     ]
 
@@ -1123,16 +1123,16 @@ elif nav == "🎯 Goal Tracker":
         else: st.info(f"No past goal records for {TARGET_GOAL_YEAR}.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-elif nav == "💰 Payment Collection":
+elif nav == "💰 Collection":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3>💰 Payment Collection (2025 - Quarterly)</h3>", unsafe_allow_html=True)
+    st.markdown("<h3>💰 Collection (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_YEAR_PAYMENT = 2025; current_quarter_display_payment = get_quarter_str_for_year(TARGET_YEAR_PAYMENT)
     status_options_payment = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
     if current_user["role"] == "admin":
-        st.markdown("<h4>Admin: Set & Track Payment Collection Goals</h4>", unsafe_allow_html=True)
+        st.markdown("<h4>Admin: Set & Track Collection Goals</h4>", unsafe_allow_html=True)
         admin_action_payment = st.radio("Action:", ["View Team Progress", f"Set/Edit Collection Target for {TARGET_YEAR_PAYMENT}"], key="admin_payment_action_admin_set", horizontal=True)
         if admin_action_payment == "View Team Progress":
-            st.markdown(f"<h5>Team Payment Collection Progress for {current_quarter_display_payment}</h5>", unsafe_allow_html=True)
+            st.markdown(f"<h5>Team Collection Progress for {current_quarter_display_payment}</h5>", unsafe_allow_html=True)
             employees_payment_list = [u for u,d in USERS.items() if d["role"]=="employee"]
             if not employees_payment_list: st.info("No employees found.")
             else:
@@ -1164,7 +1164,7 @@ elif nav == "💰 Payment Collection":
                                 for bar in bar_group: bar.set_color('#2070c0') # Payment achieved color
                         st.pyplot(team_bar_fig_payment,use_container_width=True)
                     else: st.info("No collection data to plot for team bar chart.")
-                else: st.info(f"No payment collection data for {current_quarter_display_payment}.")
+                else: st.info(f"No Collection data for {current_quarter_display_payment}.")
         elif admin_action_payment == f"Set/Edit Collection Target for {TARGET_YEAR_PAYMENT}":
             st.markdown(f"<h5>Set or Update Collection Goal ({TARGET_YEAR_PAYMENT} - Quarterly)</h5>", unsafe_allow_html=True)
             employees_for_payment_goal = [u for u,d in USERS.items() if d["role"]=="employee"];
@@ -1201,7 +1201,7 @@ elif nav == "💰 Payment Collection":
                             st.session_state.user_message=f"Payment goal {msg_payment} for {selected_emp_payment} ({selected_period_payment})"; st.session_state.message_type="success"; st.rerun()
                         except Exception as e: st.session_state.user_message=f"Error saving payment goal: {e}"; st.session_state.message_type="error"; st.rerun()
     else: # Employee View
-        st.markdown("<h4>My Payment Collection Goals (2025)</h4>", unsafe_allow_html=True)
+        st.markdown("<h4>My Collection Goals (2025)</h4>", unsafe_allow_html=True)
         user_goals_payment = payment_goals_df[payment_goals_df["Username"]==current_user["username"]].copy()
         user_goals_payment[["TargetAmount","AchievedAmount"]] = user_goals_payment[["TargetAmount","AchievedAmount"]].apply(pd.to_numeric,errors="coerce").fillna(0.0)
         current_payment_goal_period_df = user_goals_payment[user_goals_payment["MonthYear"]==current_quarter_display_payment] # Renamed
@@ -1302,10 +1302,10 @@ elif nav == "📊 View Logs":
             emp_goals_log = goals_df[goals_df["Username"] == selected_employee_log]
             if not emp_goals_log.empty: st.dataframe(emp_goals_log.sort_values(by="MonthYear", ascending=False).reset_index(drop=True), use_container_width=True)
             else: st.warning("No sales goals records found")
-            st.markdown(f"<h5>Payment Collection Goals for {selected_employee_log}</h5>", unsafe_allow_html=True)
+            st.markdown(f"<h5>Collection Goals for {selected_employee_log}</h5>", unsafe_allow_html=True)
             emp_payment_goals_log = payment_goals_df[payment_goals_df["Username"] == selected_employee_log]
             if not emp_payment_goals_log.empty: st.dataframe(emp_payment_goals_log.sort_values(by="MonthYear", ascending=False).reset_index(drop=True), use_container_width=True)
-            else: st.warning("No payment collection goals records found")
+            else: st.warning("No Collection goals records found")
         else:
             st.info("Please select an employee to view their logs.")
 
@@ -1324,8 +1324,8 @@ elif nav == "📊 View Logs":
         my_goals_log = goals_df[goals_df["Username"] == current_user["username"]]
         if not my_goals_log.empty: st.dataframe(my_goals_log.sort_values(by="MonthYear", ascending=False).reset_index(drop=True), use_container_width=True)
         else: st.warning("No sales goals records found for you")
-        st.markdown("<h5>My Payment Collection Goals</h5>", unsafe_allow_html=True)
+        st.markdown("<h5>My Collection Goals</h5>", unsafe_allow_html=True)
         my_payment_goals_log = payment_goals_df[payment_goals_df["Username"] == current_user["username"]]
         if not my_payment_goals_log.empty: st.dataframe(my_payment_goals_log.sort_values(by="MonthYear", ascending=False).reset_index(drop=True), use_container_width=True)
-        else: st.warning("No payment collection goals records found for you")
+        else: st.warning("No Collection goals records found for you")
     st.markdown('</div>', unsafe_allow_html=True)
