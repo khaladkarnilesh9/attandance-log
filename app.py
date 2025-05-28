@@ -83,80 +83,306 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
 
 html_css = """
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    /* Import Google Fonts (Roboto for text) */
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+    
+    /* Import Google Material Symbols Outlined (for icons) */
+    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
     :root {
-        --primary-color: #1c4e80; --secondary-color: #2070c0; --accent-color: #70a1d7;
-        --success-color: #28a745; --danger-color: #dc3545; --warning-color: #ffc107; --info-color: #17a2b8;
-        --body-bg-color: #f4f6f9; --card-bg-color: #ffffff; --text-color: #343a40; --text-muted-color: #6c757d;
-        --border-color: #dee2e6; --input-border-color: #ced4da;
-        --font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-        --border-radius: 0.375rem; --border-radius-lg: 0.5rem;
-        --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075); --box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --primary-color: #4285F4;  /* Google blue */
+        --secondary-color: #34A853;  /* Google green */
+        --accent-color: #EA4335;  /* Google red */
+        --yellow-color: #FBBC05;  /* Google yellow */
+        --success-color: #34A853;
+        --danger-color: #EA4335;
+        --warning-color: #FBBC05;
+        --info-color: #4285F4;
+        --body-bg-color: #f8f9fa; /* Light grey, common in Google UIs */
+        --card-bg-color: #ffffff;
+        --text-color: #202124; /* Google's primary text color */
+        --text-muted-color: #5f6368; /* Google's secondary text color */
+        --border-color: #dadce0; /* Google's common border color */
+        --input-border-color: #dadce0;
+        --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        --border-radius: 8px; /* Slightly more rounded like Google's newer designs */
+        --border-radius-lg: 12px;
+        --box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* Google-like shadow */
+        --box-shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.1);
+        --sidebar-bg: #1a73e8; /* Google AI Studio blue sidebar */
     }
-    body {font-family: var(--font-family-sans-serif); background-color: var(--body-bg-color); color: var(--text-color); line-height: 1.6; font-weight: 400;}
-    h1, h2, h3, h4, h5, h6 {color: var(--primary-color); font-weight: 600;}
-    .main .block-container > div:first-child > div:first-child > div:first-child > h1 {text-align: center; font-size: 2.6em; font-weight: 700; padding-bottom: 25px; border-bottom: 3px solid var(--accent-color); margin-bottom: 40px; letter-spacing: -0.5px;}
-    .card {background-color: var(--card-bg-color); padding: 30px; border-radius: var(--border-radius-lg); box-shadow: var(--box-shadow); margin-bottom: 35px; border: 1px solid var(--border-color);}
-    .card h3 {margin-top: 0; color: var(--primary-color); border-bottom: 2px solid #e9ecef; padding-bottom: 15px; margin-bottom: 25px; font-size: 1.75em;}
-    .card h4 {color: var(--secondary-color); margin-top: 30px; margin-bottom: 20px; font-size: 1.4em; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;}
-    .card h5 {font-size: 1.15em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px;}
-    .card h6 {font-size: 0.95em; color: var(--text-muted-color); margin-top: 0px; margin-bottom: 15px; font-weight: 500;}
-    .form-field-label h6 {font-size: 1em; color: var(--text-muted-color); margin-top: 20px; margin-bottom: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
-    .login-container {max-width: 480px; margin: 60px auto; border-top: 5px solid var(--secondary-color);}
-    .login-container .stButton button {width: 100%; background-color: var(--secondary-color) !important; color: white !important; font-size: 1.1em; padding: 12px 20px; border-radius: var(--border-radius); border: none !important; font-weight: 600 !important; box-shadow: var(--box-shadow-sm) !important;}
-    .login-container .stButton button:hover {background-color: var(--primary-color) !important; color: white !important; box-shadow: var(--box-shadow) !important;}
-    .stButton:not(.login-container .stButton) button {background-color: var(--success-color); color: white; padding: 10px 24px; border: none; border-radius: var(--border-radius); font-size: 1.05em; font-weight: 500; transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease; box-shadow: var(--box-shadow-sm); cursor: pointer;}
-    .stButton:not(.login-container .stButton) button:hover {background-color: #218838; transform: translateY(-2px); box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);}
-    .stButton:not(.login-container .stButton) button:active {transform: translateY(0px); box-shadow: var(--box-shadow-sm);}
-    .stButton button[id*="logout_button_sidebar"] {background-color: var(--danger-color) !important; border: 1px solid var(--danger-color) !important; color: white !important; font-weight: 500 !important;}
-    .stButton button[id*="logout_button_sidebar"]:hover {background-color: #c82333 !important; border-color: #c82333 !important;}
-    .stTextInput input, .stNumberInput input, .stTextArea textarea, .stDateInput input, .stTimeInput input, .stSelectbox div[data-baseweb="select"] > div {border-radius: var(--border-radius) !important; border: 1px solid var(--input-border-color) !important; padding: 10px 12px !important; font-size: 1em !important; color: var(--text-color) !important; background-color: var(--card-bg-color) !important; transition: border-color 0.2s ease, box-shadow 0.2s ease;}
-    .stTextInput input::placeholder, .stNumberInput input::placeholder, .stTextArea textarea::placeholder {color: var(--text-muted-color) !important; opacity: 1;}
-    .stTextArea textarea {min-height: 120px;}
-    .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus, .stDateInput input:focus, .stTimeInput input:focus, .stSelectbox div[data-baseweb="select"] > div:focus-within {border-color: var(--secondary-color) !important; box-shadow: 0 0 0 0.2rem rgba(32, 112, 192, 0.25) !important;}
-    [data-testid="stSidebar"] {background-color: var(--primary-color); padding: 25px !important; box-shadow: 0.25rem 0 1rem rgba(0,0,0,0.1);}
-    [data-testid="stSidebar"] .sidebar-content {padding-top: 10px;}
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] div:not([data-testid="stRadio"]) {color: #e9ecef !important;}
-    [data-testid="stSidebar"] .stRadio > label > div > p {font-size: 1.05em !important; color: var(--accent-color) !important; padding: 0; margin: 0;}
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {color: var(--card-bg-color) !important; font-weight: 600;}
-    [data-testid="stSidebar"] .stRadio > label {padding: 10px 15px; border-radius: var(--border-radius); margin-bottom: 6px; transition: background-color 0.2s ease;}
-    [data-testid="stSidebar"] .stRadio > label:hover {background-color: rgba(255, 255, 255, 0.08);}
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {background-color: rgba(255, 255, 255, 0.15);}
-    .welcome-text {font-size: 1.4em; font-weight: 600; margin-bottom: 25px; text-align: center; color: var(--card-bg-color) !important; border-bottom: 1px solid var(--accent-color); padding-bottom: 20px;}
-    [data-testid="stSidebar"] [data-testid="stImage"] > img {border-radius: 50%; border: 3px solid var(--accent-color); margin: 0 auto 10px auto; display: block;}
-    .stDataFrame {width: 100%; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--box-shadow-sm); margin-bottom: 25px;}
-    .stDataFrame table {width: 100%; border-collapse: collapse;}
-    .stDataFrame table thead th {background-color: #e9ecef; color: var(--primary-color); font-weight: 600; text-align: left; padding: 14px 18px; border-bottom: 2px solid var(--border-color); font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px;}
-    .stDataFrame table tbody td {padding: 12px 18px; border-bottom: 1px solid #f1f3f5; vertical-align: middle; color: var(--text-color); font-size: 0.9em;}
-    .stDataFrame table tbody tr:last-child td {border-bottom: none;}
-    .stDataFrame table tbody tr:hover {background-color: #f8f9fa;}
-    .employee-progress-item {border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 15px; text-align: center; background-color: #fdfdfd; margin-bottom: 10px;}
-    .employee-progress-item h6 {margin-top: 0; margin-bottom: 5px; font-size: 1em; color: var(--primary-color);}
-    .employee-progress-item p {font-size: 0.85em; color: var(--text-muted-color); margin-bottom: 8px;}
-    .button-column-container > div[data-testid="stHorizontalBlock"] {gap: 20px;}
-    .button-column-container .stButton button {width: 100%;}
-    div[role="radiogroup"] {display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;}
-    div[role="radiogroup"] > label {background-color: #23578c; color: var(#ffffff); padding: 10px 18px; border-radius: var(--border-radius); border: 1px solid var(--input-border-color); cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; font-size: 0.95em; font-weight: 500;}
-    div[role="radiogroup"] > label:hover {background-color: #4664a5; border-color: #adb5bd; color:#ffffff;}
-    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {background-color: var(--secondary-color) !important; color: white !important; border-color: var(--secondary-color) !important; font-weight: 500;}
-    .employee-section-header {color: var(--secondary-color); margin-top: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 1.35em;}
-    .record-type-header {font-size: 1.2em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px; font-weight: 600;}
-    div[data-testid="stImage"] > img {border-radius: var(--border-radius-lg); border: 1px solid var(--border-color); box-shadow: var(--box-shadow-sm);}
-    .stProgress > div > div {background-color: var(--secondary-color) !important; border-radius: var(--border-radius);}
-    .stProgress {border-radius: var(--border-radius); background-color: #e9ecef;}
-    div[data-testid="stMetricLabel"] {font-size: 0.95em !important; color: var(--text-muted-color) !important; font-weight: 500;}
-    div[data-testid="stMetricValue"] {font-size: 1.8em !important; font-weight: 600; color: var(--primary-color);}
-    .custom-notification {padding: 15px 20px; border-radius: var(--border-radius); margin-bottom: 20px; font-size: 1em; border-left-width: 5px; border-left-style: solid; display: flex; align-items: center;}
-    .custom-notification.success {background-color: #d1e7dd; color: #0f5132; border-left-color: var(--success-color);}
-    .custom-notification.error {background-color: #f8d7da; color: #842029; border-left-color: var(--danger-color);}
-    .custom-notification.warning {background-color: #fff3cd; color: #664d03; border-left-color: var(--warning-color);}
-    .custom-notification.info {background-color: #cff4fc; color: #055160; border-left-color: var(--info-color);}
-    .badge {display: inline-block; padding: 0.35em 0.65em; font-size: 0.85em; font-weight: 600; line-height: 1; color: #fff; text-align: center; white-space: nowrap; vertical-align: baseline; border-radius: var(--border-radius);}
-    .badge.green {background-color: var(--success-color);}
-    .badge.red {background-color: var(--danger-color);}
-    .badge.orange {background-color: var(--warning-color);}
-    .badge.blue {background-color: var(--secondary-color);}
-    .badge.grey {background-color: var(--text-muted-color);}
+
+    body {
+        font-family: var(--font-family);
+        background-color: var(--body-bg-color);
+        color: var(--text-color);
+        line-height: 1.5;
+        font-weight: 400;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--text-color);
+        font-weight: 500; /* Slightly bolder headings */
+        letter-spacing: -0.25px; /* Common in Google typography for larger text */
+    }
+
+    /* Main page title (Streamlit's default h1) */
+    .main .block-container > div:first-child > div:first-child > div:first-child > h1 {
+        text-align: left; /* Default is left, but good to be explicit */
+        font-size: 1.75rem; /* Approx 28px */
+        font-weight: 500;
+        padding-bottom: 16px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .card {
+        background-color: var(--card-bg-color);
+        padding: 24px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-sm);
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color);
+    }
+
+    .card h3 { /* Section titles within cards */
+        margin-top: 0;
+        color: var(--text-color);
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+        font-size: 1.25rem; /* Approx 20px */
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+
+    .card h3:before { /* Decorative accent bar for card h3 */
+        content: "";
+        display: inline-block;
+        width: 4px;
+        height: 20px; /* Adjusted to match typical line height of h3 */
+        background-color: var(--primary-color);
+        margin-right: 12px;
+        border-radius: 2px;
+    }
+
+    /* Sidebar Styling - Google AI Studio inspired */
+    [data-testid="stSidebar"] {
+        background-color: var(--sidebar-bg) !important;
+        padding: 16px !important;
+        box-shadow: none !important;
+        border-right: none !important;
+        width: 280px !important;
+    }
+
+    [data-testid="stSidebar"] .sidebar-content {
+        padding-top: 8px;
+    }
+
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] div:not([data-testid="stRadio"]) {
+        color: white !important;
+    }
+
+    /* Sidebar Radio Button (Navigation) */
+    [data-testid="stSidebar"] .stRadio > label > div > p {
+        font-size: 0.875rem !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    [data-testid="stSidebar"] .stRadio > label {
+        padding: 10px 16px !important;
+        border-radius: var(--border-radius) !important;
+        margin-bottom: 4px !important;
+        transition: all 0.2s ease !important;
+        display: flex !important;
+        align-items: center !important;
+        background-color: transparent !important;
+    }
+
+    [data-testid="stSidebar"] .stRadio > label:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* Selected sidebar item */
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+    }
+
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
+        color: white !important;
+        font-weight: 500 !important;
+    }
+
+    /* Sidebar icons */
+    [data-testid="stSidebar"] .material-symbols-outlined {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+        font-size: 20px;
+        margin-right: 12px;
+    }
+
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined {
+        color: white !important;
+        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important;
+    }
+
+    /* Welcome text in sidebar */
+    .welcome-text {
+        font-size: 1rem !important;
+        font-weight: 500 !important;
+        margin-bottom: 24px !important;
+        text-align: left !important;
+        color: white !important;
+        padding-bottom: 16px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+
+    /* Profile image in sidebar */
+    [data-testid="stSidebar"] [data-testid="stImage"] > img {
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        margin: 0 auto 16px auto;
+        display: block;
+    }
+
+    /* Logout button in sidebar */
+    .stButton button[id*="logout_button_sidebar"] {
+        background-color: transparent !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        font-weight: 500 !important;
+        margin-top: 24px !important;
+    }
+
+    .stButton button[id*="logout_button_sidebar"]:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* Main content area */
+    .main .block-container {
+        padding: 2rem 3rem !important;
+    }
+
+    /* Google AI Studio-like cards */
+    .card {
+        background-color: white;
+        border-radius: var(--border-radius);
+        padding: 24px;
+        box-shadow: var(--box-shadow-sm);
+        border: 1px solid var(--border-color);
+        margin-bottom: 24px;
+    }
+
+    /* Google-style tabs */
+    .stTabs [role="tablist"] {
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 0;
+    }
+
+    .stTabs [role="tab"] {
+        padding: 10px 16px;
+        border: none;
+        background-color: transparent;
+        color: var(--text-muted-color);
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .stTabs [aria-selected="true"] {
+        color: var(--primary-color) !important;
+        border-bottom: 2px solid var(--primary-color) !important;
+    }
+
+    /* Material Symbols styling */
+    .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 20;
+        font-size: 20px;
+        vertical-align: middle;
+        margin-right: 8px;
+    }
+
+    /* Button styling */
+    .stButton button {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: var(--border-radius) !important;
+        padding: 10px 16px !important;
+        font-weight: 500 !important;
+        transition: background-color 0.2s ease !important;
+    }
+
+    .stButton button:hover {
+        background-color: #3367d6 !important;
+        box-shadow: none !important;
+    }
+
+    /* Input fields */
+    .stTextInput input,
+    .stNumberInput input,
+    .stTextArea textarea,
+    .stDateInput input,
+    .stTimeInput input,
+    .stSelectbox div[data-baseweb="select"] > div {
+        border-radius: var(--border-radius) !important;
+        border: 1px solid var(--input-border-color) !important;
+        padding: 10px 12px !important;
+        font-size: 0.875rem !important;
+    }
+
+    /* Focus styles for inputs */
+    .stTextInput input:focus,
+    .stNumberInput input:focus,
+    .stTextArea textarea:focus,
+    .stDateInput input:focus,
+    .stTimeInput input:focus,
+    .stSelectbox div[data-baseweb="select"] > div:focus-within {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 2px rgba(66,133,244,0.15) !important;
+    }
+
+    /* Radio buttons in main content */
+    div[role="radiogroup"] > label {
+        background-color: white;
+        color: var(--text-color);
+        padding: 8px 16px;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+    }
+
+    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
+        background-color: rgba(66, 133, 244, 0.1) !important;
+        color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+    }
+
+    /* Progress bar */
+    .stProgress > div > div {
+        background-color: var(--primary-color) !important;
+    }
+
+    /* Metric cards */
+    div[data-testid="stMetricLabel"] {
+        font-size: 0.875rem !important;
+        color: var(--text-muted-color) !important;
+    }
+
+    div[data-testid="stMetricValue"] {
+        font-size: 1.5rem !important;
+        font-weight: 500 !important;
+    }
 </style>
 """
 st.markdown(html_css, unsafe_allow_html=True)
