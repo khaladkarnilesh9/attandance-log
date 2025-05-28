@@ -1,7 +1,7 @@
 # app.py
 import streamlit as st
 import pandas as pd
-from datetime import datetime, timezone, timedelta, date 
+from datetime import datetime, timezone, timedelta, date
 import os
 import pytz
 import plotly.express as px
@@ -218,16 +218,26 @@ def generate_order_id():
     else: next_num = int(valid_numeric_ids.max()) + 1
     return f"ORD-{next_num:05d}"
 
-default_session_state = {
-    "user_message": None, "message_type": None, "auth": {"logged_in": False, "username": None, "role": None},
-    "order_line_items": [], "current_product_id_symplanta": None, "current_quantity_order": 1,
-    "order_store_select": None, "order_notes": "", "order_discount": 0.0, "order_tax": 0.0,
-    "selected_nav_label": None, "admin_order_view_selected_order_id": None,
-    "co_product_name_select_v7": None, "co_product_size_select_v7": None # For the simpler order form
+# --- Initialize Session State ---
+session_state_defaults = {
+    "user_message": None, "message_type": None,
+    "auth": {"logged_in": False, "username": None, "role": None},
+    "order_line_items": [],
+    "co_store_select_v7": None,          # For Create Order: Store selection
+    "co_product_name_select_v7": None,  # For Create Order: Product Name selection
+    "co_product_size_select_v7": None,    # For Create Order: Size selection
+    "co_quantity_input_v7": 1,          # For Create Order: Quantity
+    "co_order_notes_v7": "",              # For Create Order: Notes
+    "co_order_discount_v7": 0.0,          # For Create Order: Discount
+    "co_order_tax_v7": 0.0,               # For Create Order: Tax
+    "selected_nav_label": None,         # For Sidebar navigation state
+    "admin_order_view_selected_order_id": None # For Admin viewing specific order details
 }
-for key_ss, value_ss in default_session_state.items():
-    if key_ss not in st.session_state: st.session_state[key_ss] = value_ss
+for key_ss_init, value_ss_init in session_state_defaults.items():
+    if key_ss_init not in st.session_state:
+        st.session_state[key_ss_init] = value_ss_init
 
+# --- Login Logic ---
 if not st.session_state.auth["logged_in"]:
     st.title("Symplanta TrackSphere")
     st.markdown("### Field Force & Sales Order Management")
@@ -238,25 +248,26 @@ if not st.session_state.auth["logged_in"]:
         st.session_state.user_message = None; st.session_state.message_type = None
     st.markdown('<div class="login-container card" style="margin-top: 30px;">', unsafe_allow_html=True)
     st.markdown("<h3><span class='material-symbols-outlined' style='font-size: 1.5em; margin-right: 8px; vertical-align:bottom;'>login</span> Login</h3>", unsafe_allow_html=True)
-    uname = st.text_input("Username", key="login_uname_main_key_v7")
-    pwd = st.text_input("Password", type="password", key="login_pwd_main_key_v7")
-    if st.button("Login", key="login_button_main_key_v7", type="primary"):
+    uname = st.text_input("Username", key="login_uname_main_key_v7_final")
+    pwd = st.text_input("Password", type="password", key="login_pwd_main_key_v7_final")
+    if st.button("Login", key="login_button_main_key_v7_final", type="primary"):
         user_creds = USERS.get(uname)
         if user_creds and user_creds["password"] == pwd:
             st.session_state.auth = {"logged_in": True, "username": uname, "role": user_creds["role"]}
             st.session_state.user_message = f"Welcome back, {uname}!"; st.session_state.message_type = "success"
-            st.session_state.selected_nav_label = None
+            st.session_state.selected_nav_label = None # Reset nav to default for the role
             st.rerun()
         else: st.error("Invalid username or password.")
     st.markdown('</div>', unsafe_allow_html=True); st.stop()
 
 current_user_auth = st.session_state.auth
-message_placeholder_main = st.empty()
+message_placeholder_main = st.empty() # For messages after login
 if "user_message" in st.session_state and st.session_state.user_message:
     message_type_main = st.session_state.get("message_type", "info")
     message_placeholder_main.markdown(f"<div class='custom-notification {message_type_main}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
     st.session_state.user_message = None; st.session_state.message_type = None
 
+# --- Sidebar Navigation ---
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user_auth['username']}!</div>", unsafe_allow_html=True)
     nav_options_base_icons = { "Dashboard": "<span class='material-symbols-outlined'>dashboard</span> Dashboard", "Attendance": "<span class='material-symbols-outlined'>event_available</span> Attendance", "Upload Activity": "<span class='material-symbols-outlined'>cloud_upload</span> Upload Activity", "Allowance": "<span class='material-symbols-outlined'>receipt_long</span> Allowance Claim",}
@@ -267,50 +278,57 @@ with st.sidebar:
     
     nav_options_with_icons = {} 
     if current_user_auth['role'] == 'admin':
-        nav_options_with_icons.update(nav_options_base_icons)
-        nav_options_with_icons.update(nav_options_goals_icons)
-        nav_options_with_icons.update(nav_options_admin_manage_icons)
+        nav_options_with_icons.update(nav_options_base_icons); nav_options_with_icons.update(nav_options_goals_icons); nav_options_with_icons.update(nav_options_admin_manage_icons)
     elif current_user_auth['role'] == 'sales_person':
-        nav_options_with_icons.update(nav_options_base_icons)
-        nav_options_with_icons.update(nav_options_sales_person_icons) 
-        nav_options_with_icons.update(nav_options_goals_icons)
-        nav_options_with_icons.update(nav_options_employee_logs_icons)
+        nav_options_with_icons.update(nav_options_base_icons); nav_options_with_icons.update(nav_options_sales_person_icons); nav_options_with_icons.update(nav_options_goals_icons); nav_options_with_icons.update(nav_options_employee_logs_icons)
     elif current_user_auth['role'] == 'employee': 
-        nav_options_with_icons.update(nav_options_base_icons)
-        nav_options_with_icons.update(nav_options_employee_logs_icons)
-    else: 
-        nav_options_with_icons.update(nav_options_base_icons)
+        nav_options_with_icons.update(nav_options_base_icons); nav_options_with_icons.update(nav_options_employee_logs_icons)
+    else: nav_options_with_icons.update(nav_options_base_icons)
 
     option_labels = list(nav_options_with_icons.values())
-    if not option_labels:
-        st.warning("No navigation options available for your role."); nav = None 
+    nav = None # Initialize nav
+    if not option_labels: st.warning("No navigation options for your role.")
     else:
-        if st.session_state.get("selected_nav_label") is None or st.session_state.selected_nav_label not in option_labels:
-            st.session_state.selected_nav_label = option_labels[0]
+        current_selected_label = st.session_state.get("selected_nav_label")
+        if current_selected_label is None or current_selected_label not in option_labels:
+            current_selected_label = option_labels[0]
+            st.session_state.selected_nav_label = current_selected_label
+        
+        current_index = 0
+        try:
+            current_index = option_labels.index(current_selected_label)
+        except ValueError: # If somehow selected_nav_label is invalid
+            current_selected_label = option_labels[0]
+            st.session_state.selected_nav_label = current_selected_label
+            current_index = 0
+
         st.markdown("<h5 style='margin-top:0; margin-bottom:10px; font-weight:500; color: var(--text-color); padding-left:10px;'>Navigation</h5>", unsafe_allow_html=True)
-        selected_nav_html_label = st.radio( "MainNavigationRadioSidebarKey_Corrected_V7", options=option_labels, index=option_labels.index(st.session_state.selected_nav_label) if st.session_state.selected_nav_label in option_labels else 0, label_visibility="collapsed", key="sidebar_nav_radio_final_key_corrected_v7") 
-        st.session_state.selected_nav_label = selected_nav_html_label; nav = ""
+        selected_nav_html_label = st.radio( "MainNavigationRadioSidebarKey_V7", options=option_labels, index=current_index, label_visibility="collapsed", key="sidebar_nav_radio_final_key_v7") 
+        if selected_nav_html_label != st.session_state.selected_nav_label: # Update only if changed
+            st.session_state.selected_nav_label = selected_nav_html_label
+            # Potentially reset page-specific session state here if needed when nav changes
+        
         for key_map, html_label_map in nav_options_with_icons.items():
-            if html_label_map == selected_nav_html_label: nav = key_map; break
+            if html_label_map == st.session_state.selected_nav_label: nav = key_map; break
     
     user_sidebar_info = USERS.get(current_user_auth["username"], {});
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]): st.image(user_sidebar_info["profile_photo"], width=100)
     elif PILLOW_INSTALLED: st.caption("Profile photo missing.")
     st.markdown( f"<p style='text-align:center; font-size:0.9em; color: var(--text-muted-color);'>{user_sidebar_info.get('position', 'N/A')}</p>", unsafe_allow_html=True)
     st.markdown("---")
-    if st.button("🔒 Logout", key="logout_button_sidebar_final_key_corrected_v7", use_container_width=True):
+    if st.button("🔒 Logout", key="logout_button_sidebar_final_key_v7", use_container_width=True):
         if 'default_session_state' in globals():
             for key_to_reset_logout in default_session_state:
                 if key_to_reset_logout == "auth": st.session_state[key_to_reset_logout] = {"logged_in": False, "username": None, "role": None}
                 elif key_to_reset_logout in st.session_state: st.session_state[key_to_reset_logout] = default_session_state[key_to_reset_logout]
         else: 
             st.session_state.auth = {"logged_in": False, "username": None, "role": None}
-            for key_to_clear in ["order_line_items", "selected_nav_label", "current_product_id_symplanta", "co_product_name_select_v7", "co_product_size_select_v7"]: # Added new order form state keys
+            # Manually list other critical keys if default_session_state is not found
+            for key_to_clear in ["order_line_items", "selected_nav_label", "current_product_id_symplanta", "co_product_name_select_v7", "co_product_size_select_v7", "co_quantity_input_v7"]:
                 if key_to_clear in st.session_state: del st.session_state[key_to_clear]
         st.session_state.user_message = "Logged out successfully."; st.session_state.message_type = "info"; st.rerun()
 
 # --- Helper display functions ---
-# (These are assumed to be correct from your previous code and are placed here for organization)
 def display_activity_logs_section(df_logs_act_func, user_header_name_act_func):
     if df_logs_act_func.empty: st.info(f"No field activity logs found for {user_header_name_act_func}.", icon="📭"); return
     df_logs_act_sorted_func = df_logs_act_func.copy()
@@ -348,8 +366,7 @@ def display_general_attendance_logs_section(df_logs_att_func, user_header_name_a
         cols_to_show_att_f.append('Location (Illustrative)')
     st.dataframe(df_logs_att_sorted_func[cols_to_show_att_f].reset_index(drop=True), use_container_width=True, hide_index=True, column_config={"Timestamp":st.column_config.DatetimeColumn("Timestamp",format="YYYY-MM-DD HH:mm:ss")})
 
-
-# --- Main Content Logic ---
+# --- Main Content Area based on Navigation Selection ---
 if nav == "Dashboard":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3><span class='material-symbols-outlined'>dashboard</span> Dashboard</h3>", unsafe_allow_html=True)
@@ -372,35 +389,36 @@ elif nav == "Create Order" and current_user_auth['role'] == 'sales_person':
     with col_header2_co:
         if stores_df.empty:
             st.warning("No stores in `agri_stores.csv`. Store selection is mandatory.", icon="🏬")
-            st.session_state.order_store_select = None # Ensure it's None if no stores
+            st.session_state.co_store_select_v7 = None # Use session state key
         else:
             store_options_dict_co = {row['StoreID']: f"{row['StoreName']} ({row['StoreID']})" for index, row in stores_df.iterrows()}
-            current_store_sel_co = st.session_state.get('order_store_select', None)
             options_for_sb_co = [None] + list(store_options_dict_co.keys())
-            current_idx_sb_co = 0 # Default to placeholder "Select a store..."
-            if current_store_sel_co in store_options_dict_co: # Check if current selection is valid
-                try: current_idx_sb_co = options_for_sb_co.index(current_store_sel_co)
-                except ValueError: st.session_state.order_store_select = None # Reset if not found
             
-            selected_store_id_co = st.selectbox(
+            # Determine current index for store selectbox
+            current_store_val = st.session_state.get("co_store_select_v7", None)
+            current_idx_sb_co = 0
+            if current_store_val in options_for_sb_co:
+                current_idx_sb_co = options_for_sb_co.index(current_store_val)
+            else: # If current val not in options (e.g. initially or after filter)
+                st.session_state.co_store_select_v7 = None # Reset if invalid
+
+            st.selectbox( # This selectbox writes to st.session_state.co_store_select_v7
                 "Select Store *", options=options_for_sb_co,
                 format_func=lambda x: "Select a store..." if x is None else store_options_dict_co.get(x, "Unknown Store"),
-                key="co_store_select_sb_key_v7", index=current_idx_sb_co
+                key="co_store_select_v7", # Session state key
+                index=current_idx_sb_co
             )
-            st.session_state.order_store_select = selected_store_id_co
 
     st.markdown("---")
     st.markdown("<h4><span class='material-symbols-outlined'>playlist_add</span> Add Products to Order</h4>", unsafe_allow_html=True)
-
-    # --- Callback function for adding items (defined before button) ---
-    def add_item_callback_co_v7(): # Renamed with _v7 for uniqueness
-        # Use session state for product and size selection from the simpler form
-        selected_product_name = st.session_state.get("co_product_name_select_v7", None)
-        selected_size = st.session_state.get("co_product_size_select_v7", None)
+    
+    # Define callback for adding items (must be defined before the button that uses it)
+    def add_item_callback_co_v7():
+        selected_product_name = st.session_state.get("co_product_name_select_v7")
+        selected_size = st.session_state.get("co_product_size_select_v7")
         quantity_to_add = st.session_state.get("co_quantity_input_v7", 0)
 
         if selected_product_name and selected_size and quantity_to_add > 0:
-            # Find the specific product variant based on name and size
             selected_variant_df = products_df[
                 (products_df["ProductName"] == selected_product_name) &
                 (products_df["UnitOfMeasure"] == selected_size)
@@ -408,90 +426,88 @@ elif nav == "Create Order" and current_user_auth['role'] == 'sales_person':
             if not selected_variant_df.empty:
                 product_info_to_add = selected_variant_df.iloc[0]
                 variant_id_to_add = product_info_to_add["ProductVariantID"]
-
                 existing_item_index = next((i for i, item in enumerate(st.session_state.order_line_items) if item['ProductVariantID'] == variant_id_to_add), -1)
-
                 if existing_item_index != -1:
                     st.session_state.order_line_items[existing_item_index]['Quantity'] += quantity_to_add
                     st.session_state.order_line_items[existing_item_index]['LineTotal'] = st.session_state.order_line_items[existing_item_index]['Quantity'] * st.session_state.order_line_items[existing_item_index]['UnitPrice']
                     st.toast(f"Updated quantity for {product_info_to_add['ProductName']} ({product_info_to_add['UnitOfMeasure']}).", icon="🔄")
                 else:
                     st.session_state.order_line_items.append({
-                        "ProductVariantID": variant_id_to_add,
-                        "SKU": product_info_to_add['SKU'],
-                        "ProductName": product_info_to_add['ProductName'],
-                        "Quantity": quantity_to_add,
-                        "UnitOfMeasure": product_info_to_add['UnitOfMeasure'],
-                        "UnitPrice": float(product_info_to_add['UnitPrice']),
-                        "LineTotal": quantity_to_add * float(product_info_to_add['UnitPrice']),
-                        "ImageURL": product_info_to_add['ImageURL']
+                        "ProductVariantID": variant_id_to_add, "SKU": product_info_to_add['SKU'],
+                        "ProductName": product_info_to_add['ProductName'], "Quantity": quantity_to_add,
+                        "UnitOfMeasure": product_info_to_add['UnitOfMeasure'], "UnitPrice": float(product_info_to_add['UnitPrice']),
+                        "LineTotal": quantity_to_add * float(product_info_to_add['UnitPrice']), "ImageURL": product_info_to_add['ImageURL']
                     })
                     st.toast(f"Added {product_info_to_add['ProductName']} ({product_info_to_add['UnitOfMeasure']}) to order.", icon="✅")
-                st.session_state.co_quantity_input_v7 = 1 # Reset quantity input field via session state
-            else:
-                st.error(f"Could not find details for {selected_product_name} - {selected_size}.", icon="❌")
-        else:
-            st.warning("Please select a product name, size, and specify quantity > 0.", icon="⚠️")
+                st.session_state.co_quantity_input_v7 = 1 # Reset quantity input field
+            else: st.error(f"Details not found for {selected_product_name} - {selected_size}.", icon="❌")
+        else: st.warning("Please select product name, size, and quantity > 0.", icon="⚠️")
 
-    if products_df.empty:
-        st.error("Product catalog `symplanta_products_with_images.csv` is empty or not found.", icon="🚫")
+    if products_df.empty: st.error("Product catalog is empty.", icon="🚫")
     else:
         unique_product_names_co = sorted(products_df["ProductName"].dropna().astype(str).unique())
         
-        st.selectbox( # This now writes to session state
-            "Select Product Name *",
-            options=[None] + unique_product_names_co,
+        # Product Name Selectbox
+        current_product_name_val = st.session_state.get("co_product_name_select_v7")
+        options_prod_name = [None] + unique_product_names_co
+        index_prod_name = 0 
+        if current_product_name_val in options_prod_name: index_prod_name = options_prod_name.index(current_product_name_val)
+        
+        # This selectbox writes to st.session_state.co_product_name_select_v7 due to its key
+        st.selectbox(
+            "Select Product Name *", options=options_prod_name,
             format_func=lambda x: "Choose a product name..." if x is None else x,
-            key="co_product_name_select_v7" # Session state key
+            key="co_product_name_select_v7", index=index_prod_name,
+            on_change=lambda: st.session_state.update({"co_product_size_select_v7": None}) # Reset size if name changes
         )
 
+        # Size Selectbox (dependent on product name)
         selected_size_options_co = []
         if st.session_state.co_product_name_select_v7:
             available_sizes_df_co = products_df[products_df["ProductName"] == st.session_state.co_product_name_select_v7]
             selected_size_options_co = sorted(available_sizes_df_co["UnitOfMeasure"].dropna().astype(str).unique())
         
-        st.selectbox( # This now writes to session state
+        current_size_val = st.session_state.get("co_product_size_select_v7")
+        options_size = [None] + selected_size_options_co
+        index_size = 0
+        if current_size_val in options_size: index_size = options_size.index(current_size_val)
+        
+        st.selectbox(
             f"Select Size for {st.session_state.co_product_name_select_v7 or '...'} *",
-            options=[None] + selected_size_options_co,
+            options=options_size,
             format_func=lambda x: "Choose a size..." if x is None else x,
-            key="co_product_size_select_v7", # Session state key
-            disabled=not st.session_state.co_product_name_select_v7 # Disable if no product name
+            key="co_product_size_select_v7", index=index_size,
+            disabled=not st.session_state.co_product_name_select_v7
         )
         
-        # This number_input also writes to session state
         st.number_input("Enter Quantity *", min_value=1, value=st.session_state.get("co_quantity_input_v7", 1), step=1, key="co_quantity_input_v7")
-
         st.button("➕ Add Product to Order", on_click=add_item_callback_co_v7, key="co_add_item_btn_v7")
 
-    # Display Current Order Line Items (using ProductVariantID)
     if st.session_state.order_line_items:
         st.markdown("---"); st.markdown("<h4><span class='material-symbols-outlined'>receipt_long</span> Current Order Items</h4>", unsafe_allow_html=True)
-        for i_item_co_disp, item_data_co_disp in enumerate(st.session_state.order_line_items):
-            item_cols_co_disp = st.columns([1, 3, 1, 1.5, 1.5, 0.5]) 
-            with item_cols_co_disp[0]:
-                img_url = item_data_co_disp.get("ImageURL")
+        for i_item_co_v7, item_data_co_v7 in enumerate(st.session_state.order_line_items):
+            item_cols_co_v7 = st.columns([1, 3, 1, 1.5, 1.5, 0.5]) 
+            with item_cols_co_v7[0]:
+                img_url = item_data_co_v7.get("ImageURL")
                 if img_url and isinstance(img_url, str) and img_url.startswith("http"): st.image(img_url, width=50)
                 else: st.markdown("<span class='material-symbols-outlined' style='font-size:36px; color: var(--gg-grey-300);'>image_not_supported</span>", unsafe_allow_html=True)
-            item_cols_co_disp[1].markdown(f"**{item_data_co_disp['ProductName']}** ({item_data_co_disp['SKU']}) <br><small>{item_data_co_disp['UnitOfMeasure']}</small>", unsafe_allow_html=True)
-            item_cols_co_disp[2].markdown(f"{item_data_co_disp['Quantity']}")
-            item_cols_co_disp[3].markdown(f"₹{item_data_co_disp['UnitPrice']:.2f}")
-            item_cols_co_disp[4].markdown(f"**₹{item_data_co_disp['LineTotal']:.2f}**")
-            if item_cols_co_disp[5].button("➖", key=f"co_delete_item_key_v7_{i_item_co_disp}", help="Remove this item"): 
-                st.session_state.order_line_items.pop(i_item_co_disp)
-                st.rerun()
-            if i_item_co_disp < len(st.session_state.order_line_items) -1 : st.divider()
+            item_cols_co_v7[1].markdown(f"**{item_data_co_v7['ProductName']}** ({item_data_co_v7['SKU']}) <br><small>{item_data_co_v7['UnitOfMeasure']}</small>", unsafe_allow_html=True)
+            item_cols_co_v7[2].markdown(f"{item_data_co_v7['Quantity']}"); item_cols_co_v7[3].markdown(f"₹{item_data_co_v7['UnitPrice']:.2f}"); item_cols_co_v7[4].markdown(f"**₹{item_data_co_v7['LineTotal']:.2f}**")
+            if item_cols_co_v7[5].button("➖", key=f"co_delete_item_key_v7_{i_item_co_v7}", help="Remove item"): 
+                st.session_state.order_line_items.pop(i_item_co_v7); st.rerun()
+            if i_item_co_v7 < len(st.session_state.order_line_items) -1 : st.divider()
         
         subtotal_co_v7 = sum(item['LineTotal'] for item in st.session_state.order_line_items)
         col_summary1_co_v7, col_summary2_co_v7 = st.columns(2)
         with col_summary1_co_v7:
-            st.session_state.order_discount = st.number_input("Discount (₹)", value=st.session_state.order_discount, min_value=0.0, step=10.0, key="co_discount_val_key_v7")
-            st.session_state.order_tax = st.number_input("Tax (₹)", value=st.session_state.order_tax, min_value=0.0, step=5.0, key="co_tax_val_key_v7", help="Total tax amount")
-        grand_total_co_v7 = subtotal_co_v7 - st.session_state.order_discount + st.session_state.order_tax
-        with col_summary2_co_v7: st.markdown(f"<div style='text-align:right; margin-top:20px;'><p style='margin-bottom:2px;'>Subtotal:  <strong>₹{subtotal_co_v7:,.2f}</strong></p><p style='margin-bottom:2px;color:var(--danger-color);'>Discount:  - ₹{st.session_state.order_discount:,.2f}</p><p style='margin-bottom:2px;'>Tax:  + ₹{st.session_state.order_tax:,.2f}</p><h4 style='margin-top:5px;border-top:1px solid var(--border-color);padding-top:5px;'>Grand Total:  ₹{grand_total_co_v7:,.2f}</h4></div>", unsafe_allow_html=True)
-        st.session_state.order_notes = st.text_area("Order Notes / Payment Mode / Expected Delivery", value=st.session_state.order_notes, key="co_notes_val_key_v7", placeholder="E.g., UPI, Deliver by Tuesday")
+            st.session_state.co_order_discount_v7 = st.number_input("Discount (₹)", value=st.session_state.get("co_order_discount_v7",0.0), min_value=0.0, step=10.0, key="co_order_discount_v7")
+            st.session_state.co_order_tax_v7 = st.number_input("Tax (₹)", value=st.session_state.get("co_order_tax_v7",0.0), min_value=0.0, step=5.0, key="co_order_tax_v7", help="Total tax amount")
+        grand_total_co_v7 = subtotal_co_v7 - st.session_state.co_order_discount_v7 + st.session_state.co_order_tax_v7
+        with col_summary2_co_v7: st.markdown(f"<div style='text-align:right; margin-top:20px;'><p style='margin-bottom:2px;'>Subtotal:  <strong>₹{subtotal_co_v7:,.2f}</strong></p><p style='margin-bottom:2px;color:var(--danger-color);'>Discount:  - ₹{st.session_state.co_order_discount_v7:,.2f}</p><p style='margin-bottom:2px;'>Tax:  + ₹{st.session_state.co_order_tax_v7:,.2f}</p><h4 style='margin-top:5px;border-top:1px solid var(--border-color);padding-top:5px;'>Grand Total:  ₹{grand_total_co_v7:,.2f}</h4></div>", unsafe_allow_html=True)
+        st.session_state.co_order_notes_v7 = st.text_area("Order Notes / Payment Mode / Expected Delivery", value=st.session_state.get("co_order_notes_v7",""), key="co_order_notes_v7", placeholder="E.g., UPI, Deliver by Tuesday")
         
         if st.button("✅ Submit Order", key="co_submit_order_btn_key_v7", type="primary", use_container_width=True): 
-            final_store_id_co_submit_v7 = st.session_state.order_store_select 
+            final_store_id_co_submit_v7 = st.session_state.co_store_select_v7
             if not final_store_id_co_submit_v7: st.error("Store selection is mandatory.", icon="🏬")
             elif not st.session_state.order_line_items: st.error("Cannot submit an empty order.", icon="🛒")
             else:
@@ -500,32 +516,43 @@ elif nav == "Create Order" and current_user_auth['role'] == 'sales_person':
                 store_info_submit_v7 = stores_df[stores_df['StoreID'] == final_store_id_co_submit_v7]
                 if not store_info_submit_v7.empty: store_name_co_submit_v7 = store_info_submit_v7['StoreName'].iloc[0]
                 else: st.error("Selected store details not found.", icon="❌"); st.stop()
+                
                 current_subtotal_submit_v7 = sum(item['LineTotal'] for item in st.session_state.order_line_items)
-                current_discount_submit_v7 = st.session_state.order_discount 
-                current_tax_submit_v7 = st.session_state.order_tax         
+                current_discount_submit_v7 = st.session_state.co_order_discount_v7
+                current_tax_submit_v7 = st.session_state.co_order_tax_v7       
                 current_grand_total_submit_v7 = current_subtotal_submit_v7 - current_discount_submit_v7 + current_tax_submit_v7
-                current_notes_submit_v7 = st.session_state.order_notes.strip()
-                salesperson_name_display_co_submit_v7 = current_user_auth["username"]
+                current_notes_submit_v7 = st.session_state.co_order_notes_v7.strip()
+                salesperson_name_submit_v7 = current_user_auth["username"]
+
                 new_order_id_submit_v7 = generate_order_id(); order_date_submit_final_v7 = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
-                new_items_list_submit_v7 = [{"OrderID":new_order_id_submit_v7, "OrderDate":order_date_submit_final_v7, "Salesperson":salesperson_name_display_co_submit_v7, "StoreID":final_store_id_co_submit_v7, "ProductVariantID":item_v7['ProductVariantID'], "SKU":item_v7['SKU'], "ProductName":item_v7['ProductName'], "Quantity":item_v7['Quantity'], "UnitOfMeasure":item_v7['UnitOfMeasure'], "UnitPrice":item_v7['UnitPrice'], "LineTotal":item_v7['LineTotal']} for item_v7 in st.session_state.order_line_items]
+                new_items_list_submit_v7 = [{"OrderID":new_order_id_submit_v7, "OrderDate":order_date_submit_final_v7, "Salesperson":salesperson_name_submit_v7, "StoreID":final_store_id_co_submit_v7, "ProductVariantID":item_v7['ProductVariantID'], "SKU":item_v7['SKU'], "ProductName":item_v7['ProductName'], "Quantity":item_v7['Quantity'], "UnitOfMeasure":item_v7['UnitOfMeasure'], "UnitPrice":item_v7['UnitPrice'], "LineTotal":item_v7['LineTotal']} for item_v7 in st.session_state.order_line_items]
                 new_orders_df_submit_v7 = pd.DataFrame(new_items_list_submit_v7, columns=ORDERS_COLUMNS); temp_orders_df_submit_v7 = pd.concat([orders_df, new_orders_df_submit_v7], ignore_index=True)
-                summary_data_submit_v7 = {"OrderID":new_order_id_submit_v7, "OrderDate":order_date_submit_final_v7, "Salesperson":salesperson_name_display_co_submit_v7, "StoreID":final_store_id_co_submit_v7, "StoreName":store_name_co_submit_v7, "Subtotal":current_subtotal_submit_v7, "DiscountAmount":current_discount_submit_v7, "TaxAmount":current_tax_submit_v7, "GrandTotal":current_grand_total_submit_v7, "Notes":current_notes_submit_v7, "PaymentMode":pd.NA, "ExpectedDeliveryDate":pd.NA}
+                summary_data_submit_v7 = {"OrderID":new_order_id_submit_v7, "OrderDate":order_date_submit_final_v7, "Salesperson":salesperson_name_submit_v7, "StoreID":final_store_id_co_submit_v7, "StoreName":store_name_co_submit_v7, "Subtotal":current_subtotal_submit_v7, "DiscountAmount":current_discount_submit_v7, "TaxAmount":current_tax_submit_v7, "GrandTotal":current_grand_total_submit_v7, "Notes":current_notes_submit_v7, "PaymentMode":pd.NA, "ExpectedDeliveryDate":pd.NA}
                 new_summary_df_submit_v7 = pd.DataFrame([summary_data_submit_v7], columns=ORDER_SUMMARY_COLUMNS); temp_summary_df_submit_v7 = pd.concat([order_summary_df, new_summary_df_submit_v7], ignore_index=True)
                 try:
                     temp_orders_df_submit_v7.to_csv(ORDERS_FILE, index=False); temp_summary_df_submit_v7.to_csv(ORDER_SUMMARY_FILE, index=False)
                     orders_df = temp_orders_df_submit_v7; order_summary_df = temp_summary_df_submit_v7
                     st.session_state.user_message = f"Order {new_order_id_submit_v7} for '{store_name_co_submit_v7}' submitted!"; st.session_state.message_type = "success"
-                    st.session_state.order_line_items = []; st.session_state.current_product_id_symplanta = None; st.session_state.current_quantity_order = 1; st.session_state.order_store_select = None; st.session_state.order_notes = ""; st.session_state.order_discount = 0.0; st.session_state.order_tax = 0.0
-                    st.session_state.co_product_name_select_v7 = None; st.session_state.co_product_size_select_v7 = None; st.session_state.co_quantity_input_v7 = 1 # Reset simpler form state
+                    # Clear form state by resetting session state variables used by this form
+                    st.session_state.order_line_items = []; 
+                    st.session_state.co_store_select_v7 = None; 
+                    st.session_state.co_product_name_select_v7 = None; 
+                    st.session_state.co_product_size_select_v7 = None;
+                    st.session_state.co_quantity_input_v7 = 1;
+                    st.session_state.co_order_notes_v7 = ""; 
+                    st.session_state.co_order_discount_v7 = 0.0; 
+                    st.session_state.co_order_tax_v7 = 0.0
+                    # Keep these original ones if they are used by other pages, but they should be distinct
+                    # st.session_state.current_product_id_symplanta = None; 
+                    # st.session_state.current_quantity_order = 1;
+                    # st.session_state.order_notes = ""; st.session_state.order_discount = 0.0; st.session_state.order_tax = 0.0
                     st.rerun()
                 except Exception as e_co_submit_v7: st.session_state.user_message = f"Error submitting order: {e_co_submit_v7}"; st.session_state.message_type = "error"; st.rerun()
     else: st.markdown("<br>", unsafe_allow_html=True); st.info("Add products to the order to see summary and submit.", icon="💡")
     st.markdown("</div>", unsafe_allow_html=True)
 
 # --- Standard Pages (Attendance, Upload Activity, Allowance) ---
-# (Ensure unique keys and variable names within these page blocks)
 elif nav == "Attendance":
-    # ... (Your existing Attendance code, ensure keys are unique, e.g., _v7) ...
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3><span class='material-symbols-outlined'>event_available</span> Digital Attendance</h3>", unsafe_allow_html=True)
     st.info("📍 Location services for general attendance are currently illustrative.", icon="ℹ️")
@@ -552,7 +579,6 @@ elif nav == "Attendance":
 
 
 elif nav == "Upload Activity":
-    # ... (Your existing Upload Activity code, ensure keys are unique, e.g., _v7) ...
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3><span class='material-symbols-outlined'>cloud_upload</span> Upload Field Activity Photo</h3>", unsafe_allow_html=True)
     lat_act_std_v7, lon_act_std_v7 = pd.NA, pd.NA 
@@ -582,7 +608,6 @@ elif nav == "Upload Activity":
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif nav == "Allowance":
-    # ... (Your existing Allowance code, ensure keys are unique, e.g., _v7) ...
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3><span class='material-symbols-outlined'>receipt_long</span> Claim Allowance</h3>", unsafe_allow_html=True)
     st.markdown("<div class='form-field-label'><h6>Select Allowance Type:</h6></div>", unsafe_allow_html=True)
@@ -606,37 +631,307 @@ elif nav == "Allowance":
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif nav == "Sales Goals":
-    # ... (Your existing Sales Goals code, ensure keys are unique, e.g., _v7) ...
-    # This section needs careful review for unique keys and correct global df handling if modified
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3><span class='material-symbols-outlined'>flag</span> Sales Goal Tracker (2025)</h3>", unsafe_allow_html=True)
-    st.info("Sales Goals page to be reviewed and keys updated if issues.", icon="🚧")
+    TARGET_SG_YEAR_V7 = 2025; current_q_sg_v7 = get_quarter_str_for_year(TARGET_SG_YEAR_V7); status_opts_sg_v7 = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
+    if current_user_auth["role"] == "admin":
+        st.markdown("<h4>Admin: Manage Employee Sales Goals</h4>", unsafe_allow_html=True)
+        admin_action_sg_v7 = st.radio("Action:", ["View Team Progress", f"Set/Edit Goal"], key="admin_sg_action_v7", horizontal=True)
+        if admin_action_sg_v7 == "View Team Progress":
+            st.markdown(f"<h5>Team Progress for {current_q_sg_v7}</h5>", unsafe_allow_html=True)
+            emp_list_sg_admin_v7 = [u for u,d in USERS.items() if d["role"] in ["employee","sales_person"]]
+            if not emp_list_sg_admin_v7: st.info("No employees/salespersons.")
+            else:
+                summary_data_sg_admin_v7 = []
+                for name_sg_v7 in emp_list_sg_admin_v7:
+                    goal_data_sg_v7 = goals_df[(goals_df["Username"]==name_sg_v7)&(goals_df["MonthYear"]==current_q_sg_v7)]
+                    data_to_append_sg_v7 = {"Employee":name_sg_v7, "TargetAmount":0.0, "AchievedAmount":0.0, "Status":"Not Set"}
+                    if not goal_data_sg_v7.empty:
+                        data_row_sg_v7 = goal_data_sg_v7.iloc[0]
+                        data_to_append_sg_v7["TargetAmount"]=float(pd.to_numeric(data_row_sg_v7.get("TargetAmount"),errors='coerce').fillna(0.0))
+                        data_to_append_sg_v7["AchievedAmount"]=float(pd.to_numeric(data_row_sg_v7.get("AchievedAmount"),errors='coerce').fillna(0.0))
+                        data_to_append_sg_v7["Status"]=data_row_sg_v7.get("Status","Not Set")
+                    summary_data_sg_admin_v7.append(data_to_append_sg_v7)
+                summary_df_sg_admin_v7 = pd.DataFrame(summary_data_sg_admin_v7)
+                if not summary_df_sg_admin_v7.empty:
+                    st.markdown("<h6>Individual Progress:</h6>", unsafe_allow_html=True)
+                    cols_sg_admin_v7 = st.columns(min(3, len(summary_df_sg_admin_v7)) if len(summary_df_sg_admin_v7)>0 else 1)
+                    for i_sg_admin_v7, row_sg_admin_v7 in summary_df_sg_admin_v7.iterrows():
+                        target_sg_admin_val_v7 = float(pd.to_numeric(row_sg_admin_v7.get('TargetAmount'), errors='coerce').fillna(0.0))
+                        achieved_sg_admin_val_v7 = float(pd.to_numeric(row_sg_admin_v7.get('AchievedAmount'), errors='coerce').fillna(0.0))
+                        prog_sg_admin_v7 = (achieved_sg_admin_val_v7/target_sg_admin_val_v7*100) if target_sg_admin_val_v7>0 else 0
+                        donut_sg_admin_v7 = create_donut_chart(prog_sg_admin_v7);
+                        with cols_sg_admin_v7[i_sg_admin_v7 % len(cols_sg_admin_v7)]:
+                            st.markdown(f"<div class='employee-progress-item'><h6>{row_sg_admin_v7['Employee']}</h6><p>T: ₹{target_sg_admin_val_v7:,.0f} | A: ₹{achieved_sg_admin_val_v7:,.0f}</p></div>", unsafe_allow_html=True)
+                            if donut_sg_admin_v7: st.pyplot(donut_sg_admin_v7, use_container_width=True); st.markdown("<div style='margin-bottom:15px;'></div>", unsafe_allow_html=True)
+                    st.markdown("<hr>"); st.markdown("<h6>Overall Team Performance:</h6>", unsafe_allow_html=True)
+                    bar_sg_admin_v7 = create_team_progress_bar_chart(summary_df_sg_admin_v7, title="Team Sales: Target vs Achieved", target_col="TargetAmount", achieved_col="AchievedAmount")
+                    if bar_sg_admin_v7: st.pyplot(bar_sg_admin_v7, use_container_width=True)
+                    else: st.info("No data for team bar chart.")
+                else: st.info(f"No sales goals data for {current_q_sg_v7}.")
+        else: # Set/Edit Goal
+            st.markdown(f"<h5>Set/Update Sales Goal ({TARGET_SG_YEAR_V7} - Quarterly)</h5>", unsafe_allow_html=True)
+            emp_opts_sg_set_v7 = [u for u,d in USERS.items() if d["role"] in ["employee","sales_person"]]
+            if not emp_opts_sg_set_v7: st.warning("No employees available.")
+            else:
+                sel_emp_sg_set_v7 = st.radio("Employee:", emp_opts_sg_set_v7, key="sg_set_emp_v7", horizontal=True)
+                sel_q_sg_set_v7 = st.radio("Quarter:", [f"{TARGET_SG_YEAR_V7}-Q{i}" for i in range(1,5)], key="sg_set_q_v7", horizontal=True)
+                existing_goal_sg_v7 = goals_df[(goals_df["Username"]==sel_emp_sg_set_v7)&(goals_df["MonthYear"]==sel_q_sg_set_v7)]
+                desc_sg_v7, tgt_sg_v7, ach_sg_v7, stat_sg_v7 = ("",0.0,0.0,"Not Started")
+                if not existing_goal_sg_v7.empty:
+                    data_sg_v7 = existing_goal_sg_v7.iloc[0]; desc_sg_v7=data_sg_v7.get("GoalDescription",""); tgt_sg_v7=float(pd.to_numeric(data_sg_v7.get("TargetAmount",0.0),errors='coerce').fillna(0.0)); ach_sg_v7=float(pd.to_numeric(data_sg_v7.get("AchievedAmount",0.0),errors='coerce').fillna(0.0)); stat_sg_v7=data_sg_v7.get("Status","Not Started")
+                    st.info(f"Editing goal for {sel_emp_sg_set_v7} - {sel_q_sg_set_v7}")
+                with st.form(f"form_sg_set_{sel_emp_sg_set_v7}_{sel_q_sg_set_v7}_v7"):
+                    n_desc_v7=st.text_area("Desc:",value=desc_sg_v7, key=f"desc_sg_v7_{sel_emp_sg_set_v7}_{sel_q_sg_set_v7}"); n_tgt_v7=st.number_input("Target:",value=tgt_sg_v7,min_value=0.0,step=1000.0,format="%.2f", key=f"tgt_sg_v7_{sel_emp_sg_set_v7}_{sel_q_sg_set_v7}")
+                    n_ach_v7=st.number_input("Achieved:",value=ach_sg_v7,min_value=0.0,step=100.0,format="%.2f", key=f"ach_sg_v7_{sel_emp_sg_set_v7}_{sel_q_sg_set_v7}"); n_stat_v7=st.radio("Status:",status_opts_sg_v7,index=status_opts_sg_v7.index(stat_sg_v7),horizontal=True, key=f"stat_sg_v7_{sel_emp_sg_set_v7}_{sel_q_sg_set_v7}")
+                    submit_sg_set_v7=st.form_submit_button("Save Goal", type="primary")
+                if submit_sg_set_v7:
+                    if not n_desc_v7.strip():st.warning("Desc required."); 
+                    elif n_tgt_v7<=0 and n_stat_v7 not in ["Cancelled","On Hold","Not Started"]: st.warning("Target >0 unless status is Cancelled/On Hold/Not Started.")
+                    else:
+                        global goals_df
+                        df_edit_v7=goals_df.copy(); idx_v7=df_edit_v7[(df_edit_v7["Username"]==sel_emp_sg_set_v7)&(df_edit_v7["MonthYear"]==sel_q_sg_set_v7)].index
+                        data_save_v7={"Username":sel_emp_sg_set_v7,"MonthYear":sel_q_sg_set_v7,"GoalDescription":n_desc_v7,"TargetAmount":n_tgt_v7,"AchievedAmount":n_ach_v7,"Status":n_stat_v7}
+                        for col_check_v7 in GOALS_COLUMNS:
+                            if col_check_v7 not in data_save_v7: data_save_v7[col_check_v7]=pd.NA
+                        if not idx_v7.empty: df_edit_v7.loc[idx_v7[0]]=pd.Series(data_save_v7); verb_v7="updated"
+                        else: df_new_v7=pd.DataFrame([data_save_v7],columns=GOALS_COLUMNS); df_edit_v7=pd.concat([df_edit_v7,df_new_v7],ignore_index=True); verb_v7="set"
+                        try: df_edit_v7.to_csv(GOALS_FILE,index=False); goals_df=df_edit_v7; st.session_state.user_message=f"Goal {verb_v7}!"; st.session_state.message_type="success"; st.rerun()
+                        except Exception as e_sg_save_v7: st.session_state.user_message=f"Error: {e_sg_save_v7}"; st.session_state.message_type="error"; st.rerun()
+    elif current_user_auth["role"] in ["sales_person", "employee"]:
+        st.markdown(f"<h4>My Sales Goals ({TARGET_SG_YEAR_V7})</h4>", unsafe_allow_html=True)
+        my_goals_sg_v7 = goals_df[goals_df["Username"]==current_user_auth["username"]].copy()
+        for col_num_v7 in ["TargetAmount","AchievedAmount"]: my_goals_sg_v7[col_num_v7]=pd.to_numeric(my_goals_sg_v7[col_num_v7],errors="coerce").fillna(0.0)
+        current_g_sg_v7 = my_goals_sg_v7[my_goals_sg_v7["MonthYear"]==current_q_sg_v7]
+        st.markdown(f"<h5>Current: {current_q_sg_v7}</h5>", unsafe_allow_html=True)
+        if not current_g_sg_v7.empty:
+            g_data_v7 = current_g_sg_v7.iloc[0]; tgt_v7=g_data_v7["TargetAmount"]; ach_v7=g_data_v7["AchievedAmount"]
+            st.markdown(f"**Desc:** {g_data_v7.get('GoalDescription','N/A')}")
+            m_cols_v7,c_cols_v7=st.columns([0.6,0.4]);
+            with m_cols_v7: s1_v7,s2_v7=st.columns(2);s1_v7.metric("Target",f"₹{tgt_v7:,.0f}");s2_v7.metric("Achieved",f"₹{ach_v7:,.0f}");st.metric("Status",g_data_v7.get("Status","In Progress"),label_visibility="visible")
+            with c_cols_v7: prog_v7=(ach_v7/tgt_v7*100)if tgt_v7>0 else 0;st.markdown("<h6 style='text-align:center;margin:0;'>Progress</h6>",unsafe_allow_html=True);d_fig_v7=create_donut_chart(prog_v7);st.pyplot(d_fig_v7,use_container_width=True)
+            st.markdown("---")
+            if current_user_auth["role"] == "sales_person":
+                with st.form(f"form_upd_sg_{current_user_auth['username']}_{current_q_sg_v7}_v7"):
+                    n_val_v7=st.number_input("Update Achieved (INR):",value=ach_v7,min_value=0.0,step=100.0,format="%.2f")
+                    submit_upd_v7=st.form_submit_button("Update Achievement", type="primary")
+                if submit_upd_v7:
+                    global goals_df
+                    df_edit_u_v7=goals_df.copy();idx_u_v7=df_edit_u_v7[(df_edit_u_v7["Username"]==current_user_auth["username"])&(df_edit_u_v7["MonthYear"]==current_q_sg_v7)].index
+                    if not idx_u_v7.empty:
+                        df_edit_u_v7.loc[idx_u_v7[0],"AchievedAmount"]=n_val_v7;df_edit_u_v7.loc[idx_u_v7[0],"Status"]="Achieved" if n_val_v7>=tgt_v7 and tgt_v7>0 else "In Progress"
+                        try: df_edit_u_v7.to_csv(GOALS_FILE,index=False);goals_df=df_edit_u_v7;st.session_state.user_message="Achievement updated!";st.session_state.message_type="success";st.rerun()
+                        except Exception as e_u_save_v7:st.session_state.user_message=f"Error: {e_u_save_v7}";st.session_state.message_type="error";st.rerun()
+                    else: st.session_state.user_message="Goal not found.";st.session_state.message_type="error";st.rerun()
+        else: st.info(f"No goal for {current_q_sg_v7}. Contact admin.")
+        st.markdown(f"---");st.markdown(f"<h5>Past Goals ({TARGET_SG_YEAR_V7})</h5>",unsafe_allow_html=True)
+        past_g_sg_v7=my_goals_sg_v7[(my_goals_sg_v7["MonthYear"].str.startswith(str(TARGET_SG_YEAR_V7)))&(my_goals_sg_v7["MonthYear"]!=current_q_sg_v7)]
+        if not past_g_sg_v7.empty:render_goal_chart(past_g_sg_v7,"My Past Sales Goals")
+        else: st.info(f"No past goals for {TARGET_SG_YEAR_V7}.")
     st.markdown("</div>", unsafe_allow_html=True)
-
 
 elif nav == "Payment Collection":
-    # ... (Your existing Payment Collection code, ensure keys are unique, e.g., _v7) ...
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3><span class='material-symbols-outlined'>payments</span> Payment Collection Tracker (2025)</h3>", unsafe_allow_html=True)
-    st.info("Payment Collection Tracker page to be reviewed and keys updated if issues.", icon="🚧")
+    TARGET_PAY_YEAR_V7 = 2025; current_q_pay_v7 = get_quarter_str_for_year(TARGET_PAY_YEAR_V7); status_opts_pay_v7 = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
+    if current_user_auth["role"] == "admin":
+        st.markdown("<h4>Admin: Manage Employee Payment Collection Goals</h4>", unsafe_allow_html=True)
+        admin_action_pay_v7 = st.radio("Action:", ["View Team Progress", f"Set/Edit Goal"], key="admin_pay_action_v7", horizontal=True)
+        if admin_action_pay_v7 == "View Team Progress":
+            st.markdown(f"<h5>Team Progress for {current_q_pay_v7}</h5>", unsafe_allow_html=True)
+            emp_list_pay_admin_v7 = [u for u,d in USERS.items() if d["role"] in ["employee","sales_person"]]
+            if not emp_list_pay_admin_v7: st.info("No employees/salespersons.")
+            else:
+                summary_data_pay_admin_v7 = []
+                for name_pay_v7 in emp_list_pay_admin_v7:
+                    goal_data_pay_v7 = payment_goals_df[(payment_goals_df["Username"]==name_pay_v7)&(payment_goals_df["MonthYear"]==current_q_pay_v7)]
+                    data_to_append_pay_v7 = {"Employee":name_pay_v7, "TargetAmount":0.0, "AchievedAmount":0.0, "Status":"Not Set"}
+                    if not goal_data_pay_v7.empty:
+                        data_row_pay_v7 = goal_data_pay_v7.iloc[0]
+                        data_to_append_pay_v7["TargetAmount"]=float(pd.to_numeric(data_row_pay_v7.get("TargetAmount"),errors='coerce').fillna(0.0))
+                        data_to_append_pay_v7["AchievedAmount"]=float(pd.to_numeric(data_row_pay_v7.get("AchievedAmount"),errors='coerce').fillna(0.0))
+                        data_to_append_pay_v7["Status"]=data_row_pay_v7.get("Status","Not Set")
+                    summary_data_pay_admin_v7.append(data_to_append_pay_v7)
+                summary_df_pay_admin_v7 = pd.DataFrame(summary_data_pay_admin_v7)
+                if not summary_df_pay_admin_v7.empty:
+                    st.markdown("<h6>Individual Progress:</h6>", unsafe_allow_html=True)
+                    cols_pay_admin_v7 = st.columns(min(3, len(summary_df_pay_admin_v7)) if len(summary_df_pay_admin_v7)>0 else 1)
+                    for i_pay_admin_v7, row_pay_admin_v7 in summary_df_pay_admin_v7.iterrows():
+                        target_pay_admin_val_v7 = float(pd.to_numeric(row_pay_admin_v7.get('TargetAmount'), errors='coerce').fillna(0.0))
+                        achieved_pay_admin_val_v7 = float(pd.to_numeric(row_pay_admin_v7.get('AchievedAmount'), errors='coerce').fillna(0.0))
+                        prog_pay_admin_v7 = (achieved_pay_admin_val_v7/target_pay_admin_val_v7*100) if target_pay_admin_val_v7>0 else 0
+                        donut_pay_admin_v7 = create_donut_chart(prog_pay_admin_v7, achieved_color='#2070c0');
+                        with cols_pay_admin_v7[i_pay_admin_v7 % len(cols_pay_admin_v7)]:
+                            st.markdown(f"<div class='employee-progress-item'><h6>{row_pay_admin_v7['Employee']}</h6><p>T: ₹{target_pay_admin_val_v7:,.0f} | Coll: ₹{achieved_pay_admin_val_v7:,.0f}</p></div>", unsafe_allow_html=True)
+                            if donut_pay_admin_v7: st.pyplot(donut_pay_admin_v7, use_container_width=True); st.markdown("<div style='margin-bottom:15px;'></div>", unsafe_allow_html=True)
+                    st.markdown("<hr>"); st.markdown("<h6>Overall Team Performance:</h6>", unsafe_allow_html=True)
+                    bar_pay_admin_v7 = create_team_progress_bar_chart(summary_df_pay_admin_v7, title="Team Collection: Target vs Achieved", target_col="TargetAmount", achieved_col="AchievedAmount")
+                    if bar_pay_admin_v7: 
+                        for bar_group_pay_v7 in bar_pay_admin_v7.axes[0].containers:
+                            if bar_group_pay_v7.get_label()=='Achieved': 
+                                for bar_v7 in bar_group_pay_v7: bar_v7.set_color('#2070c0')
+                        st.pyplot(bar_pay_admin_v7, use_container_width=True)
+                    else: st.info("No data for team bar chart.")
+                else: st.info(f"No payment collection goals data for {current_q_pay_v7}.")
+        else: # Set/Edit Goal
+            st.markdown(f"<h5>Set/Update Collection Goal ({TARGET_PAY_YEAR_V7} - Quarterly)</h5>", unsafe_allow_html=True)
+            emp_opts_pay_set_v7 = [u for u,d in USERS.items() if d["role"] in ["employee","sales_person"]]
+            if not emp_opts_pay_set_v7: st.warning("No employees available.")
+            else:
+                sel_emp_pay_set_v7 = st.radio("Employee:", emp_opts_pay_set_v7, key="pay_set_emp_v7", horizontal=True)
+                sel_q_pay_set_v7 = st.radio("Quarter:", [f"{TARGET_PAY_YEAR_V7}-Q{i}" for i in range(1,5)], key="pay_set_q_v7", horizontal=True)
+                existing_goal_pay_v7 = payment_goals_df[(payment_goals_df["Username"]==sel_emp_pay_set_v7)&(payment_goals_df["MonthYear"]==sel_q_pay_set_v7)]
+                desc_pay_v7, tgt_pay_v7, ach_pay_v7, stat_pay_v7 = ("",0.0,0.0,"Not Started")
+                if not existing_goal_pay_v7.empty:
+                    data_pay_v7 = existing_goal_pay_v7.iloc[0]; desc_pay_v7=data_pay_v7.get("GoalDescription",""); tgt_pay_v7=float(pd.to_numeric(data_pay_v7.get("TargetAmount",0.0),errors='coerce').fillna(0.0)); ach_pay_v7=float(pd.to_numeric(data_pay_v7.get("AchievedAmount",0.0),errors='coerce').fillna(0.0)); stat_pay_v7=data_pay_v7.get("Status","Not Started")
+                    st.info(f"Editing goal for {sel_emp_pay_set_v7} - {sel_q_pay_set_v7}")
+                with st.form(f"form_pay_set_{sel_emp_pay_set_v7}_{sel_q_pay_set_v7}_v7"):
+                    n_desc_pay_v7=st.text_area("Desc:",value=desc_pay_v7, key=f"desc_pay_v7_{sel_emp_pay_set_v7}_{sel_q_pay_set_v7}"); n_tgt_pay_v7=st.number_input("Target:",value=tgt_pay_v7,min_value=0.0,step=1000.0,format="%.2f", key=f"tgt_pay_v7_{sel_emp_pay_set_v7}_{sel_q_pay_set_v7}")
+                    n_ach_pay_v7=st.number_input("Achieved:",value=ach_pay_v7,min_value=0.0,step=100.0,format="%.2f", key=f"ach_pay_v7_{sel_emp_pay_set_v7}_{sel_q_pay_set_v7}"); n_stat_pay_v7=st.selectbox("Status:",status_opts_pay_v7,index=status_opts_pay_v7.index(stat_pay_v7), key=f"stat_pay_v7_{sel_emp_pay_set_v7}_{sel_q_pay_set_v7}")
+                    submit_pay_set_v7=st.form_submit_button("Save Goal", type="primary")
+                if submit_pay_set_v7:
+                    if not n_desc_pay_v7.strip():st.warning("Desc required."); 
+                    elif n_tgt_pay_v7<=0 and n_stat_pay_v7 not in ["Cancelled","On Hold","Not Started"]: st.warning("Target >0 unless status is Cancelled/On Hold/Not Started.")
+                    else:
+                        global payment_goals_df
+                        df_edit_pay_v7=payment_goals_df.copy(); idx_pay_v7=df_edit_pay_v7[(df_edit_pay_v7["Username"]==sel_emp_pay_set_v7)&(df_edit_pay_v7["MonthYear"]==sel_q_pay_set_v7)].index
+                        data_save_pay_v7={"Username":sel_emp_pay_set_v7,"MonthYear":sel_q_pay_set_v7,"GoalDescription":n_desc_pay_v7,"TargetAmount":n_tgt_pay_v7,"AchievedAmount":n_ach_pay_v7,"Status":n_stat_pay_v7}
+                        for col_check_pay_v7 in PAYMENT_GOALS_COLUMNS:
+                            if col_check_pay_v7 not in data_save_pay_v7: data_save_pay_v7[col_check_pay_v7]=pd.NA
+                        if not idx_pay_v7.empty: df_edit_pay_v7.loc[idx_pay_v7[0]]=pd.Series(data_save_pay_v7); verb_pay_v7="updated"
+                        else: df_new_pay_v7=pd.DataFrame([data_save_pay_v7],columns=PAYMENT_GOALS_COLUMNS); df_edit_pay_v7=pd.concat([df_edit_pay_v7,df_new_pay_v7],ignore_index=True); verb_pay_v7="set"
+                        try: df_edit_pay_v7.to_csv(PAYMENT_GOALS_FILE,index=False); payment_goals_df=df_edit_pay_v7; st.session_state.user_message=f"Payment Goal {verb_pay_v7}!"; st.session_state.message_type="success"; st.rerun()
+                        except Exception as e_pay_save_v7: st.session_state.user_message=f"Error: {e_pay_save_v7}"; st.session_state.message_type="error"; st.rerun()
+    elif current_user_auth["role"] in ["sales_person", "employee"]:
+        st.markdown(f"<h4>My Payment Collection Goals ({TARGET_PAY_YEAR_V7})</h4>", unsafe_allow_html=True)
+        my_goals_pay_v7 = payment_goals_df[payment_goals_df["Username"]==current_user_auth["username"]].copy()
+        for col_num_pay_v7 in ["TargetAmount","AchievedAmount"]: my_goals_pay_v7[col_num_pay_v7]=pd.to_numeric(my_goals_pay_v7[col_num_pay_v7],errors="coerce").fillna(0.0)
+        current_g_pay_v7 = my_goals_pay_v7[my_goals_pay_v7["MonthYear"]==current_q_pay_v7]
+        st.markdown(f"<h5>Current: {current_q_pay_v7}</h5>", unsafe_allow_html=True)
+        if not current_g_pay_v7.empty:
+            g_data_pay_v7 = current_g_pay_v7.iloc[0]; tgt_pay_v7=g_data_pay_v7["TargetAmount"]; ach_pay_v7=g_data_pay_v7["AchievedAmount"]
+            st.markdown(f"**Desc:** {g_data_pay_v7.get('GoalDescription','N/A')}")
+            m_cols_pay_v7,c_cols_pay_v7=st.columns([0.6,0.4]);
+            with m_cols_pay_v7: s1_pay_v7,s2_pay_v7=st.columns(2);s1_pay_v7.metric("Target",f"₹{tgt_pay_v7:,.0f}");s2_pay_v7.metric("Collected",f"₹{ach_pay_v7:,.0f}");st.metric("Status",g_data_pay_v7.get("Status","In Progress"),label_visibility="visible")
+            with c_cols_pay_v7: prog_pay_v7=(ach_pay_v7/tgt_pay_v7*100)if tgt_pay_v7>0 else 0;st.markdown("<h6 style='text-align:center;margin:0;'>Progress</h6>",unsafe_allow_html=True);d_fig_pay_v7=create_donut_chart(prog_pay_v7, achieved_color='#2070c0');st.pyplot(d_fig_pay_v7,use_container_width=True)
+            st.markdown("---")
+            if current_user_auth["role"] == "sales_person":
+                with st.form(f"form_upd_pay_{current_user_auth['username']}_{current_q_pay_v7}_v7"):
+                    n_val_pay_v7=st.number_input("Update Collected (INR):",value=ach_pay_v7,min_value=0.0,step=100.0,format="%.2f")
+                    submit_upd_pay_v7=st.form_submit_button("Update Collection", type="primary")
+                if submit_upd_pay_v7:
+                    global payment_goals_df
+                    df_edit_u_pay_v7=payment_goals_df.copy();idx_u_pay_v7=df_edit_u_pay_v7[(df_edit_u_pay_v7["Username"]==current_user_auth["username"])&(df_edit_u_pay_v7["MonthYear"]==current_q_pay_v7)].index
+                    if not idx_u_pay_v7.empty:
+                        df_edit_u_pay_v7.loc[idx_u_pay_v7[0],"AchievedAmount"]=n_val_pay_v7;df_edit_u_pay_v7.loc[idx_u_pay_v7[0],"Status"]="Achieved" if n_val_pay_v7>=tgt_pay_v7 and tgt_pay_v7>0 else "In Progress"
+                        try: df_edit_u_pay_v7.to_csv(PAYMENT_GOALS_FILE,index=False);payment_goals_df=df_edit_u_pay_v7;st.session_state.user_message="Collection updated!";st.session_state.message_type="success";st.rerun()
+                        except Exception as e_u_save_pay_v7:st.session_state.user_message=f"Error: {e_u_save_pay_v7}";st.session_state.message_type="error";st.rerun()
+                    else: st.session_state.user_message="Goal not found.";st.session_state.message_type="error";st.rerun()
+        else: st.info(f"No collection goal for {current_q_pay_v7}. Contact admin.")
+        st.markdown(f"---");st.markdown(f"<h5>Past Collection Goals ({TARGET_PAY_YEAR_V7})</h5>",unsafe_allow_html=True)
+        past_g_pay_v7=my_goals_pay_v7[(my_goals_pay_v7["MonthYear"].str.startswith(str(TARGET_PAY_YEAR_V7)))&(my_goals_pay_v7["MonthYear"]!=current_q_pay_v7)]
+        if not past_g_pay_v7.empty:render_goal_chart(past_g_pay_v7,"My Past Collection Performance")
+        else: st.info(f"No past collection goals for {TARGET_PAY_YEAR_V7}.")
     st.markdown("</div>", unsafe_allow_html=True)
-
 
 elif nav == "Manage Records" and current_user_auth['role'] == 'admin':
-    # ... (Your existing Manage Records code, ensure keys are unique, e.g., _v7) ...
-    # This section needs to be updated to use ProductVariantID when showing order line items.
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3><span class='material-symbols-outlined'>admin_panel_settings</span> Manage Records</h3>", unsafe_allow_html=True)
-    st.info("Admin record management to be reviewed and updated for order details (ProductVariantID).", icon="🚧")
+    admin_record_view_options_v7 = ["Employee Activity & Logs", "Submitted Sales Orders"] 
+    admin_selected_record_view_v7 = st.radio( "Select Record Type:", options=admin_record_view_options_v7, horizontal=True, key="admin_manage_record_type_radio_main_v7")
+    st.divider()
+    if admin_selected_record_view_v7 == "Employee Activity & Logs":
+        st.markdown("<h4>Employee Activity & Other Logs</h4>", unsafe_allow_html=True)
+        emp_list_admin_logs_v7 = [name for name, data in USERS.items() if data["role"] != "admin"]
+        if not emp_list_admin_logs_v7: st.info("No employees/salespersons found.")
+        else:
+            sel_emp_admin_logs_v7 = st.selectbox("Select Employee:", [""] + emp_list_admin_logs_v7, key="admin_log_emp_select_v7", format_func=lambda x: "Select an Employee..." if x == "" else x)
+            if sel_emp_admin_logs_v7:
+                st.markdown(f"<h4 class='employee-section-header'>Records for: {sel_emp_admin_logs_v7}</h4>", unsafe_allow_html=True)
+                tab_titles_admin_log_view_v7 = ["Field Activity", "Attendance", "Allowances", "Sales Goals", "Payment Goals"]
+                tabs_admin_log_view_v7 = st.tabs([f"<span class='material-symbols-outlined' style='vertical-align:middle; margin-right:5px;'>folder_shared</span> {title}" for title in tab_titles_admin_log_view_v7])
+                with tabs_admin_log_view_v7[0]: data_act_v7 = activity_log_df[activity_log_df["Username"] == sel_emp_admin_logs_v7]; display_activity_logs_section(data_act_v7, sel_emp_admin_logs_v7)
+                with tabs_admin_log_view_v7[1]: data_att_v7 = attendance_df[attendance_df["Username"] == sel_emp_admin_logs_v7]; display_general_attendance_logs_section(data_att_v7, sel_emp_admin_logs_v7)
+                with tabs_admin_log_view_v7[2]:
+                    st.markdown(f"<h5>Allowances</h5>", unsafe_allow_html=True); data_allow_v7 = allowance_df[allowance_df["Username"] == sel_emp_admin_logs_v7]
+                    if not data_allow_v7.empty: st.dataframe(data_allow_v7.sort_values(by="Date",ascending=False).reset_index(drop=True),use_container_width=True,hide_index=True)
+                    else: st.info("No allowance records.")
+                with tabs_admin_log_view_v7[3]:
+                    st.markdown(f"<h5>Sales Goals</h5>", unsafe_allow_html=True); data_goals_v7 = goals_df[goals_df["Username"] == sel_emp_admin_logs_v7]
+                    if not data_goals_v7.empty: st.dataframe(data_goals_v7.sort_values(by="MonthYear",ascending=False).reset_index(drop=True),use_container_width=True,hide_index=True)
+                    else: st.info("No sales goals.")
+                with tabs_admin_log_view_v7[4]:
+                    st.markdown(f"<h5>Payment Goals</h5>", unsafe_allow_html=True); data_pay_goals_v7 = payment_goals_df[payment_goals_df["Username"] == sel_emp_admin_logs_v7]
+                    if not data_pay_goals_v7.empty: st.dataframe(data_pay_goals_v7.sort_values(by="MonthYear",ascending=False).reset_index(drop=True),use_container_width=True,hide_index=True)
+                    else: st.info("No payment goals.")
+            else: st.info("Select an employee to view records.")
+    elif admin_selected_record_view_v7 == "Submitted Sales Orders":
+        st.markdown("<h4>Submitted Sales Orders</h4>", unsafe_allow_html=True)
+        if order_summary_df.empty: st.info("No orders submitted yet.")
+        else:
+            summary_disp_admin_orders_v7 = order_summary_df.copy(); summary_disp_admin_orders_v7['OrderDate_dt'] = pd.to_datetime(summary_disp_admin_orders_v7['OrderDate'], errors='coerce'); summary_disp_admin_orders_v7 = summary_disp_admin_orders_v7.sort_values(by="OrderDate_dt", ascending=False)
+            st.markdown("<h6>Filter Orders:</h6>", unsafe_allow_html=True); f_cols_admin_ord_v7 = st.columns([1,1,2])
+            sales_list_admin_ord_v7 = ["All"] + sorted(summary_disp_admin_orders_v7['Salesperson'].unique().tolist()); sel_sales_admin_ord_v7 = f_cols_admin_ord_v7[0].selectbox("Salesperson", sales_list_admin_ord_v7, key="admin_ord_filt_sales_v7")
+            if sel_sales_admin_ord_v7 != "All": summary_disp_admin_orders_v7 = summary_disp_admin_orders_v7[summary_disp_admin_orders_v7['Salesperson'] == sel_sales_admin_ord_v7]
+            store_filt_admin_ord_v7 = f_cols_admin_ord_v7[1].text_input("Store Name contains", key="admin_ord_filt_store_v7")
+            if store_filt_admin_ord_v7.strip(): summary_disp_admin_orders_v7 = summary_disp_admin_orders_v7[summary_disp_admin_orders_v7['StoreName'].str.contains(store_filt_admin_ord_v7.strip(), case=False, na=False)]
+            min_d_admin_v7 = (summary_disp_admin_orders_v7['OrderDate_dt'].min().date() if not summary_disp_admin_orders_v7.empty and pd.notna(summary_disp_admin_orders_v7['OrderDate_dt'].min()) else date.today()-timedelta(days=30))
+            max_d_admin_v7 = (summary_disp_admin_orders_v7['OrderDate_dt'].max().date() if not summary_disp_admin_orders_v7.empty and pd.notna(summary_disp_admin_orders_v7['OrderDate_dt'].max()) else date.today())
+            date_r_admin_ord_v7 = f_cols_admin_ord_v7[2].date_input("Date Range", value=(min_d_admin_v7,max_d_admin_v7), min_value=min_d_admin_v7, max_value=max_d_admin_v7, key="admin_ord_filt_date_v7")
+            if len(date_r_admin_ord_v7)==2: start_d_admin_v7,end_d_admin_v7=date_r_admin_ord_v7; summary_disp_admin_orders_v7=summary_disp_admin_orders_v7[(summary_disp_admin_orders_v7['OrderDate_dt'].dt.date>=start_d_admin_v7)&(summary_disp_admin_orders_v7['OrderDate_dt'].dt.date<=end_d_admin_v7)]
+            st.markdown("---")
+            if summary_disp_admin_orders_v7.empty: st.info("No orders match filters.")
+            else:
+                st.markdown(f"<h6>Displaying {len(summary_disp_admin_orders_v7)} Order(s)</h6>", unsafe_allow_html=True)
+                cols_summary_show_admin_v7 = ["OrderID", "OrderDate", "Salesperson", "StoreName", "GrandTotal", "Notes"]
+                st.dataframe(summary_disp_admin_orders_v7[cols_summary_show_admin_v7].reset_index(drop=True),use_container_width=True,hide_index=True,column_config={"OrderDate":st.column_config.DatetimeColumn("Date",format="YYYY-MM-DD HH:mm"), "GrandTotal":st.column_config.NumberColumn("Total (₹)",format="₹ %.2f")})
+                st.markdown("---"); st.markdown("<h6>View Order Details:</h6>", unsafe_allow_html=True)
+                opts_ord_id_admin_v7 = [""]+summary_disp_admin_orders_v7["OrderID"].tolist()
+                sel_ord_id_admin_details_v7 = st.selectbox("Select OrderID:",opts_ord_id_admin_v7, index=0 if not st.session_state.admin_order_view_selected_order_id else opts_ord_id_admin_v7.index(st.session_state.admin_order_view_selected_order_id) if st.session_state.admin_order_view_selected_order_id in opts_ord_id_admin_v7 else 0, format_func=lambda x: "Select Order ID..." if x=="" else x, key="admin_ord_details_sel_v7")
+                st.session_state.admin_order_view_selected_order_id = sel_ord_id_admin_details_v7
+                if sel_ord_id_admin_details_v7:
+                    items_sel_admin_v7 = orders_df[orders_df['OrderID']==sel_ord_id_admin_details_v7]
+                    if items_sel_admin_v7.empty: st.warning(f"No items for OrderID: {sel_ord_id_admin_details_v7}")
+                    else:
+                        st.markdown(f"<h6>Line Items for Order: {sel_ord_id_admin_details_v7}</h6>",unsafe_allow_html=True)
+                        cols_items_show_admin_v7=["ProductName","SKU","Quantity","UnitOfMeasure","UnitPrice","LineTotal"]
+                        st.dataframe(items_sel_admin_v7[cols_items_show_admin_v7].reset_index(drop=True),use_container_width=True,hide_index=True,column_config={"UnitPrice":st.column_config.NumberColumn("Price (₹)",format="₹ %.2f"),"LineTotal":st.column_config.NumberColumn("Item Total (₹)",format="₹ %.2f")})
     st.markdown("</div>", unsafe_allow_html=True)
 
-
 elif nav == "My Records":
-    # ... (Your existing My Records code, ensure keys are unique, e.g., _v7) ...
-    # This section needs to be updated to use ProductVariantID if showing salesperson's order line items.
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown(f"<h3><span class='material-symbols-outlined'>article</span> My Records</h3>", unsafe_allow_html=True)
-    st.info("My Records page to be reviewed and updated for order details (ProductVariantID) if applicable.", icon="🚧")
+    my_username_rec_v7 = current_user_auth["username"] 
+    st.markdown(f"<h4 class='employee-section-header'>Activity & Records for: {my_username_rec_v7}</h4>", unsafe_allow_html=True)
+    tab_titles_user_rec_page_v7 = ["Field Activity", "Attendance", "Allowances", "Sales Goals", "Payment Goals"]
+    if current_user_auth['role'] == 'sales_person': tab_titles_user_rec_page_v7.append("My Submitted Orders")
+    tabs_user_rec_page_v7 = st.tabs([f"<span class='material-symbols-outlined' style='vertical-align:middle; margin-right:5px;'>badge</span> {title}" for title in tab_titles_user_rec_page_v7])
+    with tabs_user_rec_page_v7[0]: data_act_user_v7 = activity_log_df[activity_log_df["Username"] == my_username_rec_v7]; display_activity_logs_section(data_act_user_v7, "My")
+    with tabs_user_rec_page_v7[1]: data_att_user_v7 = attendance_df[attendance_df["Username"] == my_username_rec_v7]; display_general_attendance_logs_section(data_att_user_v7, "My")
+    with tabs_user_rec_page_v7[2]:
+        st.markdown(f"<h5>My Allowances</h5>", unsafe_allow_html=True); data_allow_user_v7 = allowance_df[allowance_df["Username"] == my_username_rec_v7]
+        if not data_allow_user_v7.empty: st.dataframe(data_allow_user_v7.sort_values(by="Date",ascending=False).reset_index(drop=True),use_container_width=True,hide_index=True)
+        else: st.info("No allowance records.")
+    with tabs_user_rec_page_v7[3]:
+        st.markdown(f"<h5>My Sales Goals</h5>", unsafe_allow_html=True); data_goals_user_v7 = goals_df[goals_df["Username"] == my_username_rec_v7]
+        if not data_goals_user_v7.empty: st.dataframe(data_goals_user_v7.sort_values(by="MonthYear",ascending=False).reset_index(drop=True),use_container_width=True,hide_index=True)
+        else: st.info("No sales goals.")
+    with tabs_user_rec_page_v7[4]:
+        st.markdown(f"<h5>My Payment Goals</h5>", unsafe_allow_html=True); data_pay_goals_user_v7 = payment_goals_df[payment_goals_df["Username"] == my_username_rec_v7]
+        if not data_pay_goals_user_v7.empty: st.dataframe(data_pay_goals_user_v7.sort_values(by="MonthYear",ascending=False).reset_index(drop=True),use_container_width=True,hide_index=True)
+        else: st.info("No payment goals.")
+    if current_user_auth['role'] == 'sales_person' and len(tabs_user_rec_page_v7) > 5:
+        with tabs_user_rec_page_v7[5]:
+            st.markdown(f"<h5>My Submitted Orders</h5>", unsafe_allow_html=True)
+            my_orders_summary_v7 = order_summary_df[order_summary_df["Salesperson"] == my_username_rec_v7].copy()
+            if my_orders_summary_v7.empty: st.info("You have not submitted any orders yet.")
+            else:
+                my_orders_summary_v7['OrderDate_dt'] = pd.to_datetime(my_orders_summary_v7['OrderDate'])
+                my_orders_summary_v7 = my_orders_summary_v7.sort_values(by="OrderDate_dt", ascending=False)
+                my_order_cols_to_show_v7 = ["OrderID", "OrderDate", "StoreName", "GrandTotal", "Notes"]
+                st.dataframe(my_orders_summary_v7[my_order_cols_to_show_v7].reset_index(drop=True), use_container_width=True, hide_index=True,
+                               column_config={"OrderDate": st.column_config.DatetimeColumn("Order Date", format="YYYY-MM-DD HH:mm"),
+                                              "GrandTotal": st.column_config.NumberColumn("Total (₹)", format="₹ %.2f")})
     st.markdown("</div>", unsafe_allow_html=True)
 
 else: 
