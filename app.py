@@ -216,12 +216,17 @@ TARGET_TIMEZONE = "Asia/Kolkata"
 try: tz = pytz.timezone(TARGET_TIMEZONE)
 except pytz.exceptions.UnknownTimeZoneError: st.error(f"Invalid TARGET_TIMEZONE: '{TARGET_TIMEZONE}'.", icon="🌍"); st.stop()
 
-def get_current_time_in_tz(): return datetime.now(timezone.utc).astimezone(tz)
-def get_quarter_str_for_year(year):
+def get_quarter_str_for_year(year): # Removed unused for_current_display parameter
     now_month = get_current_time_in_tz().month
-    if 1 <= now_month <= 3: return f"{year}-Q1"; elif 4 <= now_month <= 6: return f"{year}-Q2"
-    elif 7 <= now_month <= 9: return f"{year}-Q3"; else: return f"{year}-Q4"
-
+    if 1 <= now_month <= 3:
+        return f"{year}-Q1"
+    elif 4 <= now_month <= 6: # Elif on a new line, correctly indented
+        return f"{year}-Q2"
+    elif 7 <= now_month <= 9: # Elif on a new line
+        return f"{year}-Q3"
+    else: # Else for the remaining months (10, 11, 12)
+        return f"{year}-Q4"
+        
 def load_data(path, columns, parse_dates_cols=None):
     if os.path.exists(path):
         try:
