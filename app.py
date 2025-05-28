@@ -298,14 +298,14 @@ if "user_message" in st.session_state and st.session_state.user_message:
 
 
 with st.sidebar:
-    st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='welcome-text'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
 
     nav_options = [
         "Attendance",
         "Upload Activity Photo",
         "Allowance",
         "Goal Tracker",
-        "Payment Collection",
+        "Payment Collection Tracker",
         "View Logs"
     ]
 
@@ -332,7 +332,7 @@ with st.sidebar:
 #------------------------------------------------------------------------closed navbar
 
 # --- Main Content ---
-if nav == "Attendance":
+if nav == "📆 Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
     st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Upload Activity Photo' section.", icon="ℹ️") # Updated info
@@ -363,7 +363,7 @@ if nav == "Attendance":
             process_general_attendance("Check-Out")
     st.markdown('</div></div>', unsafe_allow_html=True)
 
-elif nav == "Upload Activity Photo":
+elif nav == "📸 Upload Activity Photo":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
     current_lat = pd.NA; current_lon = pd.NA # Placeholder, actual location capture not implemented here
@@ -393,9 +393,9 @@ elif nav == "Upload Activity Photo":
             except Exception as e: st.session_state.user_message = f"Error saving activity: {e}"; st.session_state.message_type = "error"; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == " Allowance":
+elif nav == "🧾 Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3> Claim Allowance</h3>", unsafe_allow_html=True)
+    st.markdown("<h3>💼 Claim Allowance</h3>", unsafe_allow_html=True)
     st.markdown("<div class='form-field-label'><h6>Select Allowance Type:</h6></div>", unsafe_allow_html=True)
     a_type = st.radio("", ["Travel", "Dinner", "Medical", "Internet", "Other"], key="allowance_type_radio_main", horizontal=True, label_visibility='collapsed')
     amount = st.number_input("Enter Amount (INR):", min_value=0.01, step=10.0, format="%.2f", key="allowance_amount_main")
@@ -413,9 +413,9 @@ elif nav == " Allowance":
         else: st.warning("Please complete all fields with valid values.") # This warning shows directly, fine.
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == "Goal Tracker":
+elif nav == "🎯 Goal Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3>Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
+    st.markdown("<h3>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_GOAL_YEAR = 2025; current_quarter_for_display = get_quarter_str_for_year(TARGET_GOAL_YEAR)
     status_options = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
     if current_user["role"] == "admin":
@@ -532,7 +532,7 @@ elif nav == "Goal Tracker":
         else: st.info(f"No past goal records for {TARGET_GOAL_YEAR}.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-elif nav == "Payment Collection Tracker":
+elif nav == "💰 Payment Collection Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💰 Payment Collection Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_YEAR_PAYMENT = 2025; current_quarter_display_payment = get_quarter_str_for_year(TARGET_YEAR_PAYMENT)
