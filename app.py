@@ -634,6 +634,7 @@ html_css = """
         transition: all 0.2s ease;
         margin-right: 16px; /* Space between tabs */
         position: relative;
+        width:270px;
         top: 1px; /* Align with the bottom border of the tablist */
     }
     .stTabs [role="tab"]:last-child {
