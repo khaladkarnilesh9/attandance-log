@@ -742,8 +742,6 @@ elif nav == "View Logs":
 
 
 elif nav == "Create Order":
-    import pandas as pd
-
     st.title("Create New Order")
 
     # Load store and product data
