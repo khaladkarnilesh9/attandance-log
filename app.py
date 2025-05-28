@@ -107,7 +107,7 @@ html_css = """
         --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         
         /* Spacing & Effects */
-        --border-radius: 8px;
+        --border-radius: 1px;
         --border-radius-lg: 12px;
         --box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
         --box-shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.1);
