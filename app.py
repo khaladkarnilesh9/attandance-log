@@ -301,6 +301,7 @@ html_css = """
         padding: 16px !important; /* Consistent padding */
         box-shadow: 1px 0 2px 0 rgba(60,64,67,0.1), 1px 0 3px 1px rgba(60,64,67,0.1); /* Subtle right shadow */
         border-right: 1px solid var(--border-color);
+        width:270px;
     }
 
     [data-testid="stSidebar"] .sidebar-content {
@@ -634,7 +635,6 @@ html_css = """
         transition: all 0.2s ease;
         margin-right: 16px; /* Space between tabs */
         position: relative;
-        width:270px;
         top: 1px; /* Align with the bottom border of the tablist */
     }
     .stTabs [role="tab"]:last-child {
