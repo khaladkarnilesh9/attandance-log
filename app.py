@@ -93,7 +93,7 @@ html_css = """
         --accent-color: #EA4335;
         --yellow-color: #FBBC05;
         --sidebar-bg: #1a73e8;
-        --sidebar-text: rgba(255, 255, 255, 0.9);
+        --sidebar-text:#ffffff;
         --sidebar-text-active: white;
         --sidebar-divider: rgba(255, 255, 255, 0.2);
         --body-bg-color: #f8f9fa;
