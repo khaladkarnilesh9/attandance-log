@@ -514,123 +514,180 @@ if nav == "Dashboard":
     st.info("Dashboard content will be role-specific and show key metrics and summaries.", icon="📊")
     st.markdown("</div>", unsafe_allow_html=True)
 
+# Inside your main if/elif nav structure:
+
 elif nav == "Create Order" and current_user_auth['role'] == 'sales_person':
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3><span class='material-symbols-outlined'>add_shopping_cart</span> Create New Sales Order</h3>", unsafe_allow_html=True)
-    order_date_display_co = get_current_time_in_tz().strftime("%Y-%m-%d"); salesperson_name_display_co = current_user_auth["username"]
+
+    order_date_display_co = get_current_time_in_tz().strftime("%Y-%m-%d")
+    salesperson_name_display_co = current_user_auth["username"]
+
     st.markdown("<h4>Order Header</h4>", unsafe_allow_html=True)
     col_header1_co, col_header2_co = st.columns(2)
     with col_header1_co:
-        st.text_input("Order Date", value=order_date_display_co, disabled=True, key="co_form_date_key_v4")
-        st.text_input("Salesperson", value=salesperson_name_display_co, disabled=True, key="co_form_salesperson_key_v4")
+        st.text_input("Order Date", value=order_date_display_co, disabled=True, key="co_form_date_key_v5") # Incremented key version
+        st.text_input("Salesperson", value=salesperson_name_display_co, disabled=True, key="co_form_salesperson_key_v5")
     with col_header2_co:
         if stores_df.empty:
-            st.warning("No stores in `agri_stores.csv`. Store selection is mandatory.", icon="🏬"); st.session_state.order_store_select = None
+            st.warning("No stores in `agri_stores.csv`. Store selection is mandatory.", icon="🏬")
+            st.session_state.order_store_select = None
         else:
             store_options_dict_co = {row['StoreID']: f"{row['StoreName']} ({row['StoreID']})" for index, row in stores_df.iterrows()}
-            current_store_sel_co = st.session_state.order_store_select
+            current_store_sel_co = st.session_state.get('order_store_select', None) # Use .get for safety
             options_for_sb_co = [None] + list(store_options_dict_co.keys())
             current_idx_sb_co = 0
-            if current_store_sel_co in store_options_dict_co: current_idx_sb_co = options_for_sb_co.index(current_store_sel_co)
-            selected_store_id_co = st.selectbox("Select Store *", options=options_for_sb_co, format_func=lambda x: "Select a store..." if x is None else store_options_dict_co[x], key="co_store_select_sb_key_v4", index=current_idx_sb_co)
+            if current_store_sel_co in store_options_dict_co:
+                try:
+                    current_idx_sb_co = options_for_sb_co.index(current_store_sel_co)
+                except ValueError: # Should not happen if key exists, but defensive
+                    current_idx_sb_co = 0
+                    st.session_state.order_store_select = None # Reset if invalid
+
+            selected_store_id_co = st.selectbox(
+                "Select Store *",
+                options=options_for_sb_co,
+                format_func=lambda x: "Select a store..." if x is None else store_options_dict_co.get(x, "Unknown Store"), # Use .get
+                key="co_store_select_sb_key_v5",
+                index=current_idx_sb_co
+            )
             st.session_state.order_store_select = selected_store_id_co
-    st.markdown("---"); st.markdown("<h4><span class='material-symbols-outlined'>playlist_add</span> Add Products to Order</h4>", unsafe_allow_html=True)
-    if products_df.empty: st.error("Product catalog `symplanta_products_with_images.csv` is empty or not found.", icon="🚫")
+
+    st.markdown("---")
+    st.markdown("<h4><span class='material-symbols-outlined'>playlist_add</span> Add Products to Order</h4>", unsafe_allow_html=True)
+
+    # --- DEFINE THE CALLBACK FUNCTION HERE, at the correct indentation level ---
+    # --- BEFORE it's used by the button ---
+    def add_item_to_order_cb_co_v5(): # Renamed with _v5
+        if st.session_state.current_product_id_symplanta and st.session_state.current_quantity_order > 0:
+            product_info_co_v5 = products_df[products_df['ProductVariantID'] == st.session_state.current_product_id_symplanta]
+            if product_info_co_v5.empty:
+                st.error("Selected product variant not found. Please re-select from the list.", icon="❌")
+                return
+            product_info_co_v5 = product_info_co_v5.iloc[0]
+            
+            existing_item_idx_co_v5 = next((i for i, item in enumerate(st.session_state.order_line_items) if item['ProductVariantID'] == st.session_state.current_product_id_symplanta), -1)
+            
+            if existing_item_idx_co_v5 != -1:
+                st.session_state.order_line_items[existing_item_idx_co_v5]['Quantity'] += st.session_state.current_quantity_order
+                st.session_state.order_line_items[existing_item_idx_co_v5]['LineTotal'] = st.session_state.order_line_items[existing_item_idx_co_v5]['Quantity'] * st.session_state.order_line_items[existing_item_idx_co_v5]['UnitPrice']
+                st.toast(f"Updated quantity for {product_info_co_v5['ProductName']} ({product_info_co_v5['UnitOfMeasure']}).", icon="🔄")
+            else:
+                st.session_state.order_line_items.append({
+                    "ProductVariantID": product_info_co_v5['ProductVariantID'], "SKU": product_info_co_v5['SKU'],
+                    "ProductName": product_info_co_v5['ProductName'], "Quantity": st.session_state.current_quantity_order,
+                    "UnitOfMeasure": product_info_co_v5['UnitOfMeasure'], "UnitPrice": float(product_info_co_v5['UnitPrice']),
+                    "LineTotal": st.session_state.current_quantity_order * float(product_info_co_v5['UnitPrice']),
+                    "ImageURL": product_info_co_v5['ImageURL']
+                })
+                st.toast(f"Added {product_info_co_v5['ProductName']} ({product_info_co_v5['UnitOfMeasure']}) to order.", icon="✅")
+            st.session_state.current_quantity_order = 1
+            # Optionally reset product selection: st.session_state.current_product_id_symplanta = None
+        else:
+            st.warning("Please select a product and specify quantity > 0.", icon="⚠️")
+
+    if products_df.empty:
+        st.error("Product catalog `symplanta_products_with_images.csv` is empty or not found.", icon="🚫")
     else:
-        categories_list_co = ["All Categories"] + sorted(products_df['Category'].unique().tolist())
-        selected_category_filter_co = st.selectbox("Filter by Product Category", options=categories_list_co, key="co_prod_cat_filter_key_v4")
-        filtered_products_co = products_df.copy()
-        if selected_category_filter_co != "All Categories": filtered_products_co = products_df[products_df['Category'] == selected_category_filter_co]
-        if filtered_products_co.empty: st.info(f"No products for category: {selected_category_filter_co}" if selected_category_filter_co != "All Categories" else "No products available.", icon="ℹ️"); product_variant_options_co = {} # Changed name
-        else: product_variant_options_co = { row['ProductVariantID']: f"{row['ProductName']} ({row['UnitOfMeasure']}) - ₹{row['UnitPrice']:.2f}" for index, row in filtered_products_co.iterrows()}
-        col_prod_co, col_qty_co, col_add_btn_co = st.columns([3, 1, 1.2])
-        with col_prod_co:
-            current_prod_variant_id_co_sess = st.session_state.current_product_id_symplanta; # Use ProductVariantID
-            options_prod_sb_co_v4 = [None] + list(product_variant_options_co.keys()); current_prod_idx_sb_co_v4 = 0
-            if current_prod_variant_id_co_sess in product_variant_options_co: current_prod_idx_sb_co_v4 = options_prod_sb_co_v4.index(current_prod_variant_id_co_sess)
-            else: st.session_state.current_product_id_symplanta = None # Reset if not in filtered
-            selected_prod_variant_id_co = st.selectbox("Select Product (Name & Size) *", options=options_prod_sb_co_v4, format_func=lambda x: "Choose a product..." if x is None else product_variant_options_co.get(x, "Invalid Product"), key="co_prod_variant_select_actual_key_v4", index=current_prod_idx_sb_co_v4)
-            st.session_state.current_product_id_symplanta = selected_prod_variant_id_co # Store ProductVariantID
-        with col_qty_co: st.session_state.current_quantity_order = st.number_input("Quantity *", min_value=1, value=st.session_state.current_quantity_order, step=1, key="co_qty_input_key_v4")
-                def add_item_to_order_cb_co_v4(): # Callback function definition
-            # All lines below this 'def' must be indented
-            if st.session_state.current_product_id_symplanta and st.session_state.current_quantity_order > 0:
-                prod_info_co_v4 = products_df[products_df['ProductVariantID'] == st.session_state.current_product_id_symplanta]
-                if prod_info_co_v4.empty: 
-                    st.error("Selected product not found. Please re-select from the list.", icon="❌") # Added more info
-                    return 
-                prod_info_co_v4 = prod_info_co_v4.iloc[0]
-                
-                existing_item_idx_co_v4 = next((i for i, item in enumerate(st.session_state.order_line_items) if item['ProductVariantID'] == st.session_state.current_product_id_symplanta), -1)
-                
-                if existing_item_idx_co_v4 != -1:
-                    # Update existing item
-                    st.session_state.order_line_items[existing_item_idx_co_v4]['Quantity'] += st.session_state.current_quantity_order
-                    st.session_state.order_line_items[existing_item_idx_co_v4]['LineTotal'] = st.session_state.order_line_items[existing_item_idx_co_v4]['Quantity'] * st.session_state.order_line_items[existing_item_idx_co_v4]['UnitPrice']
-                    st.toast(f"Updated quantity for {prod_info_co_v4['ProductName']} ({prod_info_co_v4['UnitOfMeasure']}).", icon="🔄")
-                else:
-                    # Add new item
-                    st.session_state.order_line_items.append({
-                        "ProductVariantID": prod_info_co_v4['ProductVariantID'], 
-                        "SKU": prod_info_co_v4['SKU'], 
-                        "ProductName": prod_info_co_v4['ProductName'], 
-                        "Quantity": st.session_state.current_quantity_order, 
-                        "UnitOfMeasure": prod_info_co_v4['UnitOfMeasure'], 
-                        "UnitPrice": float(prod_info_co_v4['UnitPrice']), 
-                        "LineTotal": st.session_state.current_quantity_order * float(prod_info_co_v4['UnitPrice']), 
-                        "ImageURL": prod_info_co_v4['ImageURL']
-                    })
-                    st.toast(f"Added {prod_info_co_v4['ProductName']} ({prod_info_co_v4['UnitOfMeasure']}) to order.", icon="✅")
-                
-                # Reset quantity for next input
-                st.session_state.current_quantity_order = 1
-                # Optionally, reset product selection if desired after adding
-                # st.session_state.current_product_id_symplanta = None 
-            else: 
-                st.warning("Please select a product and specify quantity > 0.", icon="⚠️")
-                
-        with col_add_btn_co: st.markdown("<div style='margin-top:28px;'></div>", unsafe_allow_html=True); st.button("➕ Add to Order", on_click=add_item_to_order_cb_co_v4, key="co_add_item_btn_key_v4")
+        categories_list_co_v5 = ["All Categories"] + sorted(products_df['Category'].unique().tolist()) # Renamed var
+        selected_category_filter_co_v5 = st.selectbox("Filter by Product Category", options=categories_list_co_v5, key="co_prod_cat_filter_key_v5")
+        
+        filtered_products_co_v5 = products_df.copy()
+        if selected_category_filter_co_v5 != "All Categories":
+            filtered_products_co_v5 = products_df[products_df['Category'] == selected_category_filter_co_v5]
+
+        if filtered_products_co_v5.empty:
+            st.info(f"No products for category: {selected_category_filter_co_v5}" if selected_category_filter_co_v5 != "All Categories" else "No products available.", icon="ℹ️")
+            product_variant_options_co_v5 = {}
+        else:
+            product_variant_options_co_v5 = { row['ProductVariantID']: f"{row['ProductName']} ({row['UnitOfMeasure']}) - ₹{row['UnitPrice']:.2f}" for index, row in filtered_products_co_v5.iterrows()}
+        
+        col_prod_co_v5, col_qty_co_v5, col_add_btn_co_v5 = st.columns([3, 1, 1.2])
+        with col_prod_co_v5:
+            current_prod_variant_id_co_sess_v5 = st.session_state.current_product_id_symplanta
+            options_prod_sb_co_v5 = [None] + list(product_variant_options_co_v5.keys())
+            current_prod_idx_sb_co_v5 = 0
+            if current_prod_variant_id_co_sess_v5 in product_variant_options_co_v5:
+                try:
+                    current_prod_idx_sb_co_v5 = options_prod_sb_co_v5.index(current_prod_variant_id_co_sess_v5)
+                except ValueError:
+                    current_prod_idx_sb_co_v5 = 0
+                    st.session_state.current_product_id_symplanta = None 
+            else: # Reset if current selection is not in filtered options
+                st.session_state.current_product_id_symplanta = None
+                current_prod_idx_sb_co_v5 = 0
+
+
+            selected_prod_variant_id_co_v5 = st.selectbox(
+                "Select Product (Name & Size) *",
+                options=options_prod_sb_co_v5,
+                format_func=lambda x: "Choose a product..." if x is None else product_variant_options_co_v5.get(x, "Invalid Product"),
+                key="co_prod_variant_select_actual_key_v5",
+                index=current_prod_idx_sb_co_v5
+            )
+            st.session_state.current_product_id_symplanta = selected_prod_variant_id_co_v5
+        
+        with col_qty_co_v5:
+            st.session_state.current_quantity_order = st.number_input("Quantity *", min_value=1, value=st.session_state.current_quantity_order, step=1, key="co_qty_input_key_v5")
+        
+        with col_add_btn_co_v5:
+            st.markdown("<div style='margin-top:28px;'></div>", unsafe_allow_html=True)
+            st.button("➕ Add to Order", on_click=add_item_to_order_cb_co_v5, key="co_add_item_btn_key_v5") # Using the corrected callback name
+
+    # --- Display Current Order Line Items (This part was likely okay) ---
     if st.session_state.order_line_items:
         st.markdown("---"); st.markdown("<h4><span class='material-symbols-outlined'>receipt_long</span> Current Order Items</h4>", unsafe_allow_html=True)
-        for i_item_co_v4, item_data_co_v4 in enumerate(st.session_state.order_line_items):
-            item_cols_co_v4 = st.columns([1, 3, 1, 1.5, 1.5, 0.5])
-            with item_cols_co_v4[0]:
-                if item_data_co_v4.get("ImageURL") and isinstance(item_data_co_v4.get("ImageURL"), str) and item_data_co_v4.get("ImageURL").startswith("http"): st.image(item_data_co_v4["ImageURL"], width=50)
+        for i_item_co_v5, item_data_co_v5 in enumerate(st.session_state.order_line_items):
+            # ... (display logic using item_cols_co_v5, etc.) ...
+            item_cols_co_v5 = st.columns([1, 3, 1, 1.5, 1.5, 0.5]) 
+            with item_cols_co_v5[0]:
+                if item_data_co_v5.get("ImageURL") and isinstance(item_data_co_v5.get("ImageURL"), str) and item_data_co_v5.get("ImageURL").startswith("http"): st.image(item_data_co_v5["ImageURL"], width=50)
                 else: st.markdown("<span class='material-symbols-outlined' style='font-size:36px; color: var(--gg-grey-300);'>image_not_supported</span>", unsafe_allow_html=True)
-            item_cols_co_v4[1].markdown(f"**{item_data_co_v4['ProductName']}** ({item_data_co_v4['SKU']}) <br><small>{item_data_co_v4['UnitOfMeasure']}</small>", unsafe_allow_html=True)
-            item_cols_co_v4[2].markdown(f"{item_data_co_v4['Quantity']}"); item_cols_co_v4[3].markdown(f"₹{item_data_co_v4['UnitPrice']:.2f}"); item_cols_co_v4[4].markdown(f"**₹{item_data_co_v4['LineTotal']:.2f}**")
-            if item_cols_co_v4[5].button("➖", key=f"co_delete_item_key_v4_{i_item_co_v4}", help="Remove item"): st.session_state.order_line_items.pop(i_item_co_v4); st.rerun()
-            if i_item_co_v4 < len(st.session_state.order_line_items) -1 : st.divider()
-        subtotal_co_v4 = sum(item['LineTotal'] for item in st.session_state.order_line_items)
-        col_summary1_co_v4, col_summary2_co_v4 = st.columns(2)
-        with col_summary1_co_v4:
-            st.session_state.order_discount = st.number_input("Discount (₹)", value=st.session_state.order_discount, min_value=0.0, step=10.0, key="co_discount_val_key_v4")
-            st.session_state.order_tax = st.number_input("Tax (₹)", value=st.session_state.order_tax, min_value=0.0, step=5.0, key="co_tax_val_key_v4", help="Total tax amount")
-        grand_total_co_v4 = subtotal_co_v4 - st.session_state.order_discount + st.session_state.order_tax
-        with col_summary2_co_v4: st.markdown(f"<div style='text-align:right; margin-top:20px;'><p style='margin-bottom:2px;'>Subtotal:  <strong>₹{subtotal_co_v4:,.2f}</strong></p><p style='margin-bottom:2px;color:var(--danger-color);'>Discount:  - ₹{st.session_state.order_discount:,.2f}</p><p style='margin-bottom:2px;'>Tax:  + ₹{st.session_state.order_tax:,.2f}</p><h4 style='margin-top:5px;border-top:1px solid var(--border-color);padding-top:5px;'>Grand Total:  ₹{grand_total_co_v4:,.2f}</h4></div>", unsafe_allow_html=True)
-        st.session_state.order_notes = st.text_area("Order Notes/Payment/Delivery", value=st.session_state.order_notes, key="co_notes_val_key_v4", placeholder="E.g., UPI, Deliver by Tuesday")
-        if st.button("✅ Submit Order", key="co_submit_order_btn_key_v4", type="primary", use_container_width=True):
-            final_store_id_co_v4 = st.session_state.order_store_select; store_name_co_v4 = "N/A"
-            if not final_store_id_co_v4: st.error("Store selection is mandatory.", icon="🏬")
+            item_cols_co_v5[1].markdown(f"**{item_data_co_v5['ProductName']}** ({item_data_co_v5['SKU']}) <br><small>{item_data_co_v5['UnitOfMeasure']}</small>", unsafe_allow_html=True)
+            item_cols_co_v5[2].markdown(f"{item_data_co_v5['Quantity']}")
+            item_cols_co_v5[3].markdown(f"₹{item_data_co_v5['UnitPrice']:.2f}")
+            item_cols_co_v5[4].markdown(f"**₹{item_data_co_v5['LineTotal']:.2f}**")
+            if item_cols_co_v5[5].button("➖", key=f"co_delete_item_key_v5_{i_item_co_v5}", help="Remove this item"): 
+                st.session_state.order_line_items.pop(i_item_co_v5)
+                st.rerun()
+            if i_item_co_v5 < len(st.session_state.order_line_items) -1 : st.divider()
+        
+        subtotal_co_v5 = sum(item['LineTotal'] for item in st.session_state.order_line_items)
+        col_summary1_co_v5, col_summary2_co_v5 = st.columns(2)
+        with col_summary1_co_v5:
+            st.session_state.order_discount = st.number_input("Discount (₹)", value=st.session_state.order_discount, min_value=0.0, step=10.0, key="co_discount_val_key_v5")
+            st.session_state.order_tax = st.number_input("Tax (₹)", value=st.session_state.order_tax, min_value=0.0, step=5.0, key="co_tax_val_key_v5", help="Total tax amount")
+        grand_total_co_v5 = subtotal_co_v5 - st.session_state.order_discount + st.session_state.order_tax
+        with col_summary2_co_v5: st.markdown(f"<div style='text-align:right; margin-top:20px;'><p style='margin-bottom:2px;'>Subtotal:  <strong>₹{subtotal_co_v5:,.2f}</strong></p><p style='margin-bottom:2px;color:var(--danger-color);'>Discount:  - ₹{st.session_state.order_discount:,.2f}</p><p style='margin-bottom:2px;'>Tax:  + ₹{st.session_state.order_tax:,.2f}</p><h4 style='margin-top:5px;border-top:1px solid var(--border-color);padding-top:5px;'>Grand Total:  ₹{grand_total_co_v5:,.2f}</h4></div>", unsafe_allow_html=True)
+        st.session_state.order_notes = st.text_area("Order Notes / Payment Mode / Expected Delivery", value=st.session_state.order_notes, key="co_notes_val_key_v5", placeholder="E.g., UPI, Deliver by Tuesday")
+        
+        if st.button("✅ Submit Order", key="co_submit_order_btn_key_v5", type="primary", use_container_width=True):
+            # <<< Ensure global orders_df, order_summary_df is declared here before assignment >>>
+            global orders_df, order_summary_df 
+
+            final_store_id_co_v5 = st.session_state.order_store_select; store_name_co_v5 = "N/A"
+            if not final_store_id_co_v5: st.error("Store selection is mandatory.", icon="🏬")
             elif not st.session_state.order_line_items: st.error("Cannot submit an empty order.", icon="🛒")
             else:
-                store_info_co_v4 = stores_df[stores_df['StoreID'] == final_store_id_co_v4]
-                if not store_info_co_v4.empty: store_name_co_v4 = store_info_co_v4['StoreName'].iloc[0]
+                store_info_co_v5 = stores_df[stores_df['StoreID'] == final_store_id_co_v5]
+                if not store_info_co_v5.empty: store_name_co_v5 = store_info_co_v5['StoreName'].iloc[0]
                 else: st.error("Selected store details not found.", icon="❌"); st.stop()
-                new_order_id_co_v4 = generate_order_id(); order_date_co_submit_v4 = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
-                new_items_list_co_v4 = [{"OrderID":new_order_id_co_v4, "OrderDate":order_date_co_submit_v4, "Salesperson":salesperson_name_display_co, "StoreID":final_store_id_co_v4, "ProductVariantID":item_v4['ProductVariantID'], "SKU":item_v4['SKU'], "ProductName":item_v4['ProductName'], "Quantity":item_v4['Quantity'], "UnitOfMeasure":item_v4['UnitOfMeasure'], "UnitPrice":item_v4['UnitPrice'], "LineTotal":item_v4['LineTotal']} for item_v4 in st.session_state.order_line_items]
-                new_orders_df_co_v4 = pd.DataFrame(new_items_list_co_v4, columns=ORDERS_COLUMNS); temp_orders_df_co_v4 = pd.concat([orders_df, new_orders_df_co_v4], ignore_index=True)
-                summary_data_co_v4 = {"OrderID":new_order_id_co_v4, "OrderDate":order_date_co_submit_v4, "Salesperson":salesperson_name_display_co, "StoreID":final_store_id_co_v4, "StoreName":store_name_co_v4, "Subtotal":subtotal_co_v4, "DiscountAmount":st.session_state.order_discount, "TaxAmount":st.session_state.order_tax, "GrandTotal":grand_total_co_v4, "Notes":st.session_state.order_notes.strip(), "PaymentMode":pd.NA, "ExpectedDeliveryDate":pd.NA}
-                new_summary_df_co_v4 = pd.DataFrame([summary_data_co_v4], columns=ORDER_SUMMARY_COLUMNS); temp_summary_df_co_v4 = pd.concat([order_summary_df, new_summary_df_co_v4], ignore_index=True)
+                
+                new_order_id_co_v5 = generate_order_id(); order_date_co_submit_v5 = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
+                new_items_list_co_v5 = [{"OrderID":new_order_id_co_v5, "OrderDate":order_date_co_submit_v5, "Salesperson":salesperson_name_display_co, "StoreID":final_store_id_co_v5, "ProductVariantID":item_v5['ProductVariantID'], "SKU":item_v5['SKU'], "ProductName":item_v5['ProductName'], "Quantity":item_v5['Quantity'], "UnitOfMeasure":item_v5['UnitOfMeasure'], "UnitPrice":item_v5['UnitPrice'], "LineTotal":item_v5['LineTotal']} for item_v5 in st.session_state.order_line_items]
+                new_orders_df_co_v5 = pd.DataFrame(new_items_list_co_v5, columns=ORDERS_COLUMNS); temp_orders_df_co_v5 = pd.concat([orders_df, new_orders_df_co_v5], ignore_index=True)
+                summary_data_co_v5 = {"OrderID":new_order_id_co_v5, "OrderDate":order_date_co_submit_v5, "Salesperson":salesperson_name_display_co, "StoreID":final_store_id_co_v5, "StoreName":store_name_co_v5, "Subtotal":subtotal_co_v5, "DiscountAmount":st.session_state.order_discount, "TaxAmount":st.session_state.order_tax, "GrandTotal":grand_total_co_v5, "Notes":st.session_state.order_notes.strip(), "PaymentMode":pd.NA, "ExpectedDeliveryDate":pd.NA}
+                new_summary_df_co_v5 = pd.DataFrame([summary_data_co_v5], columns=ORDER_SUMMARY_COLUMNS); temp_summary_df_co_v5 = pd.concat([order_summary_df, new_summary_df_co_v5], ignore_index=True)
                 try:
-                    temp_orders_df_co_v4.to_csv(ORDERS_FILE, index=False); temp_summary_df_co_v4.to_csv(ORDER_SUMMARY_FILE, index=False)
-                    orders_df = temp_orders_df_co_v4; order_summary_df = temp_summary_df_co_v4
-                    st.session_state.user_message = f"Order {new_order_id_co_v4} for '{store_name_co_v4}' submitted!"; st.session_state.message_type = "success"
+                    temp_orders_df_co_v5.to_csv(ORDERS_FILE, index=False); temp_summary_df_co_v5.to_csv(ORDER_SUMMARY_FILE, index=False)
+                    orders_df = temp_orders_df_co_v5; order_summary_df = temp_summary_df_co_v5
+                    st.session_state.user_message = f"Order {new_order_id_co_v5} for '{store_name_co_v5}' submitted!"; st.session_state.message_type = "success"
                     st.session_state.order_line_items = []; st.session_state.current_product_id_symplanta = None; st.session_state.current_quantity_order = 1; st.session_state.order_store_select = None; st.session_state.order_notes = ""; st.session_state.order_discount = 0.0; st.session_state.order_tax = 0.0
                     st.rerun()
-                except Exception as e_co_submit_v4: st.session_state.user_message = f"Error submitting order: {e_co_submit_v4}"; st.session_state.message_type = "error"; st.rerun()
-    else: st.markdown("<br>", unsafe_allow_html=True); st.info("Add products to the order to see summary and submit.", icon="💡")
-    st.markdown("</div>", unsafe_allow_html=True)
+                except Exception as e_co_submit_v5: st.session_state.user_message = f"Error submitting order: {e_co_submit_v5}"; st.session_state.message_type = "error"; st.rerun()
+    else: 
+        st.markdown("<br>", unsafe_allow_html=True); st.info("Add products to the order to see summary and submit.", icon="💡")
+    st.markdown("</div>", unsafe_allow_html=True) # Close card for Create Order
 
 elif nav == "Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
