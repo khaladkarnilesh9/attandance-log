@@ -1,8 +1,7 @@
 # Placeholder for the corrected Streamlit app.py code
 # Add your full working application logic here...
 # import streamlit as st # Commented out the initial one, as it's re-imported later.
-# st.title("Attendance Log System - Placeholder") # Removed this initial title
-
+# st.title("Attendance Log System - Placeholder") # Removed this initial titl
 
 import streamlit as st
 import pandas as pd
@@ -83,6 +82,7 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
 
 html_css = """
 html_css = """
+html_css = """
 <style>
     /* Import Google Fonts (Roboto for text) */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
@@ -93,10 +93,10 @@ html_css = """
     :root {
         --primary-color: #4285F4;  /* Google blue */
         --secondary-color: #34A853;  /* Google green */
-        --accent-color: #6d8ec5;  /* Google red */
+        --accent-color: #EA4335;  /* Google red */
         --yellow-color: #FBBC05;  /* Google yellow */
         --success-color: #34A853;
-        --danger-color: #6d8ec5;
+        --danger-color: #EA4335;
         --warning-color: #FBBC05;
         --info-color: #4285F4;
         --body-bg-color: #f8f9fa; /* Light grey, common in Google UIs */
@@ -325,10 +325,11 @@ html_css = """
         align-items: center;
     }
 
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p { /* Selected radio label */
+    /* This rule was for selected label text, handled by aggressive override later */
+    /* [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
         color: var(--primary-color) !important;
         font-weight: 500;
-    }
+    } */
 
     [data-testid="stSidebar"] .stRadio > label { /* Radio button container */
         padding: 8px 12px;
@@ -343,9 +344,10 @@ html_css = """
         background-color: rgba(66,133,244,0.08); /* Light blue on hover */
     }
 
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label { /* Selected radio container */
-        background-color: rgba(66,133,244,0.1); /* Slightly darker blue for selected */
-    }
+    /* This rule for selected background is handled by aggressive override later */
+    /* [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label { 
+        background-color: rgba(66,133,244,0.1); 
+    } */
 
     .welcome-text { /* User welcome text in sidebar */
         font-size: 1rem; /* 16px */
@@ -466,12 +468,13 @@ html_css = """
         border-color: var(--border-color); /* Keep border consistent on hover */
     }
 
-    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label { /* Selected radio */
-        background-color: rgba(66,133,244,0.1) !important; /* Light blue selected background */
+    /* This rule for selected main content radio is handled by aggressive override later */
+    /* div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
+        background-color: rgba(66,133,244,0.1) !important; 
         color: var(--primary-color) !important;
         border-color: var(--primary-color) !important;
-        font-weight: 500; /* Bolder text for selected */
-    }
+        font-weight: 500;
+    } */
 
     .employee-section-header { /* Header for sections like "Records for [Employee Name]" */
         color: var(--text-color);
@@ -519,7 +522,6 @@ html_css = """
         font-weight: 500;
         color: var(--text-color);
     }
-    /* No explicit style for delta, it will inherit text color or be set by Streamlit based on positive/negative */
 
     /* Custom Notification Boxes (Success, Error, Warning, Info) */
     .custom-notification {
@@ -650,13 +652,9 @@ html_css = """
         font-weight: 500;
         box-shadow: none !important;
     }
-    /* The content area of st.tabs (stTabPanel) is styled by Streamlit.
-       You might need to target [data-testid="stTabPanel"] for borders if needed. */
-
 
     /* Google-style date picker icon */
     .stDateInput input {
-        /* Add a calendar icon using SVG background */
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='%235f6368'%3E%3Cpath d='M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: right 12px center;
@@ -683,15 +681,75 @@ html_css = """
         font-size: 20px;
     }
     
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined,
+    /* This rule for selected sidebar icon color is handled by aggressive override later */
+    /* [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined,
     [data-testid="stSidebar"] .stRadio > label:hover .material-symbols-outlined {
-        color: var(--primary-color); /* Icon color for selected or hovered radio item */
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20; /* Slightly bolder for active/hover */
+        color: var(--primary-color); 
+    } */
+
+    /* === AGGRESSIVE OVERRIDE FOR SELECTED RADIO BUTTON COLOR === */
+    /* Targets the hidden actual radio input when it's checked,
+       and then styles its sibling label or specific parts of it. */
+
+    /* For the main content area radio buttons (often wrapped in a div with role="radiogroup") */
+    div[role="radiogroup"] div[data-baseweb="radio"] input[type="radio"]:checked + label,
+    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
+        background-color: rgba(66, 133, 244, 0.15) !important; /* Light primary blue background */
+        color: var(--primary-color) !important;             /* Primary blue text */
+        border-color: var(--primary-color) !important;        /* Primary blue border */
+        font-weight: 500 !important; /* Ensure this is also applied */
+    }
+
+    /* Styling the actual "dot" part of the radio button.
+       Streamlit often uses a structure like: label > div > input + div(for mark)
+       or label > input + div(for mark). Inspect to be sure. */
+    div[role="radiogroup"] input[type="radio"]:checked + div[data-testid="stRadioMark"],
+    div[role="radiogroup"] input[type="radio"]:checked + label div[data-testid="stRadioMark"] { /* common pattern */
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+        box-shadow: inset 0 0 0 4px var(--card-bg-color) !important; /* Creates inner circle */
+    }
+    /* For older Streamlit versions or different structures, might be a pseudo-element */
+    div[role="radiogroup"] input[type="radio"]:checked + label::before {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+    }
+
+
+    /* For the sidebar radio buttons */
+    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label,
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {
+        background-color: rgba(66, 133, 244, 0.15) !important; /* Light primary blue background */
+    }
+
+    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label > div > p,
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
+        color: var(--primary-color) !important;
+        font-weight: 500 !important;
+    }
+
+    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label .material-symbols-outlined,
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined {
+        color: var(--primary-color) !important;
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important;
+    }
+
+    /* Styling the actual "dot" for sidebar radio buttons */
+    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + div[data-testid="stRadioMark"],
+    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label div[data-testid="stRadioMark"] {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+        box-shadow: inset 0 0 0 4px #ffffff !important; /* Inner circle for sidebar (assuming white bg) */
+    }
+    /* For older Streamlit versions or different structures, might be a pseudo-element */
+    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label::before {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
     }
 
 </style>
 """
-"""
+
 st.markdown(html_css, unsafe_allow_html=True)
 
 # --- Credentials & User Info ---
