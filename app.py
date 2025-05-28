@@ -306,7 +306,7 @@ with st.sidebar:
         "Allowance",
         "Goal Tracker",
         "Payment Collection Tracker",
-        "View Logs"
+        "View Logs",
         "Create Order"
     ]
 
