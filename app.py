@@ -82,7 +82,6 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     return fig
 
 html_css = """
-html_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
     :root {
@@ -647,6 +646,7 @@ html_css = """
         padding-right: 36px !important;
     }
 </style>
+"""
 st.markdown(html_css, unsafe_allow_html=True)
 
 # --- Credentials & User Info ---
