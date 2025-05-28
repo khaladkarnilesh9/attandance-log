@@ -740,7 +740,6 @@ elif nav == "View Logs":
         else: st.warning("No payment collection goals records found for you")
     st.markdown('</div>', unsafe_allow_html=True)
 
-
 elif nav == "Create Order":
     st.title("Create New Order")
 
@@ -749,19 +748,21 @@ elif nav == "Create Order":
     products_df = pd.read_csv("symplanta_products_with_images.csv")
 
     # Store selector
-    store_name = st.selectbox("Select Store", stores_df["StoreName"].unique())
+    store_name = st.selectbox("Select Store", sorted(stores_df["StoreName"].dropna().astype(str).unique()))
     selected_store = stores_df[stores_df["StoreName"] == store_name].iloc[0]
 
     # Product selector
     product_name = st.selectbox(
-    "Select Product",
-    sorted(products_df["Product Name"].dropna().astype(str).unique())
-)
+        "Select Product",
+        sorted(products_df["Product Name"].dropna().astype(str).unique())
+    )
 
-size = st.selectbox(
-    "Select Size",
-    sorted(product_sizes["Size"].dropna().astype(str).unique())
-)
+    product_sizes = products_df[products_df["Product Name"] == product_name]
+
+    size = st.selectbox(
+        "Select Size",
+        sorted(product_sizes["Size"].dropna().astype(str).unique())
+    )
 
     quantity = st.number_input("Enter Quantity", min_value=1, value=1)
 
@@ -789,4 +790,3 @@ size = st.selectbox(
         st.dataframe(order_df, use_container_width=True)
 
         st.markdown(f"**Grand Total: ₹{order_df['Total'].sum():,.2f}**")
-
