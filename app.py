@@ -763,7 +763,6 @@ size = st.selectbox(
     sorted(product_sizes["Size"].dropna().astype(str).unique())
 )
 
-    size = st.selectbox("Select Size", product_sizes["Size"].unique())
     quantity = st.number_input("Enter Quantity", min_value=1, value=1)
 
     if st.button("Add to Order"):
