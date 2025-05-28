@@ -307,6 +307,7 @@ with st.sidebar:
         "Goal Tracker",
         "Payment Collection Tracker",
         "View Logs"
+        "Create Order"
     ]
 
     nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
@@ -738,3 +739,50 @@ elif nav == "View Logs":
         if not my_payment_goals_log.empty: st.dataframe(my_payment_goals_log.sort_values(by="MonthYear", ascending=False).reset_index(drop=True), use_container_width=True)
         else: st.warning("No payment collection goals records found for you")
     st.markdown('</div>', unsafe_allow_html=True)
+
+
+elif nav == "Create Order":
+    import pandas as pd
+
+    st.title("🛒 Create New Order")
+
+    # Load store and product data
+    stores_df = pd.read_csv("agri_stores.csv")
+    products_df = pd.read_csv("symplanta_products_with_images.csv")
+
+    # Store selector
+    store_name = st.selectbox("Select Store", stores_df["StoreName"].unique())
+    selected_store = stores_df[stores_df["StoreName"] == store_name].iloc[0]
+
+    # Product selector
+    product_name = st.selectbox("Select Product", products_df["Product Name"].unique())
+    product_sizes = products_df[products_df["Product Name"] == product_name]
+
+    size = st.selectbox("Select Size", product_sizes["Size"].unique())
+    quantity = st.number_input("Enter Quantity", min_value=1, value=1)
+
+    if st.button("Add to Order"):
+        if "order_items" not in st.session_state:
+            st.session_state["order_items"] = []
+
+        selected_product = product_sizes[product_sizes["Size"] == size].iloc[0]
+        item = {
+            "Store": store_name,
+            "Product": product_name,
+            "Size": size,
+            "Quantity": quantity,
+            "Unit Price": selected_product["Price"],
+            "Total": selected_product["Price"] * quantity
+        }
+        st.session_state["order_items"].append(item)
+        st.success("Item added to order!")
+
+    # Show current order items
+    if "order_items" in st.session_state and st.session_state["order_items"]:
+        st.subheader("🧾 Order Summary")
+        order_df = pd.DataFrame(st.session_state["order_items"])
+        order_df["Total"] = order_df["Total"].round(2)
+        st.dataframe(order_df, use_container_width=True)
+
+        st.markdown(f"**Grand Total: ₹{order_df['Total'].sum():,.2f}**")
+
