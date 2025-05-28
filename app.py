@@ -349,34 +349,121 @@ if "user_message" in st.session_state and st.session_state.user_message:
     message_placeholder_main.markdown(f"<div class='custom-notification {message_type_main}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
     st.session_state.user_message = None; st.session_state.message_type = None
 
+# This code goes inside your app.py
+# Ensure default_session_state, USERS, current_user_auth, PILLOW_INSTALLED, os.path.exists are defined before this block.
+
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user_auth['username']}!</div>", unsafe_allow_html=True)
-    nav_options_base_icons = { "Dashboard": "<span class='material-symbols-outlined'>dashboard</span> Dashboard", "Attendance": "<span class='material-symbols-outlined'>event_available</span> Attendance", "Upload Activity": "<span class='material-symbols-outlined'>cloud_upload</span> Upload Activity", "Allowance": "<span class='material-symbols-outlined'>receipt_long</span> Allowance Claim",}
-    nav_options_sales_person_icons = { "Create Order": "<span class='material-symbols-outlined'>add_shopping_cart</span> Create Order",}
-    nav_options_goals_icons = { "Sales Goals": "<span class='material-symbols-outlined'>flag</span> Sales Goals", "Payment Collection": "<span class='material-symbols-outlined'>payments</span> Payment Collection",}
-    nav_options_admin_manage_icons = { "Manage Records": "<span class='material-symbols-outlined'>admin_panel_settings</span> Manage Records",}
-    nav_options_employee_logs_icons = { "My Records": "<span class='material-symbols-outlined'>article</span> My Records",}
-    nav_options_with_icons = nav_options_base_icons.copy()
-    if current_user_auth['role'] == 'sales_person': nav_options_with_icons.update(nav_options_sales_person_icons); nav_options_with_icons.update(nav_options_goals_icons); nav_options_with_icons.update(nav_options_employee_logs_icons)
-    elif current_user_auth['role'] == 'admin': nav_options_with_icons.update(nav_options_goals_icons); nav_options_with_icons.update(nav_options_admin_manage_icons)
-    elif current_user_auth['role'] == 'employee': nav_options_with_icons.update(nav_options_employee_logs_icons)
-    option_labels = list(nav_options_with_icons.values()); option_keys = list(nav_options_with_icons.keys())
-    if st.session_state.selected_nav_label is None or st.session_state.selected_nav_label not in option_labels: st.session_state.selected_nav_label = option_labels[0] if option_labels else None
-    st.markdown("<h5 style='margin-top:0; margin-bottom:10px; font-weight:500; color: var(--text-color); padding-left:10px;'>Navigation</h5>", unsafe_allow_html=True)
-    selected_nav_html_label = st.radio( "MainNavigationRadioSidebarKeyV4", options=option_labels, index=option_labels.index(st.session_state.selected_nav_label) if st.session_state.selected_nav_label in option_labels else 0, label_visibility="collapsed", key="sidebar_nav_radio_final_key_v4")
-    st.session_state.selected_nav_label = selected_nav_html_label; nav = ""
-    for key_nav_map, html_label_nav_map in nav_options_with_icons.items():
-        if html_label_nav_map == selected_nav_html_label: nav = key_nav_map; break
-    user_sidebar_info = USERS.get(current_user_auth["username"], {});
-    if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]): st.image(user_sidebar_info["profile_photo"], width=100)
-    elif PILLOW_INSTALLED: st.caption("Profile photo missing.")
-    st.markdown( f"<p style='text-align:center; font-size:0.9em; color: var(--text-muted-color);'>{user_sidebar_info.get('position', 'N/A')}</p>", unsafe_allow_html=True)
+
+    # Define options with NEW professional Material Symbols icons
+    nav_options_base_icons = {
+        "Dashboard": "<span class='material-symbols-outlined'>dashboard</span> Dashboard",
+        "Attendance": "<span class='material-symbols-outlined'>event_available</span> Attendance",
+        "Upload Activity": "<span class='material-symbols-outlined'>cloud_upload</span> Upload Activity",
+        "Allowance": "<span class='material-symbols-outlined'>receipt_long</span> Allowance Claim",
+    }
+    nav_options_sales_person_icons = {
+        "Create Order": "<span class='material-symbols-outlined'>add_shopping_cart</span> Create Order",
+    }
+    nav_options_goals_icons = {
+        "Sales Goals": "<span class='material-symbols-outlined'>flag</span> Sales Goals",
+        "Payment Collection": "<span class='material-symbols-outlined'>payments</span> Payment Collection",
+    }
+    nav_options_admin_manage_icons = {
+        "Manage Records": "<span class='material-symbols-outlined'>admin_panel_settings</span> Manage Records",
+    }
+    nav_options_employee_logs_icons = {
+         "My Records": "<span class='material-symbols-outlined'>article</span> My Records",
+    }
+
+    # --- CORRECTED SECTION FOR COMBINING NAV OPTIONS ---
+    nav_options_with_icons = {} # Start with an empty dictionary
+
+    # Add options based on role in a specific order to ensure all desired items are included
+    # and no undesired items from a broader base accidentally persist.
+
+    if current_user_auth['role'] == 'admin':
+        nav_options_with_icons.update(nav_options_base_icons)
+        nav_options_with_icons.update(nav_options_goals_icons)
+        nav_options_with_icons.update(nav_options_admin_manage_icons)
+    elif current_user_auth['role'] == 'sales_person':
+        nav_options_with_icons.update(nav_options_base_icons)
+        nav_options_with_icons.update(nav_options_sales_person_icons) # <<< Ensures "Create Order" is added
+        nav_options_with_icons.update(nav_options_goals_icons)
+        nav_options_with_icons.update(nav_options_employee_logs_icons)
+    elif current_user_auth['role'] == 'employee': # General employee
+        nav_options_with_icons.update(nav_options_base_icons)
+        nav_options_with_icons.update(nav_options_employee_logs_icons)
+        # If general employees also need to see goals, uncomment the next line:
+        # nav_options_with_icons.update(nav_options_goals_icons)
+    else: # Fallback for any other unforeseen roles (though ideally all roles are handled)
+        nav_options_with_icons.update(nav_options_base_icons) # Show at least basic options
+
+
+    option_labels = list(nav_options_with_icons.values())
+    # option_keys = list(nav_options_with_icons.keys()) # Not strictly needed if mapping back via label
+
+    # Handle case where no options might be available (e.g., misconfigured role)
+    if not option_labels:
+        st.warning("No navigation options available for your role. Please contact an administrator.")
+        # Potentially st.stop() here if you don't want the app to proceed further for such users
+        # For now, we'll let it try to proceed, which might result in an error if nav is empty.
+        nav = None # Explicitly set nav to None if no options
+    else:
+        # Set default selected_nav_label if None or not in current options for the role
+        if st.session_state.get("selected_nav_label") is None or st.session_state.selected_nav_label not in option_labels:
+            st.session_state.selected_nav_label = option_labels[0]
+
+        st.markdown("<h5 style='margin-top:0; margin-bottom:10px; font-weight:500; color: var(--text-color); padding-left:10px;'>Navigation</h5>", unsafe_allow_html=True)
+        
+        # Use a consistent and unique key for the radio widget
+        selected_nav_html_label = st.radio(
+            "MainNavigationRadioSidebarKey_Corrected", # Descriptive and unique key
+            options=option_labels,
+            index=option_labels.index(st.session_state.selected_nav_label) if st.session_state.selected_nav_label in option_labels else 0,
+            label_visibility="collapsed",
+            key="sidebar_nav_radio_final_key_corrected_v5" # Ensure this key is unique in your app
+        )
+        st.session_state.selected_nav_label = selected_nav_html_label
+
+        nav = "" # This will hold the clean key for navigation logic
+        for key_map, html_label_map in nav_options_with_icons.items():
+            if html_label_map == selected_nav_html_label:
+                nav = key_map
+                break
+    
+    # --- Rest of your sidebar code ---
+    user_sidebar_info = USERS.get(current_user_auth["username"], {})
+    if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
+        st.image(user_sidebar_info["profile_photo"], width=100)
+    elif PILLOW_INSTALLED: # Only show caption if Pillow is installed but image is missing
+        st.caption("Profile photo missing.")
+    # No warning here if Pillow is not installed, as it's handled on login page
+
+    st.markdown(
+        f"<p style='text-align:center; font-size:0.9em; color: var(--text-muted-color);'>{user_sidebar_info.get('position', 'N/A')}</p>",
+        unsafe_allow_html=True
+    )
     st.markdown("---")
-    if st.button("🔒 Logout", key="logout_button_sidebar_final_key_v4", use_container_width=True):
-        for key_to_reset_logout in default_session_state:
-            if key_to_reset_logout == "auth": st.session_state[key_to_reset_logout] = {"logged_in": False, "username": None, "role": None}
-            elif key_to_reset_logout in st.session_state: st.session_state[key_to_reset_logout] = default_session_state[key_to_reset_logout]
-        st.session_state.user_message = "Logged out successfully."; st.session_state.message_type = "info"; st.rerun()
+    if st.button("🔒 Logout", key="logout_button_sidebar_final_key_corrected_v5", use_container_width=True): # Unique key
+        # Make sure default_session_state is defined globally in your app
+        if 'default_session_state' in globals():
+            for key_to_reset_logout in default_session_state:
+                if key_to_reset_logout == "auth":
+                     st.session_state[key_to_reset_logout] = {"logged_in": False, "username": None, "role": None}
+                elif key_to_reset_logout in st.session_state: # Only reset if key exists
+                    st.session_state[key_to_reset_logout] = default_session_state[key_to_reset_logout]
+        else: # Fallback if default_session_state is not globally defined (should be)
+            st.session_state.auth = {"logged_in": False, "username": None, "role": None}
+            # Manually list other keys to reset if needed
+            for key_to_clear in ["order_line_items", "selected_nav_label", "current_product_id_symplanta"]:
+                if key_to_clear in st.session_state:
+                    del st.session_state[key_to_clear]
+
+
+        st.session_state.user_message = "Logged out successfully."
+        st.session_state.message_type = "info"
+        st.rerun()
 
 # --- Helper display functions ---
 def display_activity_logs_section(df_logs_act_func, user_header_name_act_func):
