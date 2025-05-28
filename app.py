@@ -753,8 +753,15 @@ elif nav == "Create Order":
     selected_store = stores_df[stores_df["StoreName"] == store_name].iloc[0]
 
     # Product selector
-    product_name = st.selectbox("Select Product", products_df["Product Name"].unique())
-    product_sizes = products_df[products_df["Product Name"] == product_name]
+    product_name = st.selectbox(
+    "Select Product",
+    sorted(products_df["Product Name"].dropna().astype(str).unique())
+)
+
+size = st.selectbox(
+    "Select Size",
+    sorted(product_sizes["Size"].dropna().astype(str).unique())
+)
 
     size = st.selectbox("Select Size", product_sizes["Size"].unique())
     quantity = st.number_input("Enter Quantity", min_value=1, value=1)
