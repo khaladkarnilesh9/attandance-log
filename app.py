@@ -744,7 +744,7 @@ elif nav == "View Logs":
 elif nav == "Create Order":
     import pandas as pd
 
-    st.title("🛒 Create New Order")
+    st.title("Create New Order")
 
     # Load store and product data
     stores_df = pd.read_csv("agri_stores.csv")
