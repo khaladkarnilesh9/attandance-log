@@ -298,14 +298,14 @@ if "user_message" in st.session_state and st.session_state.user_message:
 
 
 with st.sidebar:
-    st.markdown(f"<div class='welcome-text'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
 
     nav_options = [
         "Attendance",
         "Upload Activity Photo",
         "Allowance",
         "Goal Tracker",
-        "Payment Collection Tracker",
+        "Payment Collection",
         "View Logs"
     ]
 
