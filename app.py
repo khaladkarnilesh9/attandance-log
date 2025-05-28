@@ -552,22 +552,43 @@ elif nav == "Create Order" and current_user_auth['role'] == 'sales_person':
             selected_prod_variant_id_co = st.selectbox("Select Product (Name & Size) *", options=options_prod_sb_co_v4, format_func=lambda x: "Choose a product..." if x is None else product_variant_options_co.get(x, "Invalid Product"), key="co_prod_variant_select_actual_key_v4", index=current_prod_idx_sb_co_v4)
             st.session_state.current_product_id_symplanta = selected_prod_variant_id_co # Store ProductVariantID
         with col_qty_co: st.session_state.current_quantity_order = st.number_input("Quantity *", min_value=1, value=st.session_state.current_quantity_order, step=1, key="co_qty_input_key_v4")
-        def add_item_to_order_cb_co_v4():
-                global orders_df, order_summary_df
+                def add_item_to_order_cb_co_v4(): # Callback function definition
+            # All lines below this 'def' must be indented
             if st.session_state.current_product_id_symplanta and st.session_state.current_quantity_order > 0:
                 prod_info_co_v4 = products_df[products_df['ProductVariantID'] == st.session_state.current_product_id_symplanta]
-                if prod_info_co_v4.empty: st.error("Selected product not found.", icon="❌"); return
+                if prod_info_co_v4.empty: 
+                    st.error("Selected product not found. Please re-select from the list.", icon="❌") # Added more info
+                    return 
                 prod_info_co_v4 = prod_info_co_v4.iloc[0]
+                
                 existing_item_idx_co_v4 = next((i for i, item in enumerate(st.session_state.order_line_items) if item['ProductVariantID'] == st.session_state.current_product_id_symplanta), -1)
+                
                 if existing_item_idx_co_v4 != -1:
+                    # Update existing item
                     st.session_state.order_line_items[existing_item_idx_co_v4]['Quantity'] += st.session_state.current_quantity_order
                     st.session_state.order_line_items[existing_item_idx_co_v4]['LineTotal'] = st.session_state.order_line_items[existing_item_idx_co_v4]['Quantity'] * st.session_state.order_line_items[existing_item_idx_co_v4]['UnitPrice']
                     st.toast(f"Updated quantity for {prod_info_co_v4['ProductName']} ({prod_info_co_v4['UnitOfMeasure']}).", icon="🔄")
                 else:
-                    st.session_state.order_line_items.append({"ProductVariantID": prod_info_co_v4['ProductVariantID'], "SKU": prod_info_co_v4['SKU'], "ProductName": prod_info_co_v4['ProductName'], "Quantity": st.session_state.current_quantity_order, "UnitOfMeasure": prod_info_co_v4['UnitOfMeasure'], "UnitPrice": float(prod_info_co_v4['UnitPrice']), "LineTotal": st.session_state.current_quantity_order * float(prod_info_co_v4['UnitPrice']), "ImageURL": prod_info_co_v4['ImageURL']})
+                    # Add new item
+                    st.session_state.order_line_items.append({
+                        "ProductVariantID": prod_info_co_v4['ProductVariantID'], 
+                        "SKU": prod_info_co_v4['SKU'], 
+                        "ProductName": prod_info_co_v4['ProductName'], 
+                        "Quantity": st.session_state.current_quantity_order, 
+                        "UnitOfMeasure": prod_info_co_v4['UnitOfMeasure'], 
+                        "UnitPrice": float(prod_info_co_v4['UnitPrice']), 
+                        "LineTotal": st.session_state.current_quantity_order * float(prod_info_co_v4['UnitPrice']), 
+                        "ImageURL": prod_info_co_v4['ImageURL']
+                    })
                     st.toast(f"Added {prod_info_co_v4['ProductName']} ({prod_info_co_v4['UnitOfMeasure']}) to order.", icon="✅")
+                
+                # Reset quantity for next input
                 st.session_state.current_quantity_order = 1
-            else: st.warning("Please select a product and specify quantity > 0.", icon="⚠️")
+                # Optionally, reset product selection if desired after adding
+                # st.session_state.current_product_id_symplanta = None 
+            else: 
+                st.warning("Please select a product and specify quantity > 0.", icon="⚠️")
+                
         with col_add_btn_co: st.markdown("<div style='margin-top:28px;'></div>", unsafe_allow_html=True); st.button("➕ Add to Order", on_click=add_item_to_order_cb_co_v4, key="co_add_item_btn_key_v4")
     if st.session_state.order_line_items:
         st.markdown("---"); st.markdown("<h4><span class='material-symbols-outlined'>receipt_long</span> Current Order Items</h4>", unsafe_allow_html=True)
