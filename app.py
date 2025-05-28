@@ -1,7 +1,8 @@
 # Placeholder for the corrected Streamlit app.py code
 # Add your full working application logic here...
 # import streamlit as st # Commented out the initial one, as it's re-imported later.
-# st.title("Attendance Log System - Placeholder") # Removed this initial titl
+# st.title("Attendance Log System - Placeholder") # Removed this initial title
+
 
 import streamlit as st
 import pandas as pd
@@ -82,672 +83,82 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
 
 html_css = """
 <style>
-    /* Import Google Fonts (Roboto for text) */
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-    
-    /* Import Google Material Symbols Outlined (for icons) */
-    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     :root {
-        --primary-color: #4285F4;  /* Google blue */
-        --secondary-color: #34A853;  /* Google green */
-        --accent-color: #EA4335;  /* Google red */
-        --yellow-color: #FBBC05;  /* Google yellow */
-        --success-color: #34A853;
-        --danger-color: #EA4335;
-        --warning-color: #FBBC05;
-        --info-color: #4285F4;
-        --body-bg-color: #f8f9fa; /* Light grey, common in Google UIs */
-        --card-bg-color: #ffffff;
-        --text-color: #202124; /* Google's primary text color */
-        --text-muted-color: #5f6368; /* Google's secondary text color */
-        --border-color: #dadce0; /* Google's common border color */
-        --input-border-color: #dadce0;
-        --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        --border-radius: 8px; /* Slightly more rounded like Google's newer designs */
-        --border-radius-lg: 12px;
-        --box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* Google-like shadow */
-        --box-shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.1);
-    }
-
-    body {
-        font-family: var(--font-family);
-        background-color: var(--body-bg-color);
-        color: var(--text-color);
-        line-height: 1.5;
-        font-weight: 400;
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        color: var(--text-color);
-        font-weight: 500; /* Slightly bolder headings */
-        letter-spacing: -0.25px; /* Common in Google typography for larger text */
-    }
-
-    /* Main page title (Streamlit's default h1) */
-    .main .block-container > div:first-child > div:first-child > div:first-child > h1 {
-        text-align: left; /* Default is left, but good to be explicit */
-        font-size: 1.75rem; /* Approx 28px */
-        font-weight: 500;
-        padding-bottom: 16px;
-        margin-bottom: 24px;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .card {
-        background-color: var(--card-bg-color);
-        padding: 24px;
-        border-radius: var(--border-radius);
-        box-shadow: var(--box-shadow-sm);
-        margin-bottom: 24px;
-        border: 1px solid var(--border-color);
-    }
-
-    .card h3 { /* Section titles within cards */
-        margin-top: 0;
-        color: var(--text-color);
-        padding-bottom: 12px;
-        margin-bottom: 20px;
-        font-size: 1.25rem; /* Approx 20px */
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-    }
-
-    .card h3:before { /* Decorative accent bar for card h3 */
-        content: "";
-        display: inline-block;
-        width: 4px;
-        height: 20px; /* Adjusted to match typical line height of h3 */
-        background-color: var(--primary-color);
-        margin-right: 12px;
-        border-radius: 2px;
-    }
-
-    .card h4 {
-        color: var(--text-color);
-        margin-top: 24px;
-        margin-bottom: 16px;
-        font-size: 1.1rem; /* Approx 17-18px */
-        font-weight: 500;
-    }
-
-    .card h5 {
-        font-size: 1rem; /* 16px */
-        color: var(--text-color);
-        margin-top: 20px;
-        margin-bottom: 12px;
-        font-weight: 500;
-    }
-
-    .card h6 { /* Sub-labels or small titles */
-        font-size: 0.875rem; /* 14px */
-        color: var(--text-muted-color);
-        margin-top: 0; /* Remove default top margin if it's the first element */
-        margin-bottom: 12px;
-        font-weight: 400; /* Lighter for sub-labels */
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .form-field-label h6 { /* Specific styling for form field labels if wrapped in h6 */
-        font-size: 0.875rem;
-        color: var(--text-muted-color);
-        margin-top: 16px;
-        margin-bottom: 8px;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .login-container {
-        max-width: 480px;
-        margin: 60px auto;
-        border-top: 4px solid var(--primary-color); /* Accent top border */
-    }
-
-    .login-container .stButton button {
-        width: 100%;
-        background-color: var(--primary-color) !important;
-        color: white !important;
-        font-size: 1rem; /* 16px */
-        padding: 12px 20px;
-        border-radius: var(--border-radius);
-        border: none !important;
-        font-weight: 500 !important;
-        box-shadow: none !important; /* Flat button style */
-        transition: background-color 0.2s ease;
-    }
-
-    .login-container .stButton button:hover {
-        background-color: #3367d6 !important; /* Darker Google blue */
-        color: white !important;
-        box-shadow: none !important;
-    }
-
-    /* General Streamlit buttons (not in login) */
-    .stButton:not(.login-container .stButton) button {
-        background-color: var(--primary-color);
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: var(--border-radius);
-        font-size: 0.875rem; /* 14px */
-        font-weight: 500;
-        transition: background-color 0.2s ease;
-        box-shadow: none; /* Flatter buttons */
-        cursor: pointer;
-    }
-
-    .stButton:not(.login-container .stButton) button:hover {
-        background-color: #3367d6; /* Darker Google blue */
-        box-shadow: none;
-    }
-
-    .stButton button[id*="logout_button_sidebar"] { /* Specific for sidebar logout */
-        background-color: var(--danger-color) !important;
-        border: none !important;
-        color: white !important;
-        font-weight: 500 !important;
-    }
-
-    .stButton button[id*="logout_button_sidebar"]:hover {
-        background-color: #d33426 !important; /* Darker Google red */
-    }
-
-    /* Input Fields: Text, Number, TextArea, Date, Time, Selectbox */
-    .stTextInput input,
-    .stNumberInput input,
-    .stTextArea textarea,
-    .stDateInput input,
-    .stTimeInput input,
-    .stSelectbox div[data-baseweb="select"] > div { /* Targets the inner div of stSelectbox */
-        border-radius: var(--border-radius) !important;
-        border: 1px solid var(--input-border-color) !important;
-        padding: 10px 12px !important;
-        font-size: 0.875rem !important; /* 14px */
-        color: var(--text-color) !important;
-        background-color: var(--card-bg-color) !important;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .stTextInput input::placeholder,
-    .stNumberInput input::placeholder,
-    .stTextArea textarea::placeholder {
-        color: var(--text-muted-color) !important;
-        opacity: 1; /* Ensure placeholder is fully visible */
-    }
-
-    .stTextArea textarea {
-        min-height: 120px; /* Ample space for text areas */
-    }
-
-    /* Focus styles for inputs */
-    .stTextInput input:focus,
-    .stNumberInput input:focus,
-    .stTextArea textarea:focus,
-    .stDateInput input:focus,
-    .stTimeInput input:focus,
-    .stSelectbox div[data-baseweb="select"] > div:focus-within {
-        border-color: var(--primary-color) !important;
-        box-shadow: 0 0 0 2px rgba(66,133,244,0.15) !important; /* Subtle focus ring, Google style */
-    }
-
-    /* Sidebar Styling */
-    [data-testid="stSidebar"] {
-        background-color: #ffffff; /* Sidebar background, often white in Google UIs */
-        padding: 16px !important; /* Consistent padding */
-        box-shadow: 1px 0 2px 0 rgba(60,64,67,0.1), 1px 0 3px 1px rgba(60,64,67,0.1); /* Subtle right shadow */
-        border-right: 1px solid var(--border-color);
-    }
-
-    [data-testid="stSidebar"] .sidebar-content {
-        padding-top: 8px; /* Small top padding inside content area */
-    }
-
-    [data-testid="stSidebar"] p,
-    [data-testid="stSidebar"] h1,
-    [data-testid="stSidebar"] h2,
-    [data-testid="stSidebar"] h3,
-    [data-testid="stSidebar"] div:not([data-testid="stRadio"]) { /* General text in sidebar */
-        color: var(--text-color) !important;
-    }
-
-    /* Sidebar Radio Button (Navigation) Specifics */
-    [data-testid="stSidebar"] .stRadio > label > div > p { /* Radio button labels in sidebar */
-        font-size: 0.875rem !important; /* 14px */
-        color: var(--text-color) !important;
-        padding: 0;
-        margin: 0;
-        display: flex; /* To align icon and text if icon is part of this <p> */
-        align-items: center;
-    }
-
-    /* This rule was for selected label text, handled by aggressive override later */
-    /* [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
-        color: var(--primary-color) !important;
-        font-weight: 500;
-    } */
-
-    [data-testid="stSidebar"] .stRadio > label { /* Radio button container */
-        padding: 8px 12px;
-        border-radius: var(--border-radius);
-        margin-bottom: 4px;
-        transition: background-color 0.2s ease;
-        display: flex; /* For icon alignment if icon is direct child */
-        align-items: center;
-    }
-
-    [data-testid="stSidebar"] .stRadio > label:hover {
-        background-color: rgba(66,133,244,0.08); /* Light blue on hover */
-    }
-
-    /* This rule for selected background is handled by aggressive override later */
-    /* [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label { 
-        background-color: rgba(66,133,244,0.1); 
-    } */
-
-    .welcome-text { /* User welcome text in sidebar */
-        font-size: 1rem; /* 16px */
-        font-weight: 500;
-        margin-bottom: 20px;
-        text-align: center;
-        color: var(--text-color) !important;
-        padding-bottom: 16px;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    [data-testid="stSidebar"] [data-testid="stImage"] > img { /* Profile image in sidebar */
-        border-radius: 50%; /* Circular image */
-        border: 2px solid var(--border-color);
-        margin: 0 auto 12px auto;
-        display: block;
-    }
-
-    /* DataFrame Styling */
-    .stDataFrame {
-        width: 100%;
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius);
-        overflow: hidden; /* Ensures border-radius clips content */
-        box-shadow: var(--box-shadow-sm);
-        margin-bottom: 20px;
-    }
-
-    .stDataFrame table {
-        width: 100%;
-        border-collapse: collapse; /* Clean table lines */
-    }
-
-    .stDataFrame table thead th {
-        background-color: #f8f9fa; /* Light grey header, common in Google tables */
-        color: var(--text-muted-color);
-        font-weight: 500;
-        text-align: left;
-        padding: 12px 16px;
-        border-bottom: 1px solid var(--border-color);
-        font-size: 0.75rem; /* Smaller header text (12px) */
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .stDataFrame table tbody td {
-        padding: 12px 16px;
-        border-bottom: 1px solid var(--border-color); /* Lighter lines between rows */
-        vertical-align: middle;
-        color: var(--text-color);
-        font-size: 0.875rem; /* 14px */
-    }
-
-    .stDataFrame table tbody tr:last-child td {
-        border-bottom: none; /* Remove bottom border from last row */
-    }
-
-    .stDataFrame table tbody tr:hover {
-        background-color: #f1f3f4; /* Slightly darker hover for rows */
-    }
-
-    /* Employee Progress Items (used in Goal Trackers, Dashboard) */
-    .employee-progress-item {
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius);
-        padding: 16px;
-        text-align: center;
-        background-color: var(--card-bg-color);
-        margin-bottom: 12px;
-        box-shadow: var(--box-shadow-sm);
-    }
-
-    .employee-progress-item h6 {
-        margin-top: 0;
-        margin-bottom: 8px;
-        font-size: 0.875rem; /* 14px */
-        color: var(--text-color);
-        font-weight: 500;
-    }
-
-    .employee-progress-item p {
-        font-size: 0.75rem; /* 12px */
-        color: var(--text-muted-color);
-        margin-bottom: 8px;
-    }
-
-    /* Button Layout in Columns */
-    .button-column-container > div[data-testid="stHorizontalBlock"] { /* Targets columns holding buttons */
-        gap: 16px; /* Space between buttons in columns */
-    }
-
-    .button-column-container .stButton button {
-        width: 100%; /* Make buttons fill column width */
-    }
-
-    /* Radio buttons used for horizontal choices (e.g., Allowance Type, Admin Actions) */
-    div[role="radiogroup"] {
-        display: flex;
-        flex-wrap: wrap; /* Allow radios to wrap on smaller screens */
-        gap: 8px; /* Space between radio buttons */
-        margin-bottom: 20px;
-    }
-
-    div[role="radiogroup"] > label { /* Individual radio button label container */
-        background-color: white;
-        color: var(--text-color);
-        padding: 8px 16px;
-        border-radius: var(--border-radius);
-        border: 1px solid var(--border-color);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-size: 0.875rem; /* 14px */
-        font-weight: 400; /* Regular weight for unselected */
-    }
-
-    div[role="radiogroup"] > label:hover {
-        background-color: #f8f9fa; /* Light hover effect */
-        border-color: var(--border-color); /* Keep border consistent on hover */
-    }
-
-    /* This rule for selected main content radio is handled by aggressive override later */
-    /* div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
-        background-color: rgba(66,133,244,0.1) !important; 
-        color: var(--primary-color) !important;
-        border-color: var(--primary-color) !important;
-        font-weight: 500;
-    } */
-
-    .employee-section-header { /* Header for sections like "Records for [Employee Name]" */
-        color: var(--text-color);
-        margin-top: 24px;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 8px;
-        font-size: 1.1rem; /* ~17-18px */
-    }
-
-    .record-type-header { /* Headers for "Field Activity Logs", "General Attendance", etc. */
-        font-size: 1rem; /* 16px */
-        color: var(--text-color);
-        margin-top: 20px;
-        margin-bottom: 12px;
-        font-weight: 500;
-    }
-
-    /* General Image Styling (if not sidebar profile) */
-    div[data-testid="stImage"] > img {
-        border-radius: var(--border-radius);
-        border: 1px solid var(--border-color);
-        box-shadow: var(--box-shadow-sm);
-    }
-
-    /* Progress Bar */
-    .stProgress > div > div { /* The actual progress bar fill */
-        background-color: var(--primary-color) !important;
-        border-radius: var(--border-radius); /* Match container radius for smooth look */
-    }
-
-    .stProgress { /* The progress bar container */
-        border-radius: var(--border-radius);
-        background-color: #e9ecef; /* Lighter background for the track (Google's choice often) */
-    }
-
-    /* Metric Widget Styling */
-    div[data-testid="stMetricLabel"] {
-        font-size: 0.875rem !important; /* 14px */
-        color: var(--text-muted-color) !important;
-        font-weight: 400;
-    }
-
-    div[data-testid="stMetricValue"] {
-        font-size: 1.5rem !important; /* Approx 24px, slightly smaller than default for compactness */
-        font-weight: 500;
-        color: var(--text-color);
-    }
-
-    /* Custom Notification Boxes (Success, Error, Warning, Info) */
-    .custom-notification {
-        padding: 12px 16px;
-        border-radius: var(--border-radius);
-        margin-bottom: 16px;
-        font-size: 0.875rem; /* 14px */
-        border-left-width: 4px; /* Accent border on the left */
-        border-left-style: solid;
-        display: flex;
-        align-items: center;
-        background-color: white; /* Base background */
-        box-shadow: var(--box-shadow-sm);
-    }
-
-    .custom-notification.success {
-        background-color: #e6f4ea; /* Lighter green, common for success messages */
-        color: var(--text-color); /* Keep text readable */
-        border-left-color: var(--success-color);
-    }
-
-    .custom-notification.error {
-        background-color: #fce8e6; /* Lighter red */
-        color: var(--text-color);
-        border-left-color: var(--danger-color);
-    }
-
-    .custom-notification.warning {
-        background-color: #fef7e0; /* Lighter yellow */
-        color: var(--text-color);
-        border-left-color: var(--warning-color);
-    }
-
-    .custom-notification.info {
-        background-color: #e8f0fe; /* Lighter blue */
-        color: var(--text-color);
-        border-left-color: var(--info-color);
-    }
-
-    /* Badges for Status etc. */
-    .badge {
-        display: inline-block;
-        padding: 4px 8px; /* Smaller padding for a neater look */
-        font-size: 0.75rem; /* 12px, smaller font */
-        font-weight: 500;
-        line-height: 1;
-        color: white;
-        text-align: center;
-        white-space: nowrap;
-        vertical-align: baseline;
-        border-radius: 12px; /* Pill shape, common in Google UIs */
-    }
-
-    .badge.green { background-color: var(--success-color); }
-    .badge.red { background-color: var(--danger-color); }
-    .badge.orange { background-color: var(--warning-color); }
-    .badge.blue { background-color: var(--primary-color); }
-    .badge.grey { background-color: var(--text-muted-color); }
-
-    /* Google Analytics-like cards (can be used with st.markdown for custom KPIs) */
-    .metric-card {
-        background-color: white;
-        border-radius: var(--border-radius);
-        padding: 16px;
-        box-shadow: var(--box-shadow-sm);
-        border: 1px solid var(--border-color);
-        margin-bottom: 16px; /* Space below card */
-    }
-
-    .metric-card-title {
-        font-size: 0.75rem; /* 12px */
-        color: var(--text-muted-color);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 8px;
-    }
-
-    .metric-card-value {
-        font-size: 1.5rem; /* 24px */
-        font-weight: 500;
-        color: var(--text-color);
-        margin-bottom: 4px; /* Space between value and change indicator */
-    }
-
-    .metric-card-change { /* For delta values if you construct them manually */
-        font-size: 0.75rem; /* 12px */
-        display: flex;
-        align-items: center;
-    }
-
-    .metric-card-change.positive { color: var(--success-color); }
-    .metric-card-change.negative { color: var(--danger-color); }
-
-    /* Google-style tabs (for st.tabs) */
-    .stTabs [role="tablist"] { /* The container for tab buttons */
-        gap: 0px; /* Remove gap to make tabs touch if desired, or keep small gap e.g., 2px */
-        margin-bottom: 0px; /* Remove bottom margin to connect with tab content */
-        border-bottom: 1px solid var(--border-color); /* Underline for the whole tab bar */
-    }
-
-    .stTabs [role="tab"] { /* Individual tab button */
-        padding: 10px 16px; /* Adjust padding for comfort */
-        border-radius: 0; /* Make tabs rectangular, or var(--border-radius) var(--border-radius) 0 0; for top rounded */
-        border: none; /* Remove individual borders */
-        border-bottom: 2px solid transparent; /* Placeholder for active indicator */
-        background-color: transparent; /* No background for inactive tabs */
-        color: var(--text-muted-color);
-        font-size: 0.875rem; /* 14px */
-        font-weight: 500; /* Medium weight for tabs */
-        transition: all 0.2s ease;
-        margin-right: 16px; /* Space between tabs */
-        position: relative;
-        top: 1px; /* Align with the bottom border of the tablist */
-    }
-    .stTabs [role="tab"]:last-child {
-        margin-right: 0;
-    }
-
-    .stTabs [role="tab"]:hover {
-        background-color: transparent; /* No background change on hover for this style */
-        color: var(--text-color); /* Text color changes on hover */
-    }
-
-    .stTabs [aria-selected="true"] { /* Active tab */
-        background-color: transparent !important;
-        color: var(--primary-color) !important;
-        border-bottom: 2px solid var(--primary-color) !important; /* Active indicator line */
-        font-weight: 500;
-        box-shadow: none !important;
-    }
-
-    /* Google-style date picker icon */
-    .stDateInput input {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='%235f6368'%3E%3Cpath d='M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 12px center;
-        padding-right: 40px !important; /* Ensure text doesn't overlap icon */
-    }
-    
-    /* Styling for Material Symbols (used for navigation icons etc.) */
-    .material-symbols-outlined {
-      font-variation-settings:
-      'FILL' 0,  /* 0 for outlined, 1 for filled */
-      'wght' 400, /* Font weight - 300 (Light) to 500 (Medium) is good for UI */
-      'GRAD' 0,  /* Optical grade */
-      'opsz' 20; /* Optical size (20 or 24 is common for UI) */
-      font-size: 20px; /* Explicit icon size, can match opsz */
-      vertical-align: text-bottom; /* Better alignment with text */
-      margin-right: 10px; /* Space between icon and text */
-      color: inherit; /* Inherit color from parent by default */
-    }
-
-    /* Sidebar specific icon styling */
-    [data-testid="stSidebar"] .material-symbols-outlined {
-        color: var(--text-muted-color); /* Default icon color in sidebar */
-        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
-        font-size: 20px;
-    }
-    
-    /* This rule for selected sidebar icon color is handled by aggressive override later */
-    /* [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined,
-    [data-testid="stSidebar"] .stRadio > label:hover .material-symbols-outlined {
-        color: var(--primary-color); 
-    } */
-
-    /* === AGGRESSIVE OVERRIDE FOR SELECTED RADIO BUTTON COLOR === */
-    /* Targets the hidden actual radio input when it's checked,
-       and then styles its sibling label or specific parts of it. */
-
-    /* For the main content area radio buttons (often wrapped in a div with role="radiogroup") */
-    div[role="radiogroup"] div[data-baseweb="radio"] input[type="radio"]:checked + label,
-    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {
-        background-color: rgba(66, 133, 244, 0.15) !important; /* Light primary blue background */
-        color: var(--primary-color) !important;             /* Primary blue text */
-        border-color: var(--primary-color) !important;        /* Primary blue border */
-        font-weight: 500 !important; /* Ensure this is also applied */
-    }
-
-    /* Styling the actual "dot" part of the radio button.
-       Streamlit often uses a structure like: label > div > input + div(for mark)
-       or label > input + div(for mark). Inspect to be sure. */
-    div[role="radiogroup"] input[type="radio"]:checked + div[data-testid="stRadioMark"],
-    div[role="radiogroup"] input[type="radio"]:checked + label div[data-testid="stRadioMark"] { /* common pattern */
-        background-color: var(--primary-color) !important;
-        border-color: var(--primary-color) !important;
-        box-shadow: inset 0 0 0 4px var(--card-bg-color) !important; /* Creates inner circle */
-    }
-    /* For older Streamlit versions or different structures, might be a pseudo-element */
-    div[role="radiogroup"] input[type="radio"]:checked + label::before {
-        background-color: var(--primary-color) !important;
-        border-color: var(--primary-color) !important;
-    }
-
-
-    /* For the sidebar radio buttons */
-    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label,
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {
-        background-color: rgba(66, 133, 244, 0.15) !important; /* Light primary blue background */
-    }
-
-    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label > div > p,
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
-        color: var(--primary-color) !important;
-        font-weight: 500 !important;
-    }
-
-    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label .material-symbols-outlined,
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined {
-        color: var(--primary-color) !important;
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important;
-    }
-
-    /* Styling the actual "dot" for sidebar radio buttons */
-    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + div[data-testid="stRadioMark"],
-    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label div[data-testid="stRadioMark"] {
-        background-color: var(--primary-color) !important;
-        border-color: var(--primary-color) !important;
-        box-shadow: inset 0 0 0 4px #ffffff !important; /* Inner circle for sidebar (assuming white bg) */
-    }
-    /* For older Streamlit versions or different structures, might be a pseudo-element */
-    [data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label::before {
-        background-color: var(--primary-color) !important;
-        border-color: var(--primary-color) !important;
-    }
-
+        --primary-color: #1c4e80; --secondary-color: #2070c0; --accent-color: #70a1d7;
+        --success-color: #28a745; --danger-color: #dc3545; --warning-color: #ffc107; --info-color: #17a2b8;
+        --body-bg-color: #f4f6f9; --card-bg-color: #ffffff; --text-color: #343a40; --text-muted-color: #6c757d;
+        --border-color: #dee2e6; --input-border-color: #ced4da;
+        --font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        --border-radius: 0.375rem; --border-radius-lg: 0.5rem;
+        --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075); --box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    body {font-family: var(--font-family-sans-serif); background-color: var(--body-bg-color); color: var(--text-color); line-height: 1.6; font-weight: 400;}
+    h1, h2, h3, h4, h5, h6 {color: var(--primary-color); font-weight: 600;}
+    .main .block-container > div:first-child > div:first-child > div:first-child > h1 {text-align: center; font-size: 2.6em; font-weight: 700; padding-bottom: 25px; border-bottom: 3px solid var(--accent-color); margin-bottom: 40px; letter-spacing: -0.5px;}
+    .card {background-color: var(--card-bg-color); padding: 30px; border-radius: var(--border-radius-lg); box-shadow: var(--box-shadow); margin-bottom: 35px; border: 1px solid var(--border-color);}
+    .card h3 {margin-top: 0; color: var(--primary-color); border-bottom: 2px solid #e9ecef; padding-bottom: 15px; margin-bottom: 25px; font-size: 1.75em;}
+    .card h4 {color: var(--secondary-color); margin-top: 30px; margin-bottom: 20px; font-size: 1.4em; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;}
+    .card h5 {font-size: 1.15em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px;}
+    .card h6 {font-size: 0.95em; color: var(--text-muted-color); margin-top: 0px; margin-bottom: 15px; font-weight: 500;}
+    .form-field-label h6 {font-size: 1em; color: var(--text-muted-color); margin-top: 20px; margin-bottom: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
+    .login-container {max-width: 480px; margin: 60px auto; border-top: 5px solid var(--secondary-color);}
+    .login-container .stButton button {width: 100%; background-color: var(--secondary-color) !important; color: white !important; font-size: 1.1em; padding: 12px 20px; border-radius: var(--border-radius); border: none !important; font-weight: 600 !important; box-shadow: var(--box-shadow-sm) !important;}
+    .login-container .stButton button:hover {background-color: var(--primary-color) !important; color: white !important; box-shadow: var(--box-shadow) !important;}
+    .stButton:not(.login-container .stButton) button {background-color: var(--success-color); color: white; padding: 10px 24px; border: none; border-radius: var(--border-radius); font-size: 1.05em; font-weight: 500; transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease; box-shadow: var(--box-shadow-sm); cursor: pointer;}
+    .stButton:not(.login-container .stButton) button:hover {background-color: #218838; transform: translateY(-2px); box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);}
+    .stButton:not(.login-container .stButton) button:active {transform: translateY(0px); box-shadow: var(--box-shadow-sm);}
+    .stButton button[id*="logout_button_sidebar"] {background-color: var(--danger-color) !important; border: 1px solid var(--danger-color) !important; color: white !important; font-weight: 500 !important;}
+    .stButton button[id*="logout_button_sidebar"]:hover {background-color: #c82333 !important; border-color: #c82333 !important;}
+    .stTextInput input, .stNumberInput input, .stTextArea textarea, .stDateInput input, .stTimeInput input, .stSelectbox div[data-baseweb="select"] > div {border-radius: var(--border-radius) !important; border: 1px solid var(--input-border-color) !important; padding: 10px 12px !important; font-size: 1em !important; color: var(--text-color) !important; background-color: var(--card-bg-color) !important; transition: border-color 0.2s ease, box-shadow 0.2s ease;}
+    .stTextInput input::placeholder, .stNumberInput input::placeholder, .stTextArea textarea::placeholder {color: var(--text-muted-color) !important; opacity: 1;}
+    .stTextArea textarea {min-height: 120px;}
+    .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus, .stDateInput input:focus, .stTimeInput input:focus, .stSelectbox div[data-baseweb="select"] > div:focus-within {border-color: var(--secondary-color) !important; box-shadow: 0 0 0 0.2rem rgba(32, 112, 192, 0.25) !important;}
+    [data-testid="stSidebar"] {background-color: var(--primary-color); padding: 25px !important; box-shadow: 0.25rem 0 1rem rgba(0,0,0,0.1);}
+    [data-testid="stSidebar"] .sidebar-content {padding-top: 10px;}
+    [data-testid="stSidebar"] p, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] div:not([data-testid="stRadio"]) {color: #e9ecef !important;}
+    [data-testid="stSidebar"] .stRadio > label > div > p {font-size: 1.05em !important; color: var(--accent-color) !important; padding: 0; margin: 0;}
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {color: var(--card-bg-color) !important; font-weight: 600;}
+    [data-testid="stSidebar"] .stRadio > label {padding: 10px 15px; border-radius: var(--border-radius); margin-bottom: 6px; transition: background-color 0.2s ease;}
+    [data-testid="stSidebar"] .stRadio > label:hover {background-color: rgba(255, 255, 255, 0.08);}
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {background-color: rgba(255, 255, 255, 0.15);}
+    .welcome-text {font-size: 1.4em; font-weight: 600; margin-bottom: 25px; text-align: center; color: var(--card-bg-color) !important; border-bottom: 1px solid var(--accent-color); padding-bottom: 20px;}
+    [data-testid="stSidebar"] [data-testid="stImage"] > img {border-radius: 50%; border: 3px solid var(--accent-color); margin: 0 auto 10px auto; display: block;}
+    .stDataFrame {width: 100%; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--box-shadow-sm); margin-bottom: 25px;}
+    .stDataFrame table {width: 100%; border-collapse: collapse;}
+    .stDataFrame table thead th {background-color: #e9ecef; color: var(--primary-color); font-weight: 600; text-align: left; padding: 14px 18px; border-bottom: 2px solid var(--border-color); font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px;}
+    .stDataFrame table tbody td {padding: 12px 18px; border-bottom: 1px solid #f1f3f5; vertical-align: middle; color: var(--text-color); font-size: 0.9em;}
+    .stDataFrame table tbody tr:last-child td {border-bottom: none;}
+    .stDataFrame table tbody tr:hover {background-color: #f8f9fa;}
+    .employee-progress-item {border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 15px; text-align: center; background-color: #fdfdfd; margin-bottom: 10px;}
+    .employee-progress-item h6 {margin-top: 0; margin-bottom: 5px; font-size: 1em; color: var(--primary-color);}
+    .employee-progress-item p {font-size: 0.85em; color: var(--text-muted-color); margin-bottom: 8px;}
+    .button-column-container > div[data-testid="stHorizontalBlock"] {gap: 20px;}
+    .button-column-container .stButton button {width: 100%;}
+    div[role="radiogroup"] {display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;}
+    div[role="radiogroup"] > label {background-color: #23578c; color: var(#ffffff); padding: 10px 18px; border-radius: var(--border-radius); border: 1px solid var(--input-border-color); cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; font-size: 0.95em; font-weight: 500;}
+    div[role="radiogroup"] > label:hover {background-color: #4664a5; border-color: #adb5bd; color:#ffffff;}
+    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {background-color: var(--secondary-color) !important; color: white !important; border-color: var(--secondary-color) !important; font-weight: 500;}
+    .employee-section-header {color: var(--secondary-color); margin-top: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 1.35em;}
+    .record-type-header {font-size: 1.2em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px; font-weight: 600;}
+    div[data-testid="stImage"] > img {border-radius: var(--border-radius-lg); border: 1px solid var(--border-color); box-shadow: var(--box-shadow-sm);}
+    .stProgress > div > div {background-color: var(--secondary-color) !important; border-radius: var(--border-radius);}
+    .stProgress {border-radius: var(--border-radius); background-color: #e9ecef;}
+    div[data-testid="stMetricLabel"] {font-size: 0.95em !important; color: var(--text-muted-color) !important; font-weight: 500;}
+    div[data-testid="stMetricValue"] {font-size: 1.8em !important; font-weight: 600; color: var(--primary-color);}
+    .custom-notification {padding: 15px 20px; border-radius: var(--border-radius); margin-bottom: 20px; font-size: 1em; border-left-width: 5px; border-left-style: solid; display: flex; align-items: center;}
+    .custom-notification.success {background-color: #d1e7dd; color: #0f5132; border-left-color: var(--success-color);}
+    .custom-notification.error {background-color: #f8d7da; color: #842029; border-left-color: var(--danger-color);}
+    .custom-notification.warning {background-color: #fff3cd; color: #664d03; border-left-color: var(--warning-color);}
+    .custom-notification.info {background-color: #cff4fc; color: #055160; border-left-color: var(--info-color);}
+    .badge {display: inline-block; padding: 0.35em 0.65em; font-size: 0.85em; font-weight: 600; line-height: 1; color: #fff; text-align: center; white-space: nowrap; vertical-align: baseline; border-radius: var(--border-radius);}
+    .badge.green {background-color: var(--success-color);}
+    .badge.red {background-color: var(--danger-color);}
+    .badge.orange {background-color: var(--warning-color);}
+    .badge.blue {background-color: var(--secondary-color);}
+    .badge.grey {background-color: var(--text-muted-color);}
 </style>
 """
-
 st.markdown(html_css, unsafe_allow_html=True)
 
 # --- Credentials & User Info ---
@@ -887,15 +298,15 @@ if "user_message" in st.session_state and st.session_state.user_message:
 
 
 with st.sidebar:
-    st.markdown(f"<div class='welcome-text'>👋 Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='welcome-text'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
 
     nav_options = [
-        "📆 Attendance",
-        "📸 Upload Activity Photo",
-        "🧾 Allowance",
-        "🎯 Goal Tracker",
-        "💰 Payment Collection",
-        "📊 View Logs"
+        "Attendance",
+        "Upload Activity Photo",
+        "Allowance",
+        "Goal Tracker",
+        "Payment Collection Tracker",
+        "View Logs"
     ]
 
     nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
@@ -911,7 +322,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-    if st.button("🔒 Logout", key="logout_button_sidebar", use_container_width=True):
+    if st.button("Logout", key="logout_button_sidebar", use_container_width=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.session_state.user_message = "Logged out successfully."
         st.session_state.message_type = "info"
@@ -1121,9 +532,9 @@ elif nav == "🎯 Goal Tracker":
         else: st.info(f"No past goal records for {TARGET_GOAL_YEAR}.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-elif nav == "💰 Payment Collection":
+elif nav == "💰 Payment Collection Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<h3>💰 Payment Collection (2025 - Quarterly)</h3>", unsafe_allow_html=True)
+    st.markdown("<h3>💰 Payment Collection Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_YEAR_PAYMENT = 2025; current_quarter_display_payment = get_quarter_str_for_year(TARGET_YEAR_PAYMENT)
     status_options_payment = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
     if current_user["role"] == "admin":
