@@ -751,22 +751,21 @@ elif nav == "Create Order":
     store_name = st.selectbox("Select Store", sorted(stores_df["StoreName"].dropna().astype(str).unique()))
     selected_store = stores_df[stores_df["StoreName"] == store_name].iloc[0]
 
-        product_name = st.selectbox(
-            "Select Product",
-            sorted(products_df["Product Name"].dropna().astype(str).unique()),
-            key="product_select"
-        )
-        
-        if product_name:
-            product_sizes = products_df[products_df["Product Name"] == product_name]
-            size_options = sorted(product_sizes["Size"].dropna().astype(str).unique())
-        else:
-            size_options = []
-        
-        size = st.selectbox("Select Size", size_options, key="size_select")
-        
-            quantity = st.number_input("Enter Quantity", min_value=1, value=1)
-        
+    # Product selector
+    product_name = st.selectbox(
+        "Select Product",
+        sorted(products_df["Product Name"].dropna().astype(str).unique())
+    )
+
+    product_sizes = products_df[products_df["Product Name"] == product_name]
+
+    size = st.selectbox(
+        "Select Size",
+        sorted(product_sizes["Size"].dropna().astype(str).unique())
+    )
+
+    quantity = st.number_input("Enter Quantity", min_value=1, value=1)
+
     if st.button("Add to Order"):
         if "order_items" not in st.session_state:
             st.session_state["order_items"] = []
