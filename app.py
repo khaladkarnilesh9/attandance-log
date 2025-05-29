@@ -343,17 +343,36 @@ if "user_message" in st.session_state and st.session_state.user_message:
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
 
-    nav_options = [
-        "Attendance",
-        "Upload Activity Photo",
-        "Allowance",
-        "Goal Tracker",
-        "Payment Collection Tracker",
-        "View Logs",
-        "Create Order"
-    ]
+    # nav_options = ["Attendance", "Upload Activity Photo", "Allowance", "Goal Tracker", "Payment Collection Tracker", "View Logs", "Create Order"]
+    # nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
 
-    nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
+    nav = option_menu(    
+    None,
+    ["Home", "Attendance", "Upload Activity Photo", "Goal Tracker", "Payment Collection Tracker","View Logs","Create Order"],
+    icons=['house','calendar','image', 'database', 'book', 'fingerprint', 'currency-dollar'],
+    menu_icon="cast",
+    default_index=0,
+    styles={
+        "container": {"padding": "0!important"},
+        "nav-link": {
+            "font-size": "14px",
+            "text-align": "left",
+            "margin": "4px 0",
+            "border-radius": "4px",
+            "padding": "8px 16px",
+        },
+        "nav-link-selected": {
+            "background-color": "#E6F7FF",
+            "color": "#20BEFF",
+            "font-weight": "500",
+        },
+        "icon": {
+            "font-size": "18px",
+            "margin-right": "10px",
+            "color": "#666",
+        },
+    }
+)    
 
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
