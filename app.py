@@ -84,150 +84,162 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
 
 html_css = """
 <style>
-    /* Import Google Fonts */
+    /* Import Google Fonts - No inheritance */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
+    /* Root Variables - Only for colors, no layout */
     :root {
-        /* Color Variables */
-        --primary-color: #4285F4;
-        --sidebar-bg: #e3e8ee;
-        --sidebar-text: white; /* Pure white text */
-        --sidebar-text-active: white;
-        --sidebar-divider: rgba(255, 255, 255, 0.2); /* Semi-transparent white divider */
-        --body-bg-color: #f8f9fa;
-        --card-bg-color: #ffffff;
-        --text-color: #202124;
-        --text-muted-color: #5f6368;
-        --border-color: #dadce0;
-        
-        /* Typography */
-        --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        
-        /* Spacing */
-        --nav-item-padding: 16px 24px; /* Increased padding for nav items */
+        /* Color Variables Only */
+        --primary-blue: #4285F4;
+        --sidebar-blue: #1a73e8;
+        --pure-white: #ffffff;
+        --divider-white: rgba(255, 255, 255, 0.2);
+        --body-gray: #f8f9fa;
+        --card-white: #ffffff;
+        --text-dark: #202124;
+        --text-gray: #5f6368;
+        --border-light: #dadce0;
     }
 
-    /* Base Styles */
-    body {
-        font-family: var(--font-family);
-        background-color: var(--body-bg-color);
-        color: var(--text-color);
+    /* Base Body - No inheritance */
+    body.streamlit-app {
+        font-family: 'Roboto', sans-serif;
+        background-color: var(--body-gray);
+        color: var(--text-dark);
         line-height: 1.5;
+        margin: 0;
+        padding: 0;
     }
 
-    /* Main Content Area */
-    .main .block-container {
+    /* Main Content Area - Independent */
+    div[data-testid="stAppViewContainer"] > .main > .block-container {
         padding: 2rem 3rem !important;
+        max-width: 1200px;
     }
 
-    /* Sidebar Styles */
-    [data-testid="stSidebar"] {
-        background-color: var(--sidebar-bg) !important;
+    /* Sidebar Container - Independent */
+    section[data-testid="stSidebar"] {
+        background-color: var(--sidebar-blue) !important;
         padding: 0 !important;
+        width: 280px !important;
+        box-shadow: none !important;
+        border-right: none !important;
     }
 
-    /* Sidebar Header */
-    [data-testid="stSidebar"] .welcome-text {
-        color: white !important;
-        font-weight: 500 !important;
+    /* Welcome Header - Independent */
+    div[data-testid="stSidebar"] .welcome-text {
+        color: var(--pure-white) !important;
+        font-weight: 500;
+        font-size: 1.1rem;
         padding: 24px 24px 20px !important;
         margin: 0 !important;
-        border-bottom: 1px solid var(--sidebar-divider) !important;
+        border-bottom: 1px solid var(--divider-white) !important;
     }
 
-    /* Navigation Items Container */
-    [data-testid="stSidebar"] .stRadio {
+    /* Navigation Items Container - Independent */
+    div[data-testid="stSidebar"] div.stRadio {
         display: flex;
         flex-direction: column;
+        gap: 0;
     }
 
-    /* Navigation Items */
-    [data-testid="stSidebar"] .stRadio > label {
+    /* Individual Navigation Items - Independent */
+    div[data-testid="stSidebar"] div.stRadio > label {
         display: block;
-        padding: var(--nav-item-padding) !important;
+        padding: 16px 24px !important;
         margin: 0 !important;
         background: transparent !important;
         border-radius: 0 !important;
-        border-bottom: 1px solid var(--sidebar-divider) !important;
-        transition: background-color 0.2s ease;
+        border-bottom: 1px solid var(--divider-white) !important;
     }
 
-    /* Navigation Text */
-    [data-testid="stSidebar"] .stRadio > label > div > p {
-        color: var(--sidebar-text) !important;
-        font-size: 0.9rem !important;
-        font-weight: 400 !important;
+    /* Navigation Text - Independent */
+    div[data-testid="stSidebar"] div.stRadio > label > div > p {
+        color: var(--pure-white) !important;
+        font-size: 0.9rem;
+        font-weight: 400;
         margin: 0 !important;
         letter-spacing: 0.3px;
     }
 
-    /* Active Navigation Item */
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {
+    /* Active Navigation Item - Independent */
+    div[data-testid="stSidebar"] div.stRadio div[aria-checked="true"] + label {
         background-color: rgba(255, 255, 255, 0.1) !important;
     }
 
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
+    div[data-testid="stSidebar"] div.stRadio div[aria-checked="true"] + label > div > p {
         font-weight: 500 !important;
     }
 
-    /* Sidebar Icons */
-    [data-testid="stSidebar"] .material-symbols-outlined {
-        color: inherit !important;
+    /* Sidebar Icons - Independent */
+    div[data-testid="stSidebar"] span.material-symbols-outlined {
+        color: var(--pure-white) !important;
         font-size: 20px !important;
         margin-right: 16px !important;
         vertical-align: middle;
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
     }
 
-    /* Cards */
-    .card {
-        background-color: var(--card-bg-color);
+    /* Cards - Independent */
+    div.stCard {
+        background-color: var(--card-white);
         padding: 24px;
         border-radius: 8px;
         margin-bottom: 24px;
-        border: 1px solid var(--border-color);
-        box-shadow: var(--box-shadow-sm);
+        border: 1px solid var(--border-light);
+        box-shadow: 0 1px 2px 0 rgba(60,64,67,0.1);
     }
 
-    /* Buttons */
-    .stButton button {
-        background-color: var(--primary-color) !important;
-        color: white !important;
+    /* Buttons - Independent */
+    button.stButton > button {
+        background-color: var(--primary-blue) !important;
+        color: var(--pure-white) !important;
         border: none !important;
-        border-radius: var(--border-radius) !important;
+        border-radius: 8px !important;
         padding: 10px 16px !important;
         font-weight: 500 !important;
+        font-family: 'Roboto', sans-serif;
     }
 
-    /* Form Elements */
-    .stTextInput input,
-    .stSelectbox select {
-        border-radius: var(--border-radius) !important;
-        border: 1px solid var(--border-color) !important;
+    /* Form Inputs - Independent */
+    input.stTextInput {
+        border-radius: 8px !important;
+        border: 1px solid var(--border-light) !important;
         padding: 10px 12px !important;
+        font-family: 'Roboto', sans-serif;
     }
 
-    /* Empty State Messages */
-    .main .stMarkdown p {
-        color: var(--text-muted-color);
+    /* Empty State Messages - Independent */
+    div.stMarkdown p.empty-state {
+        color: var(--text-gray);
         font-style: italic;
+        font-family: 'Roboto', sans-serif;
     }
 
-    /* Time/Date Display */
-    .stMarkdown:has(+ .stMarkdown) {
-        color: var(--text-muted-color);
+    /* Time/Date Display - Independent */
+    div.stMarkdown.time-display {
+        color: var(--text-gray);
         font-size: 0.875rem;
         text-align: right;
         margin-top: 20px;
+        font-family: 'Roboto', sans-serif;
     }
 
-    /* Search Box */
-    .stTextInput input[type="search"] {
+    /* Search Box - Independent */
+    input.stTextInput[type="search"] {
         border-radius: 20px !important;
         padding: 10px 16px !important;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    /* Check In/Out Buttons - Independent */
+    button.stButton.check-in-button > button,
+    button.stButton.check-out-button > button {
+        width: 100%;
+        margin: 8px 0;
     }
 </style>
-
 """
 st.markdown(html_css, unsafe_allow_html=True)
 
