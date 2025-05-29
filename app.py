@@ -2,8 +2,6 @@
 # Add your full working application logic here...
 # import streamlit as st # Commented out the initial one, as it's re-imported later.
 # st.title("Attendance Log System - Placeholder") # Removed this initial title
-
-
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta
@@ -23,16 +21,6 @@ try:
     PILLOW_INSTALLED = True
 except ImportError:
     PILLOW_INSTALLED = False
-
-# <<<< REMOVE ENTIRE OLD html_css BLOCK STARTING HERE >>>>
-# html_css = """
-# <style>
-#    ... (all your old CSS) ...
-# </style>
-# """
-# st.markdown(html_css, unsafe_allow_html=True) # Also remove this line
-# <<<< REMOVE ENTIRE OLD html_css BLOCK ENDING HERE >>>>
-
 
 # <<<< ADD BOOTSTRAP AND NEW CUSTOM CSS HERE >>>>
 st.markdown("""
@@ -60,41 +48,150 @@ st.markdown("""
         padding: 1rem; /* Overall padding for sidebar content */
     }
 
-    /* Styling for st.button to look like Bootstrap nav-links */
-    .sidebar-nav .stButton button {
-        display: block !important;
-        width: 100% !important;
-        text-align: left !important;
-        border: none !important;
-        padding: 0.5rem 1rem !important;
-        margin-bottom: 0.125rem !important;
-        border-radius: 0.375rem !important; /* Bootstrap 5 standard border-radius */
-        font-weight: 400 !important;
-        line-height: 1.5 !important;
-        background-color: transparent !important;
-        color: #212529 !important; /* Default Bootstrap link color on light background */
-        transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
-    }
-    .sidebar-nav .stButton button:hover {
-        color: #000 !important;
-        background-color: #e9ecef !important; /* Light gray hover */
-    }
-    .sidebar-nav .stButton button:focus,
-    .sidebar-nav .stButton button:active {
-        box-shadow: none !important;
-        outline: none !important;
-    }
+    /* ... (other styles like body, .material-symbols-outlined general definition) ... */
 
-    /* Active navigation button styling */
-    .sidebar-nav div.active-button-wrapper .stButton button {
-        font-weight: 500 !important;
-        color: #fff !important;
-        background-color: #0d6efd !important; /* Bootstrap primary color */
-    }
-    .sidebar-nav div.active-button-wrapper .stButton button:hover {
-        color: #fff !important;
-        background-color: #0b5ed7 !important; /* Darker primary on hover */
-    }
+/* Streamlit's default sidebar container */
+section[data-testid="stSidebar"] > div:first-child {
+    padding: 0 !important;
+}
+
+.sidebar-content-wrapper {
+    background-color: #f8f9fa !important;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem; /* Overall padding for the content inside sidebar */
+}
+
+/* Styling for each navigation item ROW */
+.nav-item-row {
+    display: flex !important; /* Use flex for the row itself to align st.columns children */
+    align-items: center !important;
+    width: 100%;
+    padding: 0.5rem 0.75rem; /* Padding for the visual row */
+    margin-bottom: 0.125rem;
+    border-radius: 0.375rem;
+    /* cursor: pointer; /* No longer needed here, button provides cursor */
+    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+    color: #212529; /* Default text color for the row */
+}
+
+/* Hover and Active states for the ROW div */
+.nav-item-row:hover {
+    background-color: #e9ecef !important;
+    color: #000 !important;
+}
+.nav-item-row.active {
+    background-color: #0d6efd !important;
+    color: #fff !important;
+    font-weight: 500;
+}
+.nav-item-row.active .nav-icon { /* Icon color in active row */
+    color: #fff !important;
+}
+.nav-item-row:hover .nav-icon { /* Icon color on row hover */
+     color: #000 !important;
+}
+
+
+/* Styling the icon's column within the nav item row */
+.nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(1) { /* First column (icon) */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Align icon to the start */
+    flex-grow: 0 !important; /* Prevent icon column from growing */
+    flex-shrink: 0 !important; /* Prevent icon column from shrinking */
+    flex-basis: auto !important; /* Let content define basis or set a fixed one like 30px */
+    padding-right: 0px;
+}
+.nav-icon { /* Class applied to the icon's span */
+    font-size: 22px !important; /* Control icon size */
+    line-height: 1 !important;
+    color: #5f6368; /* Default icon color */
+    vertical-align: -0.2em; /* Fine-tune vertical alignment */
+}
+
+
+/* Styling the st.button WIDGET within the second column */
+.nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button {
+    text-align: left !important;
+    padding: 0 !important; /* Remove Streamlit's default button padding */
+    margin: 0 !important;
+    border: none !important;
+    background-color: transparent !important; /* Make button background transparent */
+    color: inherit !important; /* Button text inherits color from .nav-item-row */
+    font-weight: inherit !important; /* Inherit font-weight from .nav-item-row */
+    font-size: 0.9rem !important; /* Control text size */
+    line-height: 1.5 !important;
+    width: 100% !important;
+    display: block !important;
+    box-shadow: none !important; /* Remove default shadow */
+    outline: none !important;
+}
+/* Remove hover/focus effects from the button itself, as .nav-item-row handles it */
+.nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button:hover,
+.nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button:focus,
+.nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button:active {
+    background-color: transparent !important;
+    color: inherit !important;
+    box-shadow: none !important;
+    outline: none !important;
+    border: none !important;
+}
+
+
+/* Welcome text, user info, hr etc. - Keep as before */
+.welcome-text-sidebar {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #212529;
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
+}
+.user-profile-img-container {
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+.user-profile-img-container img {
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border: 2px solid #dee2e6;
+}
+.user-position-text {
+    text-align: center;
+    font-size: 0.875em;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+.sidebar-content-wrapper hr {
+    margin: 1rem 0;
+    opacity: 0.25;
+}
+
+/* Logout Button Container and specific row styling */
+.logout-button-container {
+    margin-top: auto; /* Pushes logout to the bottom */
+    padding-top: 1rem;
+}
+.nav-item-row.logout-row-styling { /* Specific class for logout row */
+    background-color: #6c757d !important;
+    color: white !important;
+}
+.nav-item-row.logout-row-styling:hover {
+    background-color: #5a6268 !important;
+}
+.nav-item-row.logout-row-styling .nav-icon { /* Icon in logout */
+    color: white !important;
+}
+.nav-item-row.logout-row-styling [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button {
+    color: white !important; /* Ensure button text is white */
+    font-weight: 500 !important;
+}
+
+/* ... (Global message notifications and .card styling) ... */
+
 
     /* Welcome text */
     .welcome-text-sidebar {
