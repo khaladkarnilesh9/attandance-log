@@ -97,7 +97,7 @@ html_css = """
         --sidebar-divider: rgba(255, 255, 255, 0.2);
         --body-bg-color: #f8f9fa;
         --card-bg-color: #ffffff;
-        --text-color: #202124;
+        --text-color: ##0f4d88;
         --text-muted-color: #5f6368;
         --border-color: #dadce0;
     }
