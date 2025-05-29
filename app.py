@@ -28,10 +28,16 @@ if not os.path.exists(ACTIVITY_PHOTOS_DIR): os.makedirs(ACTIVITY_PHOTOS_DIR, exi
 
 def get_current_time_in_tz(): return datetime.now(timezone.utc).astimezone(tz)
 def get_quarter_str_for_year(year):
-    m = get_current_time_in_tz().month
-    if 1<=m<=3: return f"{year}-Q1"; elif 4<=m<=6: return f"{year}-Q2";
-    elif 7<=m<=9: return f"{year}-Q3"; else: return f"{year}-Q4"
-
+    current_time = get_current_time_in_tz()
+    month = current_time.month
+    if 1 <= month <= 3:
+        return f"{year}-Q1"
+    elif 4 <= month <= 6:
+        return f"{year}-Q2"
+    elif 7 <= month <= 9:
+        return f"{year}-Q3"
+    else: # Months 10, 11, 12
+        return f"{year}-Q4"
 def load_data(path, columns):
     if os.path.exists(path) and os.path.getsize(path) > 0:
         try:
