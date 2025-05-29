@@ -383,9 +383,9 @@ elif selected == "Upload Activity Photo":
     st.markdown('</div>', unsafe_allow_html=True)
 
 # Next page logic (elif selected == "Allowance":)
-# ...
 
-    # --- End of Upload Activity Photo Page Logic ---
+# Previous page logic (elif selected == "Upload Activity Photo":)
+# ...
 
 elif selected == "Allowance":
     # --- Start of Allowance Page Logic ---
@@ -396,20 +396,31 @@ elif selected == "Allowance":
     reason = st.text_area("Reason:", key="allowance_reason_main_page_final_v3", placeholder="Please provide a clear justification...")
     if st.button("Submit Allowance Request", key="submit_allowance_btn_main_page_final_v3", use_container_width=True, type="primary"):
         if a_type and amount > 0 and reason.strip():
-            global allowance_df # To modify global df
+            # No 'global allowance_df' here
+            temp_allowance_df = allowance_df.copy() # Work on a copy
+
             date_str = get_current_time_in_tz().strftime("%Y-%m-%d")
             new_entry_data = {"Username": current_user["username"], "Type": a_type, "Amount": amount, "Reason": reason, "Date": date_str}
             for col_name in ALLOWANCE_COLUMNS: # Ensure all columns are present
                 if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA
+            
             new_entry = pd.DataFrame([new_entry_data], columns=ALLOWANCE_COLUMNS)
-            temp_allowance_df = pd.concat([allowance_df, new_entry], ignore_index=True)
+            temp_allowance_df = pd.concat([temp_allowance_df, new_entry], ignore_index=True)
+            
             try:
                 temp_allowance_df.to_csv(ALLOWANCE_FILE, index=False)
-                allowance_df = temp_allowance_df # Update global df
+                allowance_df = temp_allowance_df # Update global DataFrame AFTER successful save
+                
                 st.session_state.user_message = f"Allowance for ₹{amount:.2f} submitted."; st.session_state.message_type = "success"; st.rerun()
             except Exception as e: st.session_state.user_message = f"Error submitting allowance: {e}"; st.session_state.message_type = "error"; st.rerun()
         else: st.warning("Please complete all fields with valid values.")
     st.markdown('</div>', unsafe_allow_html=True)
+    # --- End of Allowance Page Logic ---
+
+# Next page logic (elif selected == "Goal Tracker":)
+# ...
+
+
     # --- End of Allowance Page Logic ---
 
 elif selected == "Goal Tracker":
