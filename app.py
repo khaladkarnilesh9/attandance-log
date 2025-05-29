@@ -1,3 +1,4 @@
+
 # Placeholder for the corrected Streamlit app.py code
 # Add your full working application logic here...
 # import streamlit as st # Commented out the initial one, as it's re-imported later.
@@ -83,80 +84,100 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
 
 html_css = """
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    /* Import Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
     :root {
-        --primary-color: #1c4e80; --secondary-color: #2070c0; --accent-color: #70a1d7;
-        --success-color: #28a745; --danger-color: #dc3545; --warning-color: #ffc107; --info-color: #17a2b8;
-        --body-bg-color: #f4f6f9; --card-bg-color: #ffffff; --text-color: #343a40; --text-muted-color: #6c757d;
-        --border-color: #dee2e6; --input-border-color: #ced4da;
-        --font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-        --border-radius: 0.375rem; --border-radius-lg: 0.5rem;
-        --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075); --box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        /* Color Variables */
+        --primary-color: #4285F4;
+        --sidebar-bg: #598ed499;
+        --sidebar-text: rgba(255, 255, 255, 0.9);
+        --sidebar-text-active: white;
+        --sidebar-divider: rgba(255, 255, 255, 0.2);
+        --body-bg-color: #f8f9fa;
+        --card-bg-color: #ffffff;
+        --text-color: ##0f4d88;
+        --text-muted-color: #5f6368;
+        --border-color: #dadce0;
     }
-    body {font-family: var(--font-family-sans-serif); background-color: var(--body-bg-color); color: var(--text-color); line-height: 1.6; font-weight: 400;}
-    h1, h2, h3, h4, h5, h6 {color: var(--primary-color); font-weight: 600;}
-    .main .block-container > div:first-child > div:first-child > div:first-child > h1 {text-align: center; font-size: 2.6em; font-weight: 700; padding-bottom: 25px; border-bottom: 3px solid var(--accent-color); margin-bottom: 40px; letter-spacing: -0.5px;}
-    .card {background-color: var(--card-bg-color); padding: 30px; border-radius: var(--border-radius-lg); box-shadow: var(--box-shadow); margin-bottom: 35px; border: 1px solid var(--border-color);}
-    .card h3 {margin-top: 0; color: var(--primary-color); border-bottom: 2px solid #e9ecef; padding-bottom: 15px; margin-bottom: 25px; font-size: 1.75em;}
-    .card h4 {color: var(--secondary-color); margin-top: 30px; margin-bottom: 20px; font-size: 1.4em; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;}
-    .card h5 {font-size: 1.15em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px;}
-    .card h6 {font-size: 0.95em; color: var(--text-muted-color); margin-top: 0px; margin-bottom: 15px; font-weight: 500;}
-    .form-field-label h6 {font-size: 1em; color: var(--text-muted-color); margin-top: 20px; margin-bottom: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
-    .login-container {max-width: 480px; margin: 60px auto; border-top: 5px solid var(--secondary-color);}
-    .login-container .stButton button {width: 100%; background-color: var(--secondary-color) !important; color: white !important; font-size: 1.1em; padding: 12px 20px; border-radius: var(--border-radius); border: none !important; font-weight: 600 !important; box-shadow: var(--box-shadow-sm) !important;}
-    .login-container .stButton button:hover {background-color: var(--primary-color) !important; color: white !important; box-shadow: var(--box-shadow) !important;}
-    .stButton:not(.login-container .stButton) button {background-color: var(--success-color); color: white; padding: 10px 24px; border: none; border-radius: var(--border-radius); font-size: 1.05em; font-weight: 500; transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease; box-shadow: var(--box-shadow-sm); cursor: pointer;}
-    .stButton:not(.login-container .stButton) button:hover {background-color: #218838; transform: translateY(-2px); box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);}
-    .stButton:not(.login-container .stButton) button:active {transform: translateY(0px); box-shadow: var(--box-shadow-sm);}
-    .stButton button[id*="logout_button_sidebar"] {background-color: var(--danger-color) !important; border: 1px solid var(--danger-color) !important; color: white !important; font-weight: 500 !important;}
-    .stButton button[id*="logout_button_sidebar"]:hover {background-color: #c82333 !important; border-color: #c82333 !important;}
-    .stTextInput input, .stNumberInput input, .stTextArea textarea, .stDateInput input, .stTimeInput input, .stSelectbox div[data-baseweb="select"] > div {border-radius: var(--border-radius) !important; border: 1px solid var(--input-border-color) !important; padding: 10px 12px !important; font-size: 1em !important; color: var(--text-color) !important; background-color: var(--card-bg-color) !important; transition: border-color 0.2s ease, box-shadow 0.2s ease;}
-    .stTextInput input::placeholder, .stNumberInput input::placeholder, .stTextArea textarea::placeholder {color: var(--text-muted-color) !important; opacity: 1;}
-    .stTextArea textarea {min-height: 120px;}
-    .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus, .stDateInput input:focus, .stTimeInput input:focus, .stSelectbox div[data-baseweb="select"] > div:focus-within {border-color: var(--secondary-color) !important; box-shadow: 0 0 0 0.2rem rgba(32, 112, 192, 0.25) !important;}
-    [data-testid="stSidebar"] {background-color: var(--primary-color); padding: 25px !important; box-shadow: 0.25rem 0 1rem rgba(0,0,0,0.1);}
-    [data-testid="stSidebar"] .sidebar-content {padding-top: 10px;}
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] div:not([data-testid="stRadio"]) {color: #e9ecef !important;}
-    [data-testid="stSidebar"] .stRadio > label > div > p {font-size: 1.05em !important; color: var(--accent-color) !important; padding: 0; margin: 0;}
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {color: var(--card-bg-color) !important; font-weight: 600;}
-    [data-testid="stSidebar"] .stRadio > label {padding: 10px 15px; border-radius: var(--border-radius); margin-bottom: 6px; transition: background-color 0.2s ease;}
-    [data-testid="stSidebar"] .stRadio > label:hover {background-color: rgba(255, 255, 255, 0.08);}
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {background-color: rgba(255, 255, 255, 0.15);}
-    .welcome-text {font-size: 1.4em; font-weight: 600; margin-bottom: 25px; text-align: center; color: var(--card-bg-color) !important; border-bottom: 1px solid var(--accent-color); padding-bottom: 20px;}
-    [data-testid="stSidebar"] [data-testid="stImage"] > img {border-radius: 50%; border: 3px solid var(--accent-color); margin: 0 auto 10px auto; display: block;}
-    .stDataFrame {width: 100%; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--box-shadow-sm); margin-bottom: 25px;}
-    .stDataFrame table {width: 100%; border-collapse: collapse;}
-    .stDataFrame table thead th {background-color: #e9ecef; color: var(--primary-color); font-weight: 600; text-align: left; padding: 14px 18px; border-bottom: 2px solid var(--border-color); font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px;}
-    .stDataFrame table tbody td {padding: 12px 18px; border-bottom: 1px solid #f1f3f5; vertical-align: middle; color: var(--text-color); font-size: 0.9em;}
-    .stDataFrame table tbody tr:last-child td {border-bottom: none;}
-    .stDataFrame table tbody tr:hover {background-color: #f8f9fa;}
-    .employee-progress-item {border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 15px; text-align: center; background-color: #fdfdfd; margin-bottom: 10px;}
-    .employee-progress-item h6 {margin-top: 0; margin-bottom: 5px; font-size: 1em; color: var(--primary-color);}
-    .employee-progress-item p {font-size: 0.85em; color: var(--text-muted-color); margin-bottom: 8px;}
-    .button-column-container > div[data-testid="stHorizontalBlock"] {gap: 20px;}
-    .button-column-container .stButton button {width: 100%;}
-    div[role="radiogroup"] {display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;}
-    div[role="radiogroup"] > label {background-color: #23578c; color: var(#ffffff); padding: 10px 18px; border-radius: var(--border-radius); border: 1px solid var(--input-border-color); cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; font-size: 0.95em; font-weight: 500;}
-    div[role="radiogroup"] > label:hover {background-color: #4664a5; border-color: #adb5bd; color:#ffffff;}
-    div[role="radiogroup"] div[data-baseweb="radio"][aria-checked="true"] + label {background-color: var(--secondary-color) !important; color: white !important; border-color: var(--secondary-color) !important; font-weight: 500;}
-    .employee-section-header {color: var(--secondary-color); margin-top: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 1.35em;}
-    .record-type-header {font-size: 1.2em; color: var(--text-color); margin-top: 25px; margin-bottom: 12px; font-weight: 600;}
-    div[data-testid="stImage"] > img {border-radius: var(--border-radius-lg); border: 1px solid var(--border-color); box-shadow: var(--box-shadow-sm);}
-    .stProgress > div > div {background-color: var(--secondary-color) !important; border-radius: var(--border-radius);}
-    .stProgress {border-radius: var(--border-radius); background-color: #e9ecef;}
-    div[data-testid="stMetricLabel"] {font-size: 0.95em !important; color: var(--text-muted-color) !important; font-weight: 500;}
-    div[data-testid="stMetricValue"] {font-size: 1.8em !important; font-weight: 600; color: var(--primary-color);}
-    .custom-notification {padding: 15px 20px; border-radius: var(--border-radius); margin-bottom: 20px; font-size: 1em; border-left-width: 5px; border-left-style: solid; display: flex; align-items: center;}
-    .custom-notification.success {background-color: #d1e7dd; color: #0f5132; border-left-color: var(--success-color);}
-    .custom-notification.error {background-color: #f8d7da; color: #842029; border-left-color: var(--danger-color);}
-    .custom-notification.warning {background-color: #fff3cd; color: #664d03; border-left-color: var(--warning-color);}
-    .custom-notification.info {background-color: #cff4fc; color: #055160; border-left-color: var(--info-color);}
-    .badge {display: inline-block; padding: 0.35em 0.65em; font-size: 0.85em; font-weight: 600; line-height: 1; color: #fff; text-align: center; white-space: nowrap; vertical-align: baseline; border-radius: var(--border-radius);}
-    .badge.green {background-color: var(--success-color);}
-    .badge.red {background-color: var(--danger-color);}
-    .badge.orange {background-color: var(--warning-color);}
-    .badge.blue {background-color: var(--secondary-color);}
-    .badge.grey {background-color: var(--text-muted-color);}
+
+    /* Base Styles */
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: var(--body-bg-color);
+        color: var(--text-color);
+    }
+
+    /* Sidebar Styles - Simplified Text Navigation */
+    [data-testid="stSidebar"] {
+        background-color: var(--sidebar-bg) !important;
+        padding: 0 !important;
+    }
+
+    /* Welcome Header */
+    [data-testid="stSidebar"] .welcome-text {
+        color: white !important;
+        font-weight: 500 !important;
+        padding: 24px 24px 16px !important;
+        margin: 0 !important;
+        border-bottom: 1px solid var(--sidebar-divider) !important;
+    }
+
+    /* Navigation Items - Plain Text with Dividers */
+    [data-testid="stSidebar"] .stRadio > label {
+        display: block;
+        padding: 12px 24px !important;
+        margin: 0 !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+        border-bottom: 1px solid var(--sidebar-divider) !important;
+        transition: none !important;
+    }
+
+    /* Remove button styling */
+    [data-testid="stSidebar"] .stRadio > label:hover {
+        background: transparent !important;
+    }
+
+    /* Text Styling */
+    [data-testid="stSidebar"] .stRadio > label > div > p {
+        color: var(--sidebar-text) !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        margin: 0 !important;
+    }
+
+    /* Active Item Styling */
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
+        color: var(--sidebar-text-active) !important;
+        font-weight: 500 !important;
+    }
+
+    /* Remove last divider */
+    [data-testid="stSidebar"] .stRadio > label:last-child {
+        border-bottom: none !important;
+    }
+
+    /* Main Content Area */
+    .main .block-container {
+        padding: 2rem 3rem !important;
+    }
+
+    /* Card Styling */
+    .card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color);
+    }
+
+    /* Empty State Messages */
+    .main .stMarkdown p {
+        color: var(--text-muted-color);
+        font-style: italic;
+    }
 </style>
 """
 st.markdown(html_css, unsafe_allow_html=True)
@@ -306,7 +327,8 @@ with st.sidebar:
         "Allowance",
         "Goal Tracker",
         "Payment Collection Tracker",
-        "View Logs"
+        "View Logs",
+        "Create Order"
     ]
 
     nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
@@ -332,7 +354,7 @@ with st.sidebar:
 #------------------------------------------------------------------------closed navbar
 
 # --- Main Content ---
-if nav == "📆 Attendance":
+if nav == "Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
     st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Upload Activity Photo' section.", icon="ℹ️") # Updated info
@@ -363,7 +385,7 @@ if nav == "📆 Attendance":
             process_general_attendance("Check-Out")
     st.markdown('</div></div>', unsafe_allow_html=True)
 
-elif nav == "📸 Upload Activity Photo":
+elif nav == "Upload Activity Photo":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
     current_lat = pd.NA; current_lon = pd.NA # Placeholder, actual location capture not implemented here
@@ -393,7 +415,7 @@ elif nav == "📸 Upload Activity Photo":
             except Exception as e: st.session_state.user_message = f"Error saving activity: {e}"; st.session_state.message_type = "error"; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == "🧾 Allowance":
+elif nav == "Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💼 Claim Allowance</h3>", unsafe_allow_html=True)
     st.markdown("<div class='form-field-label'><h6>Select Allowance Type:</h6></div>", unsafe_allow_html=True)
@@ -413,7 +435,7 @@ elif nav == "🧾 Allowance":
         else: st.warning("Please complete all fields with valid values.") # This warning shows directly, fine.
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == "🎯 Goal Tracker":
+elif nav == "Goal Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_GOAL_YEAR = 2025; current_quarter_for_display = get_quarter_str_for_year(TARGET_GOAL_YEAR)
@@ -532,7 +554,7 @@ elif nav == "🎯 Goal Tracker":
         else: st.info(f"No past goal records for {TARGET_GOAL_YEAR}.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-elif nav == "💰 Payment Collection Tracker":
+elif nav == "Payment Collection Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💰 Payment Collection Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_YEAR_PAYMENT = 2025; current_quarter_display_payment = get_quarter_str_for_year(TARGET_YEAR_PAYMENT)
@@ -656,7 +678,7 @@ elif nav == "💰 Payment Collection Tracker":
         else: st.info("No past collection goals.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == "📊 View Logs":
+elif nav == "View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📊 View Logs</h3>", unsafe_allow_html=True)
     def display_activity_logs_with_photos(df_logs, user_name_for_header):
@@ -738,3 +760,54 @@ elif nav == "📊 View Logs":
         if not my_payment_goals_log.empty: st.dataframe(my_payment_goals_log.sort_values(by="MonthYear", ascending=False).reset_index(drop=True), use_container_width=True)
         else: st.warning("No payment collection goals records found for you")
     st.markdown('</div>', unsafe_allow_html=True)
+
+elif nav == "Create Order":
+    st.title("Create New Order")
+
+    # Load store and product data
+    stores_df = pd.read_csv("agri_stores.csv")
+    products_df = pd.read_csv("symplanta_products_with_images.csv")
+
+    # Store selector
+    store_name = st.selectbox("Select Store", sorted(stores_df["StoreName"].dropna().astype(str).unique()))
+    selected_store = stores_df[stores_df["StoreName"] == store_name].iloc[0]
+
+    # Product selector
+    product_name = st.selectbox(
+        "Select Product",
+        sorted(products_df["Product Name"].dropna().astype(str).unique())
+    )
+
+    product_sizes = products_df[products_df["Product Name"] == product_name]
+
+    size = st.selectbox(
+        "Select Size",
+        sorted(product_sizes["Size"].dropna().astype(str).unique())
+    )
+
+    quantity = st.number_input("Enter Quantity", min_value=1, value=1)
+
+    if st.button("Add to Order"):
+        if "order_items" not in st.session_state:
+            st.session_state["order_items"] = []
+
+        selected_product = product_sizes[product_sizes["Size"] == size].iloc[0]
+        item = {
+            "Store": store_name,
+            "Product": product_name,
+            "Size": size,
+            "Quantity": quantity,
+            "Unit Price": selected_product["Price"],
+            "Total": selected_product["Price"] * quantity
+        }
+        st.session_state["order_items"].append(item)
+        st.success("Item added to order!")
+
+    # Show current order items
+    if "order_items" in st.session_state and st.session_state["order_items"]:
+        st.subheader("🧾 Order Summary")
+        order_df = pd.DataFrame(st.session_state["order_items"])
+        order_df["Total"] = order_df["Total"].round(2)
+        st.dataframe(order_df, use_container_width=True)
+
+        st.markdown(f"**Grand Total: ₹{order_df['Total'].sum():,.2f}**")
