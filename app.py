@@ -121,8 +121,15 @@ st.markdown("""
     .sidebar-app-header h2 { color: var(--kaggle-blue); font-size: 1.5rem; margin: 0; font-weight: 600; }
     .sidebar-app-header p { color: #666; font-size: 0.85rem; margin: 4px 0 0 0; }
     .sidebar-user-info-block { padding: 12px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--kaggle-gray-border); }
-    .user-profile-img-display { border-radius: 50% !important; width: 40px !important; height: 40px !important; object-fit: cover !important; border: 1px solid var(--kaggle-gray-border) !important; }
-    .user-details-text-block div:nth-child(1) { color: var(--kaggle-dark-text) !important; font-size: 0.95rem; font-weight: 500; }
+/* Styling for the user profile image in the sidebar */
+.sidebar-user-info-block .user-profile-image-wrapper img { /* Target img within the new wrapper */
+    border-radius: 50% !important;
+    /* width: 40px !important; /* Width is controlled by st.image(width=40) */
+    /* height: 40px !important; /* Height will adjust if width is set, or set explicitly */
+    object-fit: cover !important;
+    border: 1px solid var(--kaggle-gray-border) !important;
+    display: block !important; /* Helps with centering or layout if needed */
+}    .user-details-text-block div:nth-child(1) { color: var(--kaggle-dark-text) !important; font-size: 0.95rem; font-weight: 500; }
     .user-details-text-block div:nth-child(2) { color: #777 !important; font-size: 0.8rem; }
     .logout-button-container-main { margin-top: auto; padding: 16px; border-top: 1px solid var(--kaggle-gray-border); }
     .logout-button-container-main .stButton button {
