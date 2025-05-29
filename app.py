@@ -1,10 +1,7 @@
-
 # Placeholder for the corrected Streamlit app.py code
 # Add your full working application logic here...
 # import streamlit as st # Commented out the initial one, as it's re-imported later.
 # st.title("Attendance Log System - Placeholder") # Removed this initial title
-
-
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta
@@ -88,69 +85,110 @@ import streamlit as st
 # Add your CSS styles using st.markdown
 st.markdown("""
 <style>
-    /* Main styling */
+    /* Main styling - Kaggle-like theme */
     :root {
-        --kaggle-blue: #20BEFF;
-        --kaggle-dark: #1C1C1C;
-        --kaggle-light: #F5F5F5;
-        --kaggle-gray: #E0E0E0;
+        --kaggle-blue: #20BEFF; /* Main accent color */
+        --kaggle-dark-text: #333333;
+        --kaggle-light-bg: #FFFFFF; /* Sidebar background */
+        --kaggle-content-bg: #F5F5F5; /* Main content area background */
+        --kaggle-gray-border: #E0E0E0;
+        --kaggle-hover-bg: #f0f8ff; /* Light blue hover for items */
+        --kaggle-selected-bg: #E6F7FF;
+        --kaggle-selected-text: var(--kaggle-blue);
+        --kaggle-icon-color: #555555;
+        --kaggle-icon-selected-color: var(--kaggle-blue);
     }
     
+    body { /* Ensure body takes the content background */
+        background-color: var(--kaggle-content-bg) !important;
+    }
+    div[data-testid="stAppViewContainer"] > .main { /* Main content area */
+        background-color: var(--kaggle-content-bg) !important;
+        padding: 1.5rem; /* Add padding to main content area */
+    }
+
     /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        background-color: white !important;
-        border-right: 1px solid var(--kaggle-gray) !important;
+    section[data-testid="stSidebar"] > div:first-child {
+        background-color: var(--kaggle-light-bg) !important;
+        border-right: 1px solid var(--kaggle-gray-border) !important;
+        padding: 0px !important; /* Let content inside manage padding */
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
     }
     
-    .sidebar-icon {
-        font-size: 20px;
-        margin-right: 10px;
-        color: #666;
+    .sidebar-app-header {
+        padding: 20px 16px 16px 16px;
+        border-bottom: 1px solid var(--kaggle-gray-border);
     }
-    
-    .sidebar-item {
-        padding: 8px 16px;
-        border-radius: 4px;
-        margin: 4px 0;
+    .sidebar-app-header h2 {
+        color: var(--kaggle-blue);
+        font-size: 1.5rem; margin: 0; font-weight: 600;
+    }
+    .sidebar-app-header p {
+        color: #666; font-size: 0.85rem; margin: 4px 0 0 0;
+    }
+
+    .sidebar-user-info-block {
+        padding: 12px 16px;
         display: flex;
         align-items: center;
+        gap: 12px;
+        border-bottom: 1px solid var(--kaggle-gray-border);
+    }
+    .user-profile-img-display { /* Class for the img tag if st.image allows it, or its container */
+        border-radius: 50% !important;
+        width: 40px !important; height: 40px !important;
+        object-fit: cover !important;
+        border: 1px solid var(--kaggle-gray-border) !important;
+    }
+    .user-details-text-block div:nth-child(1) { /* Username */
+        color: var(--kaggle-dark-text) !important; font-size: 0.95rem; font-weight: 500;
+    }
+    .user-details-text-block div:nth-child(2) { /* Position */
+        color: #777 !important; font-size: 0.8rem;
     }
     
-    .sidebar-item:hover {
-        background-color: var(--kaggle-light);
-    }
-    
-    .sidebar-item.active {
-        background-color: #E6F7FF;
-        color: var(--kaggle-blue);
-        font-weight: 500;
-    }
-    
-    .sidebar-item.active .sidebar-icon {
-        color: var(--kaggle-blue);
-    }
-    
-    /* Main content styling */
-    .dataset-card {
-        border: 1px solid var(--kaggle-gray);
-        border-radius: 8px;
+    /* Logout Button Container */
+    .logout-button-container-main {
+        margin-top: auto; /* Pushes to bottom */
         padding: 16px;
-        margin-bottom: 16px;
+        border-top: 1px solid var(--kaggle-gray-border); /* Separator above logout */
     }
+    .logout-button-container-main .stButton button {
+        background-color: transparent !important;
+        color: #d32f2f !important; /* Reddish color */
+        border: 1px solid #ef9a9a !important; /* Light red border */
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        font-size: 0.9rem !important; border-radius: 6px !important; width: 100% !important;
+    }
+    .logout-button-container-main .stButton button:hover {
+        background-color: rgba(211, 47, 47, 0.05) !important; /* Light red hover */
+        border-color: #d32f2f !important;
+    }
+    .logout-button-container-main .stButton button i.bi { /* If using Bootstrap icon in logout button */
+        margin-right: 8px;
+    }
+
+    /* Main content card styling */
+    .card {
+        border: 1px solid var(--kaggle-gray-border);
+        border-radius: 8px; padding: 24px; margin-bottom: 20px;
+        background-color: var(--kaggle-light-bg);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card h3 { color: var(--kaggle-blue); font-size: 1.3rem; margin-top: 0; margin-bottom: 1rem;}
     
-    .dataset-title {
-        color: var(--kaggle-blue);
-        font-size: 18px;
-        font-weight: 600;
-    }
+    /* Custom notification styling */
+    .custom-notification { padding: 1rem; border-radius: 6px; margin-bottom: 1rem; border: 1px solid transparent; font-size: 0.9rem; }
+    .custom-notification.success { color: #0f5132; background-color: #d1e7dd; border-color: #badbcc; }
+    .custom-notification.error { color: #842029; background-color: #f8d7da; border-color: #f5c2c7; }
 </style>
 
 
 """, unsafe_allow_html=True)
 
-# Your Streamlit app code continues here...
 
-"""
 st.markdown(html_css, unsafe_allow_html=True)
 
 # --- Credentials & User Info ---
