@@ -143,6 +143,16 @@ st.markdown("""
     .custom-notification { padding: 1rem; border-radius: 6px; margin-bottom: 1rem; border: 1px solid transparent; font-size: 0.9rem; }
     .custom-notification.success { color: #0f5132; background-color: #d1e7dd; border-color: #badbcc; }
     .custom-notification.error { color: #842029; background-color: #f8d7da; border-color: #f5c2c7; }
+
+    /* Styling for the user profile image in the sidebar */
+.sidebar-user-info-block .user-profile-image-wrapper-css img { /* Target img within the wrapper */
+    border-radius: 50% !important;
+    /* width: 40px !important; /* Width is controlled by st.image(width=40) in Python */
+    /* height: 40px !important; /* Height can also be set here if needed or let it adjust */
+    object-fit: cover !important;
+    border: 1px solid var(--kaggle-gray-border) !important;
+    display: block !important; /* Good for layout control */
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -215,26 +225,49 @@ if st.session_state.user_message:
     message_placeholder_main.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
     st.session_state.user_message = None; st.session_state.message_type = None
 
+# --- SIDEBAR IMPLEMENTATION ---
 with st.sidebar:
     st.markdown("""<div class="sidebar-app-header"><h2>TrackSphere</h2><p>Field Activity Tracker</p></div>""", unsafe_allow_html=True)
     current_username_sb = current_user.get('username', 'Guest')
     user_details_sb = USERS.get(current_username_sb, {})
     profile_photo_sb = user_details_sb.get("profile_photo", "")
-    st.markdown('<div class="sidebar-user-info-block">', unsafe_allow_html=True)
-    if profile_photo_sb and os.path.exists(profile_photo_sb) and PILLOW_INSTALLED:
-        st.image(profile_photo_sb, width=40, new_class="user-profile-img-display") # Try adding a class if st.image supports it
-    else:
-        st.markdown(f"""<i class="bi bi-person-circle" style="font-size: 36px; color: var(--kaggle-icon-color); vertical-align:middle;"></i>""", unsafe_allow_html=True)
-    st.markdown(f"""<div class="user-details-text-block"><div>{current_username_sb}</div><div>{user_details_sb.get('position', 'N/A')}</div></div>""", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
+    # User Info Block
+    st.markdown('<div class="sidebar-user-info-block">', unsafe_allow_html=True)
+    
+    # Container for the image
+    st.markdown('<div class="user-profile-image-wrapper-css">', unsafe_allow_html=True) # CSS will target img inside this
+    if profile_photo_sb and os.path.exists(profile_photo_sb) and PILLOW_INSTALLED:
+        st.image(
+            profile_photo_sb,
+            width=40 # Width is set here
+        )
+    else:
+        # Fallback Bootstrap icon
+        st.markdown(f"""<i class="bi bi-person-circle" style="font-size: 36px; color: var(--kaggle-icon-color); vertical-align:middle;"></i>""", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True) # Close user-profile-image-wrapper-css
+    
+    st.markdown(f"""
+        <div class="user-details-text-block">
+            <div>{current_username_sb}</div>
+            <div>{user_details_sb.get('position', 'N/A')}</div>
+        </div>
+    """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-user-info-block
+
+    # ... (rest of your sidebar code: option_menu, logout button) ...
+    # (Make sure APP_MENU_OPTIONS is defined before this block if it's not global)
     app_menu_icons = ['calendar2-check', 'camera', 'wallet2', 'graph-up', 'cash-stack', 'journals', 'cart3']
+    if "Home" not in APP_MENU_OPTIONS:
+        APP_MENU_OPTIONS.insert(0, "Home")
+        app_menu_icons.insert(0, 'house-door')
+
     if st.session_state.get('active_page') not in APP_MENU_OPTIONS: st.session_state.active_page = APP_MENU_OPTIONS[0]
     default_idx = APP_MENU_OPTIONS.index(st.session_state.active_page)
     selected = option_menu(
         menu_title=None, options=APP_MENU_OPTIONS, icons=app_menu_icons, default_index=default_idx,
         orientation="vertical", on_change=lambda key: st.session_state.update(active_page=key),
-        key='main_app_option_menu',
+        key='main_app_option_menu_v3', # Ensure unique key
         styles={
             "container": {"padding": "5px 8px !important", "background-color": "var(--kaggle-light-bg)"},
             "icon": {"color": "var(--kaggle-icon-color)", "font-size": "18px", "margin-right":"10px"},
@@ -243,11 +276,13 @@ with st.sidebar:
             "nav-link-selected > i.icon": {"color": "var(--kaggle-icon-selected-color) !important"}
         })
     st.markdown('<div class="logout-button-container-main">', unsafe_allow_html=True)
-    if st.button("🚪 Logout", key="logout_app_button_key_v2", use_container_width=True):
+    if st.button("🚪 Logout", key="logout_app_button_key_v4", use_container_width=True): # Unique key
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.session_state.user_message = "Logged out successfully."; st.session_state.message_type = "info"
         st.session_state.active_page = APP_MENU_OPTIONS[0]; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
+
+
 
 # --- MAIN CONTENT PAGE ROUTING ---
 if selected == "Attendance":
