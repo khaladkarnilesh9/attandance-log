@@ -83,7 +83,7 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     return fig
 
 html_css = """
-<style>
+    <style>
     /* Import Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
@@ -100,6 +100,83 @@ html_css = """
         --text-color: ##0f4d88;
         --text-muted-color: #5f6368;
         --border-color: #dadce0;
+    }
+
+    /* Base Styles */
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: var(--body-bg-color);
+        color: var(--text-color);
+    }
+
+    /* Sidebar Styles - Simplified Text Navigation */
+    [data-testid="stSidebar"] {
+        background-color: var(--sidebar-bg) !important;
+        padding: 0 !important;
+    }
+
+    /* Welcome Header */
+    [data-testid="stSidebar"] .welcome-text {
+        color: white !important;
+        font-weight: 500 !important;
+        padding: 24px 24px 16px !important;
+        margin: 0 !important;
+        border-bottom: 1px solid var(--sidebar-divider) !important;
+    }
+
+    /* Navigation Items - Plain Text with Dividers */
+    [data-testid="stSidebar"] .stRadio > label {
+        display: block;
+        padding: 12px 24px !important;
+        margin: 0 !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+        border-bottom: 1px solid var(--sidebar-divider) !important;
+        transition: none !important;
+    }
+
+    /* Remove button styling */
+    [data-testid="stSidebar"] .stRadio > label:hover {
+        background: transparent !important;
+    }
+
+    /* Text Styling */
+    [data-testid="stSidebar"] .stRadio > label > div > p {
+        color: var(--sidebar-text) !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        margin: 0 !important;
+    }
+
+    /* Active Item Styling */
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
+        color: var(--sidebar-text-active) !important;
+        font-weight: 500 !important;
+    }
+
+    /* Remove last divider */
+    [data-testid="stSidebar"] .stRadio > label:last-child {
+        border-bottom: none !important;
+    }
+
+    /* Main Content Area */
+    .main .block-container {
+        padding: 2rem 3rem !important;
+    }
+
+    /* Card Styling */
+    .card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color);
+    }
+
+    /* Empty State Messages */
+    .main .stMarkdown p {
+        color: var(--text-muted-color);
+        font-style: italic;
     }
 
     /* Base Styles */
