@@ -1,9 +1,3 @@
-# Placeholder for the corrected Streamlit app.py code
-# Add your full working application logic here...
-# import streamlit as st # Commented out the initial one, as it's re-imported later.
-# st.title("Attendance Log System - Placeholder") # Removed this initial title
-
-
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta
@@ -25,7 +19,7 @@ except ImportError:
     PILLOW_INSTALLED = False
 
 
-# <<<< ADD BOOTSTRAP, MATERIAL ICONS AND NEW CUSTOM CSS HERE >>>>
+# <<<< BOOTSTRAP, MATERIAL ICONS AND CUSTOM CSS >>>>
 st.markdown("""
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Material Icons -->
@@ -39,11 +33,12 @@ st.markdown("""
     body, .stButton button, .stTextInput input, .stTextArea textarea, .stSelectbox select {
         font-family: 'Roboto', sans-serif;
     }
+    /* General styling for Material Icons (used as .nav-icon or directly) */
     .material-symbols-outlined {
         font-family: 'Material Symbols Outlined';
         font-weight: normal;
         font-style: normal;
-        font-size: 20px; /* Preferred icon size */
+        font-size: 22px; /* Icon size */
         line-height: 1;
         letter-spacing: normal;
         text-transform: none;
@@ -55,9 +50,12 @@ st.markdown("""
         text-rendering: optimizeLegibility;
         -moz-osx-font-smoothing: grayscale;
         font-feature-settings: 'liga';
-        vertical-align: middle; /* Align icon with text */
-        margin-right: 8px; /* Space between icon and text */
     }
+    .nav-icon { /* Specific class for icons in nav items for alignment */
+        vertical-align: -0.2em; /* Fine-tune vertical alignment */
+        color: #5f6368; /* Default icon color */
+    }
+
 
     /* Streamlit's default sidebar container */
     section[data-testid="stSidebar"] > div:first-child {
@@ -69,65 +67,80 @@ st.markdown("""
         height: 100%;
         display: flex;
         flex-direction: column;
-        padding: 1rem;
+        padding: 1rem; /* Overall padding for the content inside sidebar */
     }
 
-    /* Styling for st.button to look like Bootstrap nav-links */
-    .sidebar-nav .stButton button {
-        display: flex !important; /* Changed to flex for icon alignment */
-        align-items: center !important; /* Vertically align icon and text */
-        width: 100% !important;
-        text-align: left !important;
-        border: none !important;
-        padding: 0.6rem 1rem !important; /* Slightly more padding for icon */
-        margin-bottom: 0.125rem !important;
-        border-radius: 0.375rem !important;
-        font-weight: 400 !important;
-        font-size: 0.95rem !important; /* Ensure button text size is consistent */
-        line-height: 1.5 !important;
-        background-color: transparent !important;
-        color: #212529 !important;
+    /* Styling for each navigation item ROW */
+    .nav-item-row {
+        display: flex !important; 
+        align-items: center !important;
+        width: 100%;
+        padding: 0.5rem 0.75rem; 
+        margin-bottom: 0.125rem;
+        border-radius: 0.375rem;
         transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+        color: #212529; 
     }
-    .sidebar-nav .stButton button:hover {
-        color: #000 !important;
+
+    .nav-item-row:hover {
         background-color: #e9ecef !important;
+        color: #000 !important;
     }
-    .sidebar-nav .stButton button:focus,
-    .sidebar-nav .stButton button:active {
-        box-shadow: none !important;
+    .nav-item-row.active {
+        background-color: #0d6efd !important;
+        color: #fff !important;
+        font-weight: 500;
+    }
+    .nav-item-row.active .nav-icon { 
+        color: #fff !important;
+    }
+    .nav-item-row:hover .nav-icon {
+         color: #000 !important;
+    }
+
+
+    /* Styling the icon's column within the nav item row */
+    .nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(1) { 
+        display: flex;
+        align-items: center;
+        justify-content: flex-start; 
+        flex-grow: 0 !important; /* Prevent icon column from growing */
+        flex-shrink: 0 !important; /* Prevent icon column from shrinking */
+        flex-basis: auto !important; /* Let content define basis or set a fixed one like 30px */
+        padding-right: 0px; 
+    }
+    /* Styling the st.button WIDGET within the second column */
+    .nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button {
+        text-align: left !important;
+        padding: 0 !important; 
+        margin: 0 !important;
+        border: none !important;
+        background-color: transparent !important; 
+        color: inherit !important; 
+        font-weight: inherit !important; 
+        font-size: 0.9rem !important; 
+        line-height: 1.5 !important;
+        width: 100% !important;
+        display: block !important;
+        box-shadow: none !important; 
         outline: none !important;
     }
-
-    /* Ensure icon color matches button text color */
-    .sidebar-nav .stButton button .material-symbols-outlined {
-        color: inherit !important; /* Icon inherits color from button text */
-        font-size: 20px !important; /* Consistent icon size */
+    .nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button:hover,
+    .nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button:focus,
+    .nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button:active {
+        background-color: transparent !important;
+        color: inherit !important;
+        box-shadow: none !important;
+        outline: none !important;
+        border: none !important;
     }
-    
-
-    /* Active navigation button styling */
-    .sidebar-nav div.active-button-wrapper .stButton button {
-        font-weight: 500 !important;
-        color: #fff !important;
-        background-color: #0d6efd !important;
-    }
-    .sidebar-nav div.active-button-wrapper .stButton button:hover {
-        color: #fff !important;
-        background-color: #0b5ed7 !important;
-    }
-    /* Icon color for active button */
-    .sidebar-nav div.active-button-wrapper .stButton button .material-symbols-outlined {
-        color: #fff !important; /* White icon for active state */
-    }
-
 
     .welcome-text-sidebar {
         font-size: 1.1rem;
         font-weight: 500;
         color: #212529;
         margin-bottom: 0.5rem;
-        padding-left: 0.5rem; /* Align with nav items if they have padding */
+        padding-left: 0.5rem;
     }
 
     .user-profile-img-container {
@@ -155,25 +168,25 @@ st.markdown("""
     }
 
     .logout-button-container {
-        margin-top: auto;
-        padding-top: 1rem;
+        margin-top: auto; 
+        padding-top: 1rem; 
     }
-    .logout-button-container .stButton button {
+    .nav-item-row.logout-row-styling { 
         background-color: #6c757d !important;
         color: white !important;
-        border: none !important;
-        width: 100% !important;
-        font-weight: 500 !important;
-        /* Ensure logout button also aligns icon if one were added */
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center; /* Center if only text or icon+text */
     }
-    .logout-button-container .stButton button:hover {
+    .nav-item-row.logout-row-styling:hover {
         background-color: #5a6268 !important;
+    }
+    .nav-item-row.logout-row-styling .nav-icon { 
         color: white !important;
     }
-    /* Global message styling */
+    .nav-item-row.logout-row-styling [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button {
+        color: white !important; 
+        font-weight: 500 !important;
+    }
+
+    /* Global message notifications */
     .custom-notification {
         padding: 10px;
         border-radius: 5px;
@@ -192,10 +205,33 @@ st.markdown("""
     .custom-notification.warning {
         color: #664d03; background-color: #fff3cd; border-color: #ffecb5;
     }
+    
+    /* Main content card styling */
+    .card { /* Used for main content sections */
+        background-color: #ffffff;
+        padding: 24px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        border: 1px solid #dadce0;
+        box-shadow: 0 1px 3px 0 rgba(60,64,67,0.1), 0 1px 2px 0 rgba(60,64,67,0.06);
+    }
+    .button-column-container .stButton button { /* For Check-in/Check-out buttons */
+        width: 100%;
+    }
+    .employee-progress-item h6 {
+        margin-bottom: 0.25rem;
+        font-size: 1rem;
+    }
+     .employee-progress-item p {
+        font-size: 0.85rem;
+        color: #5f6368;
+        margin-bottom: 0.5rem;
+    }
+
 
 </style>
 """, unsafe_allow_html=True)
-# <<<< END OF BOOTSTRAP AND NEW CUSTOM CSS >>>>
+# <<<< END OF CSS >>>>
 
 
 # --- Credentials & User Info ---
@@ -222,21 +258,21 @@ if PILLOW_INSTALLED:
                 try: font = ImageFont.truetype("arial.ttf", 40)
                 except IOError: font = ImageFont.load_default()
                 text = user_key[:2].upper()
-                if hasattr(draw, 'textbbox'): 
+                if hasattr(draw, 'textbbox'):
                     bbox = draw.textbbox((0,0), text, font=font); text_width, text_height = bbox[2]-bbox[0], bbox[3]-bbox[1]
-                    text_x, text_y = (120-text_width)/2, (120-text_height)/2 - bbox[1] 
-                elif hasattr(draw, 'textsize'): 
+                    text_x, text_y = (120-text_width)/2, (120-text_height)/2 - bbox[1]
+                elif hasattr(draw, 'textsize'):
                     text_width, text_height = draw.textsize(text, font=font); text_x, text_y = (120-text_width)/2, (120-text_height)/2
-                else: 
+                else:
                     text_x, text_y = 30,30
                 draw.text((text_x, text_y), text, fill=(28,78,128), font=font); img.save(img_path)
-            except Exception: pass 
+            except Exception: pass
 
 # --- File Paths & Timezone & Directories ---
 ATTENDANCE_FILE = "attendance.csv"; ALLOWANCE_FILE = "allowances.csv"; GOALS_FILE = "goals.csv"; PAYMENT_GOALS_FILE = "payment_goals.csv"
 ACTIVITY_LOG_FILE = "activity_log.csv"
 ACTIVITY_PHOTOS_DIR = "activity_photos"
-ATTENDANCE_PHOTOS_DIR = "attendance_photos" 
+ATTENDANCE_PHOTOS_DIR = "attendance_photos"
 
 if not os.path.exists(ACTIVITY_PHOTOS_DIR):
     try: os.makedirs(ACTIVITY_PHOTOS_DIR)
@@ -249,7 +285,7 @@ TARGET_TIMEZONE = "Asia/Kolkata"
 try: tz = pytz.timezone(TARGET_TIMEZONE)
 except pytz.exceptions.UnknownTimeZoneError: st.error(f"Invalid TARGET_TIMEZONE: '{TARGET_TIMEZONE}'."); st.stop()
 def get_current_time_in_tz(): return datetime.now(timezone.utc).astimezone(tz)
-def get_quarter_str_for_year(year, for_current_display=False): 
+def get_quarter_str_for_year(year, for_current_display=False):
     now_month = get_current_time_in_tz().month
     if 1 <= now_month <= 3: return f"{year}-Q1"
     elif 4 <= now_month <= 6: return f"{year}-Q2"
@@ -263,21 +299,21 @@ def load_data(path, columns):
             if os.path.getsize(path) > 0:
                 df = pd.read_csv(path)
                 for col in columns:
-                    if col not in df.columns: df[col] = pd.NA 
+                    if col not in df.columns: df[col] = pd.NA
                 num_cols = ["Amount", "TargetAmount", "AchievedAmount", "Latitude", "Longitude"]
                 for nc in num_cols:
                     if nc in df.columns: df[nc] = pd.to_numeric(df[nc], errors='coerce')
                 return df
-            else: return pd.DataFrame(columns=columns) 
-        except pd.errors.EmptyDataError: return pd.DataFrame(columns=columns) 
+            else: return pd.DataFrame(columns=columns)
+        except pd.errors.EmptyDataError: return pd.DataFrame(columns=columns)
         except Exception as e: st.error(f"Error loading {path}: {e}."); return pd.DataFrame(columns=columns)
     else:
         df = pd.DataFrame(columns=columns);
         try: df.to_csv(path, index=False)
-        except Exception as e: st.warning(f"Could not create {path}: {e}") 
+        except Exception as e: st.warning(f"Could not create {path}: {e}")
         return df
 
-ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude"] 
+ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude"]
 ALLOWANCE_COLUMNS = ["Username", "Type", "Amount", "Reason", "Date"]
 GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
 PAYMENT_GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
@@ -294,8 +330,9 @@ activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS)
 if "user_message" not in st.session_state: st.session_state.user_message = None
 if "message_type" not in st.session_state: st.session_state.message_type = None
 if "auth" not in st.session_state: st.session_state.auth = {"logged_in": False, "username": None, "role": None}
-# --- Function to render Plotly Express grouped bar chart ---
-def render_goal_chart(df: pd.DataFrame, chart_title: str): # Defined earlier, keep as is
+
+# --- Plotting Functions ---
+def render_goal_chart(df: pd.DataFrame, chart_title: str):
     if df.empty:
         st.warning("No data available to plot.")
         return
@@ -316,8 +353,7 @@ def render_goal_chart(df: pd.DataFrame, chart_title: str): # Defined earlier, ke
     fig.update_xaxes(type='category')
     st.plotly_chart(fig, use_container_width=True)
 
-# --- Function to create Matplotlib Donut Chart ---
-def create_donut_chart(progress_percentage, chart_title="Progress", achieved_color='#2ecc71', remaining_color='#f0f0f0', center_text_color=None): # Defined earlier
+def create_donut_chart(progress_percentage, chart_title="Progress", achieved_color='#2ecc71', remaining_color='#f0f0f0', center_text_color=None):
     fig, ax = plt.subplots(figsize=(2.5, 2.5), dpi=90)
     fig.patch.set_alpha(0); ax.patch.set_alpha(0)
     progress_percentage = max(0.0, min(float(progress_percentage), 100.0))
@@ -332,8 +368,7 @@ def create_donut_chart(progress_percentage, chart_title="Progress", achieved_col
     ax.axis('equal'); plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
     return fig
 
-# --- Function to create Matplotlib Grouped Bar Chart for Team Progress ---
-def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col="Target", achieved_col="Achieved", user_col="Employee"): # Defined earlier
+def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col="Target", achieved_col="Achieved", user_col="Employee"):
     if summary_df.empty: return None
     labels = summary_df[user_col].tolist(); target_amounts = summary_df[target_col].fillna(0).tolist(); achieved_amounts = summary_df[achieved_col].fillna(0).tolist()
     x = np.arange(len(labels)); width = 0.35
@@ -352,17 +387,18 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     return fig
 
 
+# --- Login Page ---
 if not st.session_state.auth["logged_in"]:
     st.title("TrackSphere Login")
     message_placeholder_login = st.empty()
     if st.session_state.user_message:
         message_placeholder_login.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
         st.session_state.user_message = None; st.session_state.message_type = None
-    
+
     st.markdown("<h3>🔐 Login</h3>", unsafe_allow_html=True)
     uname = st.text_input("Username", key="login_uname")
     pwd = st.text_input("Password", type="password", key="login_pwd")
-    if st.button("Login", key="login_button", type="primary"): 
+    if st.button("Login", key="login_button", type="primary"):
         user_creds = USERS.get(uname)
         if user_creds and user_creds["password"] == pwd:
             st.session_state.auth = {"logged_in": True, "username": uname, "role": user_creds["role"]}
@@ -371,7 +407,7 @@ if not st.session_state.auth["logged_in"]:
     st.stop()
 
 # --- Main Application ---
-current_user = st.session_state.auth 
+current_user = st.session_state.auth
 
 # Global Message Display for Main Application
 message_placeholder_main = st.empty()
@@ -385,21 +421,19 @@ if "user_message" in st.session_state and st.session_state.user_message:
     st.session_state.message_type = None
 
 
-# <<<< MODIFIED SIDEBAR SECTION >>>>
-# Define navigation options with labels and Material Icon names
+# <<<< SIDEBAR SECTION >>>>
 nav_options_with_icons = [
     {"label": "Attendance", "icon": "schedule"},
     {"label": "Upload Activity Photo", "icon": "add_a_photo"},
     {"label": "Allowance", "icon": "payments"},
     {"label": "Goal Tracker", "icon": "emoji_events"},
     {"label": "Payment Collection Tracker", "icon": "receipt_long"},
-    {"label": "View Logs", "icon": "wysiwyg"}, # was summarize
+    {"label": "View Logs", "icon": "wysiwyg"},
     {"label": "Create Order", "icon": "add_shopping_cart"}
 ]
 
-# Initialize active_page in session state if not already set
 if "active_page" not in st.session_state:
-    st.session_state.active_page = nav_options_with_icons[0]["label"] # Default to first label
+    st.session_state.active_page = nav_options_with_icons[0]["label"]
 
 def set_active_page_callback(page_name):
     st.session_state.active_page = page_name
@@ -419,70 +453,50 @@ with st.sidebar:
         f"<div class='user-position-text'>{user_sidebar_info.get('position', 'N/A')}</div>",
         unsafe_allow_html=True
     )
-
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    st.markdown('<div class="sidebar-nav">', unsafe_allow_html=True)
     for item in nav_options_with_icons:
         option_label = item["label"]
         option_icon = item["icon"]
-        
-        # Construct the HTML for the button label with icon
-        # Streamlit button label does not render HTML. We use markdown as a workaround.
-        # We will use st.button and rely on CSS to style the icon within if Streamlit's internal structure allows it.
-        # The st.button's 'icon' param is for specific emoji-like icons.
-        # For Material Icons, they need to be part of the text or styled with ::before.
-        
-        button_text_with_icon_html = f'<span class="material-symbols-outlined">{option_icon}</span> {option_label}'
-        
         button_key = f"nav_btn_{option_label.lower().replace(' ', '_').replace('(', '').replace(')', '')}"
         is_active = (st.session_state.active_page == option_label)
         
-        # This approach embeds HTML into the button label.
-        # The custom CSS for .stButton button and .material-symbols-outlined will handle styling.
-        if is_active:
-            st.markdown('<div class="active-button-wrapper">', unsafe_allow_html=True)
-            # The button_text_with_icon_html will be treated as a string by st.button
-            # We rely on the CSS to apply 'Material Symbols Outlined' font to the button.
-            st.button(
-                button_text_with_icon_html, 
-                key=button_key, 
-                on_click=set_active_page_callback, 
-                args=(option_label,), 
-                use_container_width=True,
-                unsafe_allow_html=True # THIS IS KEY for rendering HTML in button
-            )
-            st.markdown('</div>', unsafe_allow_html=True)
-        else:
-            st.button(
-                button_text_with_icon_html, 
-                key=button_key, 
-                on_click=set_active_page_callback, 
-                args=(option_label,), 
-                use_container_width=True,
-                unsafe_allow_html=True # THIS IS KEY
-            )
-    st.markdown('</div>', unsafe_allow_html=True)
+        row_class = "nav-item-row active" if is_active else "nav-item-row"
+        
+        st.markdown(f"<div class='{row_class}'>", unsafe_allow_html=True)
+        
+        col_icon, col_button_text = st.columns([1, 5], gap="small") # Adjusted ratio for better spacing
+
+        with col_icon:
+            st.markdown(f'<span class="material-symbols-outlined nav-icon">{option_icon}</span>', unsafe_allow_html=True)
+        
+        with col_button_text:
+            if st.button(option_label, key=button_key, on_click=set_active_page_callback, args=(option_label,), use_container_width=True):
+                pass 
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown('<div class="logout-button-container">', unsafe_allow_html=True)
-    # Adding logout icon
-    logout_button_html = '<span class="material-symbols-outlined">logout</span> Logout'
-    if st.button(logout_button_html, key="logout_button_sidebar", use_container_width=True, unsafe_allow_html=True):
-        st.session_state.auth = {"logged_in": False, "username": None, "role": None}
-        st.session_state.user_message = "Logged out successfully."
-        st.session_state.message_type = "info"
-        st.rerun()
+    st.markdown("<div class='nav-item-row logout-row-styling'>", unsafe_allow_html=True) 
+    logout_col_icon, logout_col_button = st.columns([1, 5], gap="small")
+    with logout_col_icon:
+        st.markdown('<span class="material-symbols-outlined nav-icon">logout</span>', unsafe_allow_html=True)
+    with logout_col_button:
+        if st.button("Logout", key="logout_button_sidebar_actual", use_container_width=True):
+            st.session_state.auth = {"logged_in": False, "username": None, "role": None}
+            st.session_state.user_message = "Logged out successfully."
+            st.session_state.message_type = "info"
+            st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True) 
     st.markdown('</div>', unsafe_allow_html=True) 
     
     st.markdown('</div>', unsafe_allow_html=True) 
-# <<<< END OF MODIFIED SIDEBAR SECTION >>>>
+# <<<< END OF SIDEBAR SECTION >>>>
 
 
-# --- Main Content ---
-# IMPORTANT: All 'if st.session_state.active_page == "..."' must remain.
-
+# --- Main Content Pages ---
 if st.session_state.active_page == "Attendance":
-    st.markdown('<div class="card">', unsafe_allow_html=True) 
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
     st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Upload Activity Photo' section.", icon="ℹ️")
     st.markdown("---"); st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
@@ -631,7 +645,7 @@ elif st.session_state.active_page == "Goal Tracker":
         st.markdown("<h4>My Sales Goals (2025 - Quarterly)</h4>", unsafe_allow_html=True)
         my_goals = goals_df[goals_df["Username"].astype(str) == str(current_user["username"])].copy()
         for col in ["TargetAmount", "AchievedAmount"]: my_goals[col] = pd.to_numeric(my_goals[col], errors="coerce").fillna(0.0)
-        current_g_df = my_goals[my_goals["MonthYear"] == current_quarter_for_display] 
+        current_g_df = my_goals[my_goals["MonthYear"] == current_quarter_for_display]
         st.markdown(f"<h5>Current Goal Period: {current_quarter_for_display}</h5>", unsafe_allow_html=True)
         if not current_g_df.empty:
             g = current_g_df.iloc[0]; target_amt = g["TargetAmount"]; achieved_amt = g["AchievedAmount"]
@@ -710,7 +724,7 @@ elif st.session_state.active_page == "Payment Collection Tracker":
                     team_bar_fig_payment = create_team_progress_bar_chart(summary_df_payment,title="Team Collection Target vs. Achieved",target_col="Target",achieved_col="Achieved")
                     if team_bar_fig_payment:
                         for bar_group in team_bar_fig_payment.axes[0].containers:
-                            if bar_group.get_label()=='Achieved': 
+                            if bar_group.get_label()=='Achieved':
                                 for bar in bar_group: bar.set_color('#2070c0')
                         st.pyplot(team_bar_fig_payment,use_container_width=True)
                     else: st.info("No collection data to plot for team bar chart.")
@@ -829,11 +843,11 @@ elif st.session_state.active_page == "View Logs":
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: View Employee Records</h4>", unsafe_allow_html=True)
         employee_name_list = list(USERS.keys())
-        if "admin" in employee_name_list: employee_name_list.remove("admin") 
+        if "admin" in employee_name_list: employee_name_list.remove("admin")
 
         selected_employee_log = st.selectbox("Select Employee:", employee_name_list, key="log_employee_select_admin_activity")
 
-        if selected_employee_log: 
+        if selected_employee_log:
             emp_activity_log = activity_log_df[activity_log_df["Username"] == selected_employee_log]
             display_activity_logs_with_photos(emp_activity_log, selected_employee_log)
             st.markdown("<br><hr><br>", unsafe_allow_html=True)
@@ -876,7 +890,8 @@ elif st.session_state.active_page == "View Logs":
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif st.session_state.active_page == "Create Order":
-    st.title("Create New Order") 
+    st.markdown('<div class="card">', unsafe_allow_html=True) # Wrap in card for consistency
+    st.title("Create New Order")
 
     try:
         stores_df = pd.read_csv("agri_stores.csv")
@@ -890,41 +905,58 @@ elif st.session_state.active_page == "Create Order":
         "Select Product",
         sorted(products_df["Product Name"].dropna().astype(str).unique())
     )
-    product_sizes = products_df[products_df["Product Name"] == product_name]
-    size = st.selectbox(
-        "Select Size",
-        sorted(product_sizes["Size"].dropna().astype(str).unique())
-    )
+    product_sizes_df = products_df[products_df["Product Name"] == product_name] # Renamed variable
+    
+    # Ensure product_sizes_df is not empty before accessing "Size"
+    if not product_sizes_df.empty:
+        size = st.selectbox(
+            "Select Size",
+            sorted(product_sizes_df["Size"].dropna().astype(str).unique())
+        )
+    else:
+        st.warning(f"No sizes found for product: {product_name}")
+        size = None # or handle as an error
+
     quantity = st.number_input("Enter Quantity", min_value=1, value=1)
 
-    if st.button("Add to Order", type="primary"):
+    if size and st.button("Add to Order", type="primary"): # Check if size is selected
         if "order_items" not in st.session_state:
             st.session_state["order_items"] = []
-        selected_product_df = product_sizes[product_sizes["Size"] == size]
-        if not selected_product_df.empty:
-            selected_product = selected_product_df.iloc[0]
-            item = {
-                "Store": store_name,
-                "Product": product_name,
-                "Size": size,
-                "Quantity": quantity,
-                "Unit Price": selected_product["Price"],
-                "Total": selected_product["Price"] * quantity
-            }
-            st.session_state["order_items"].append(item)
-            st.success("Item added to order!")
+
+        # Filter again by selected size to get the specific product row
+        selected_product_row_df = product_sizes_df[product_sizes_df["Size"] == size]
+        
+        if not selected_product_row_df.empty:
+            selected_product = selected_product_row_df.iloc[0]
+            item_price = pd.to_numeric(selected_product.get("Price"), errors='coerce') # Ensure price is numeric
+
+            if pd.notna(item_price):
+                item = {
+                    "Store": store_name,
+                    "Product": product_name,
+                    "Size": size,
+                    "Quantity": quantity,
+                    "Unit Price": item_price,
+                    "Total": item_price * quantity
+                }
+                st.session_state["order_items"].append(item)
+                st.success("Item added to order!")
+            else:
+                st.warning(f"Price not available for {product_name} - {size}.")
         else:
-            st.warning("Selected product size details not found.")
+            st.warning(f"Selected product details not found for {product_name} - {size}.")
+
 
     if "order_items" in st.session_state and st.session_state["order_items"]:
         st.subheader("🧾 Order Summary")
         order_df = pd.DataFrame(st.session_state["order_items"])
         order_df["Unit Price"] = pd.to_numeric(order_df["Unit Price"], errors='coerce').fillna(0)
         order_df["Total"] = pd.to_numeric(order_df["Total"], errors='coerce').fillna(0)
-        
+
         order_df_display = order_df.copy()
         order_df_display["Unit Price"] = order_df_display["Unit Price"].apply(lambda x: f"₹{x:,.2f}")
         order_df_display["Total"] = order_df_display["Total"].apply(lambda x: f"₹{x:,.2f}")
-        
-        st.dataframe(order_df_display, use_container_width=True)
+
+        st.dataframe(order_df_display, use_container_width=True, hide_index=True) # Hide index for cleaner look
         st.markdown(f"**Grand Total: ₹{order_df['Total'].sum():,.2f}**")
+    st.markdown('</div>', unsafe_allow_html=True) # Close card
