@@ -83,134 +83,103 @@ html_css = """
 <style>
     /* Import Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+    @import url('https://fonts.googleapis.com/css2?family=Material+Icons+Outlined');
 
     :root {
-        /* Color Variables - Kaggle-inspired */
-        --primary-color: #20BEFF;
-        --sidebar-bg: #ffffff;
-        --sidebar-text: #2a2a2a;
-        --sidebar-text-active: #20BEFF;
-        --sidebar-text-hover: #20BEFF;
-        --sidebar-divider: #eaeaea;
-        --sidebar-icon: #737373;
-        --body-bg-color: #f7f7f7;
-        --card-bg-color: #ffffff;
-        --text-color: #2a2a2a;
-        --text-muted-color: #737373;
-        --border-color: #eaeaea;
-        --sidebar-highlight: #f3faff;
+        /* Kaggle-inspired color scheme */
+        --kaggle-primary: #20BEFF;
+        --kaggle-sidebar-bg: #ffffff;
+        --kaggle-sidebar-text: #2a2a2a;
+        --kaggle-sidebar-active: #20BEFF;
+        --kaggle-sidebar-hover: #f3faff;
+        --kaggle-divider: #eaeaea;
+        --kaggle-icon: #5f6368;
     }
 
-    /* Base Styles */
-    body {
-        font-family: 'Roboto', sans-serif;
-        background-color: var(--body-bg-color);
-        color: var(--text-color);
+    /* Sidebar container */
+    section[data-testid="stSidebar"] > div {
+        background-color: var(--kaggle-sidebar-bg) !important;
+        border-right: 1px solid var(--kaggle-divider) !important;
+        padding-top: 0 !important;
     }
 
-    /* Sidebar Styles - Kaggle-like */
-    [data-testid="stSidebar"] {
-        background-color: var(--sidebar-bg) !important;
-        padding: 0 !important;
-        border-right: 1px solid var(--sidebar-divider) !important;
-        box-shadow: none !important;
-    }
-
-    /* Welcome Header */
-    [data-testid="stSidebar"] .welcome-text {
-        color: var(--text-color) !important;
-        font-weight: 600 !important;
+    /* Welcome text */
+    section[data-testid="stSidebar"] .welcome-text {
+        color: var(--kaggle-sidebar-text) !important;
         font-size: 18px !important;
+        font-weight: 600 !important;
         padding: 24px 24px 16px !important;
         margin: 0 !important;
-        border-bottom: 1px solid var(--sidebar-divider) !important;
+        border-bottom: 1px solid var(--kaggle-divider) !important;
     }
 
-    /* Navigation Items - Kaggle-like */
-    [data-testid="stSidebar"] .stRadio > div {
+    /* Custom nav container - replaces radio buttons */
+    .sidebar-nav {
         display: flex;
         flex-direction: column;
-        gap: 4px !important;
+        gap: 4px;
+        padding: 8px 12px;
     }
 
-    [data-testid="stSidebar"] .stRadio > label {
-        display: flex !important;
+    /* Nav items */
+    .nav-item {
+        display: flex;
         align-items: center;
-        padding: 10px 24px !important;
-        margin: 0 !important;
-        background: transparent !important;
-        border-radius: 6px !important;
-        transition: all 0.2s ease !important;
+        gap: 12px;
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        color: var(--kaggle-sidebar-text);
     }
 
-    /* Hover state */
-    [data-testid="stSidebar"] .stRadio > label:hover {
-        background-color: var(--sidebar-highlight) !important;
+    .nav-item:hover {
+        background-color: var(--kaggle-sidebar-hover) !important;
+        color: var(--kaggle-primary) !important;
     }
 
-    [data-testid="stSidebar"] .stRadio > label:hover > div > p {
-        color: var(--sidebar-text-hover) !important;
+    .nav-item.active {
+        background-color: var(--kaggle-sidebar-hover) !important;
+        color: var(--kaggle-sidebar-active) !important;
+        font-weight: 500;
     }
 
-    /* Text Styling */
-    [data-testid="stSidebar"] .stRadio > label > div > p {
-        color: var(--sidebar-text) !important;
-        font-size: 14px !important;
-        font-weight: 400 !important;
-        margin: 0 !important;
-        transition: color 0.2s ease !important;
+    /* Icons */
+    .nav-icon {
+        font-family: 'Material Icons Outlined';
+        font-size: 20px;
+        color: var(--kaggle-icon);
+        transition: all 0.2s ease;
     }
 
-    /* Active Item Styling */
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {
-        background-color: var(--sidebar-highlight) !important;
+    .nav-item:hover .nav-icon,
+    .nav-item.active .nav-icon {
+        color: var(--kaggle-primary);
     }
 
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
-        color: var(--sidebar-text-active) !important;
-        font-weight: 500 !important;
-    }
-
-    /* Profile section */
-    [data-testid="stSidebar"] .stImage {
+    /* Profile image */
+    section[data-testid="stSidebar"] img {
+        display: block !important;
         margin: 0 auto 12px auto !important;
         border-radius: 50% !important;
+        border: 1px solid var(--kaggle-divider) !important;
     }
 
-    [data-testid="stSidebar"] .stMarkdown p {
+    /* Position text */
+    section[data-testid="stSidebar"] p:has(+ hr) {
         text-align: center !important;
-        color: var(--text-muted-color) !important;
+        color: var(--kaggle-sidebar-text) !important;
         font-size: 13px !important;
+        opacity: 0.8 !important;
         margin-bottom: 16px !important;
     }
 
     /* Divider */
-    [data-testid="stSidebar"] hr {
+    section[data-testid="stSidebar"] hr {
         margin: 16px 24px !important;
-        border-color: var(--sidebar-divider) !important;
+        border-color: var(--kaggle-divider) !important;
         opacity: 1 !important;
-    }
-
-    /* Main Content Area */
-    .main .block-container {
-        padding: 2rem 3rem !important;
-    }
-
-    /* Card Styling */
-    .card {
-        background-color: white;
-        border-radius: 8px;
-        padding: 24px;
-        margin-bottom: 24px;
-        border: 1px solid var(--border-color);
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    }
-
-    /* Empty State Messages */
-    .main .stMarkdown p {
-        color: var(--text-muted-color);
-        font-style: italic;
     }
 </style>
 
@@ -354,27 +323,53 @@ if "user_message" in st.session_state and st.session_state.user_message:
 
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
-
-    nav_options = ["Attendance", "Upload Activity Photo", "Allowance", "Goal Tracker", "Payment Collection Tracker", "View Logs", "Create Order"]
-    nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
-
+    
+    # Navigation items with icons
+    nav_items = """
+    <div class="sidebar-nav">
+        <a class="nav-item {'active' if nav == 'Attendance' else ''}" href="#">
+            <span class="nav-icon">calendar_today</span>
+            <span>Attendance</span>
+        </a>
+        <a class="nav-item {'active' if nav == 'Upload Activity Photo' else ''}" href="#">
+            <span class="nav-icon">cloud_upload</span>
+            <span>Upload Activity Photo</span>
+        </a>
+        <a class="nav-item {'active' if nav == 'Allowance' else ''}" href="#">
+            <span class="nav-icon">payments</span>
+            <span>Allowance</span>
+        </a>
+        <a class="nav-item {'active' if nav == 'Goal Tracker' else ''}" href="#">
+            <span class="nav-icon">track_changes</span>
+            <span>Goal Tracker</span>
+        </a>
+        <a class="nav-item {'active' if nav == 'Payment Collection Tracker' else ''}" href="#">
+            <span class="nav-icon">point_of_sale</span>
+            <span>Payment Collection</span>
+        </a>
+        <a class="nav-item {'active' if nav == 'View Logs' else ''}" href="#">
+            <span class="nav-icon">list_alt</span>
+            <span>View Logs</span>
+        </a>
+        <a class="nav-item {'active' if nav == 'Create Order' else ''}" href="#">
+            <span class="nav-icon">add_shopping_cart</span>
+            <span>Create Order</span>
+        </a>
+    </div>
+    """
+    st.markdown(nav_items, unsafe_allow_html=True)
+    
+    # Rest of your sidebar content
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
         st.image(user_sidebar_info["profile_photo"], width=100)
 
     st.markdown(
-        f"<p style='text-align:center; font-size:0.9em; color: #e0e0e0;'>{user_sidebar_info.get('position', 'N/A')}</p>",
+        f"<p style='text-align:center; font-size:0.9em; color: #5f6368;'>{user_sidebar_info.get('position', 'N/A')}</p>",
         unsafe_allow_html=True
     )
 
     st.markdown("---")
-
-    if st.button("Logout", key="logout_button_sidebar", use_container_width=True):
-        st.session_state.auth = {"logged_in": False, "username": None, "role": None}
-        st.session_state.user_message = "Logged out successfully."
-        st.session_state.message_type = "info"
-        st.rerun()
-
 
 #------------------------------------------------------------------------closed navbar
 
