@@ -150,34 +150,33 @@ with st.sidebar:
         <p style="color: #666; margin: 4px 0 0 0;">Track your Buissness</p>
     </div>
     """, unsafe_allow_html=True)    
-    
-    selected = option_menu(    
-        None,
-        ["Home", "Attendance", "Upload Activity Photo", "Goal Tracker", "Payment Collection Tracker","View Logs","Create Order"],
-        icons=['house','calender','photo', 'database', 'book', 'fingureprint', 'doller'],
-        menu_icon="cast",
-        default_index=0,
-        styles={
-            "container": {"padding": "0!important"},
-            "nav-link": {
-                "font-size": "14px",
-                "text-align": "left",
-                "margin": "4px 0",
-                "border-radius": "4px",
-                "padding": "8px 16px",
-            },
-            "nav-link-selected": {
-                "background-color": "#E6F7FF",
-                "color": "#20BEFF",
-                "font-weight": "500",
-            },
-            "icon": {
-                "font-size": "18px",
-                "margin-right": "10px",
-                "color": "#666",
-            },
-        }
-    )
+    nav = option_menu(    
+    None,
+    ["Home", "Attendance", "Upload Activity Photo", "Goal Tracker", "Payment Collection Tracker","View Logs","Create Order"],
+    icons=['house','calendar','image', 'database', 'book', 'fingerprint', 'currency-dollar'],
+    menu_icon="cast",
+    default_index=0,
+    styles={
+        "container": {"padding": "0!important"},
+        "nav-link": {
+            "font-size": "14px",
+            "text-align": "left",
+            "margin": "4px 0",
+            "border-radius": "4px",
+            "padding": "8px 16px",
+        },
+        "nav-link-selected": {
+            "background-color": "#E6F7FF",
+            "color": "#20BEFF",
+            "font-weight": "500",
+        },
+        "icon": {
+            "font-size": "18px",
+            "margin-right": "10px",
+            "color": "#666",
+        },
+    }
+)
 
 # Main content
 
