@@ -32,10 +32,12 @@ st.markdown("""
 
 st.markdown("""
 <style>
-    /* Apply Roboto to the whole app, and Material Symbols Outlined for icons */
-    body, .stButton button, .stTextInput input, .stTextArea textarea, .stSelectbox select {
+    /* --- FONT IMPORTS & GENERAL DEFINITIONS --- */
+    /* Ensure Roboto font is applied (if not already globally by Bootstrap or other means) */
+    body, .stButton button, .stTextInput input, .stTextArea textarea, .stSelectbox select, p, div, span {
         font-family: 'Roboto', sans-serif;
     }
+
     /* General styling for Material Icons */
     .material-symbols-outlined {
         font-family: 'Material Symbols Outlined';
@@ -53,174 +55,204 @@ st.markdown("""
         text-rendering: optimizeLegibility;
         -moz-osx-font-smoothing: grayscale;
         font-feature-settings: 'liga';
-    }
-    .nav-icon { /* Specific class for icons in nav items for alignment & color */
-        vertical-align: -0.15em; /* Fine-tune vertical alignment */
-        color: #bdc1c6; /* Default icon color (light gray for dark sidebar) */
-        margin-right: 12px; /* Space between icon and text label */
+        vertical-align: -0.15em; /* Adjusted for better alignment with text */
     }
 
-    /* Streamlit's default sidebar container */
+    /* --- SIDEBAR STYLING --- */
+    /* Target Streamlit's main sidebar container's immediate child to remove padding */
     section[data-testid="stSidebar"] > div:first-child {
-        padding: 0 !important;
+        padding: 0px !important;
     }
 
-    /* Sidebar wrapper - Google AI Studio inspired dark theme */
+    /* Custom wrapper for all sidebar content - AI Studio Dark Theme */
     .sidebar-content-wrapper {
         background-color: #1e1f22 !important; /* Dark charcoal background */
         color: #e8eaed !important; /* Default light text color for dark sidebar */
         height: 100%;
+        min-height: 100vh; /* Ensure it fills viewport height */
         display: flex;
         flex-direction: column;
-        padding: 0.75rem; /* Overall padding for the content inside sidebar */
+        padding: 1rem 0.75rem; /* Top/bottom padding, L/R padding */
+        box-sizing: border-box;
     }
 
-    /* Styling for each navigation item ROW */
+    /* Navigation Item Row (the div wrapping icon and button) */
     .nav-item-row {
         display: flex !important;
         align-items: center !important;
-        width: 100%;
-        padding: 0.6rem 0.8rem; /* Padding for the visual row */
-        margin-bottom: 0.1rem; /* Reduced margin */
-        border-radius: 6px; /* Slightly more pronounced radius */
+        width: 100% !important;
+        padding: 0.6rem 0.8rem !important; /* Padding inside each nav item */
+        margin-bottom: 2px !important; /* Space between nav items */
+        border-radius: 6px !important;
         transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
-        color: #e8eaed !important; /* Default text color for items */
+        color: #dadce0 !important; /* Default text color for nav items (slightly less bright) */
+        cursor: default; /* The button inside will have the pointer */
     }
 
-    /* Hover and Active states for the ROW div */
     .nav-item-row:hover {
         background-color: #282a2d !important; /* Slightly lighter dark on hover */
-        color: #fff !important;
+        color: #ffffff !important; /* Brighter text on hover */
     }
+
     .nav-item-row.active {
-        background-color: #3c4043 !important; /* Active item background (medium dark gray) */
+        background-color: rgba(138, 180, 248, 0.16) !important; /* Google Blue Accent with low opacity */
         color: #8ab4f8 !important; /* Active item text color (Google Blue Accent) */
-        font-weight: 500;
+        font-weight: 500 !important;
     }
-    .nav-item-row.active .nav-icon { /* Icon color in active row */
+
+    /* Icon within the Navigation Item Row */
+    .nav-item-row .nav-icon { /* Class applied to the icon's span */
+        color: #9aa0a6 !important; /* Default icon color (medium gray) */
+        margin-right: 14px !important; /* Space between icon and text label */
+        font-size: 20px !important;
+        line-height: 1 !important;
+    }
+
+    .nav-item-row:hover .nav-icon {
+        color: #ffffff !important; /* Brighter icon on hover */
+    }
+
+    .nav-item-row.active .nav-icon {
         color: #8ab4f8 !important; /* Google Blue Accent for active icon */
     }
-    .nav-item-row:hover .nav-icon { /* Icon color on row hover */
-         color: #fff !important;
+
+    /* Styling the Streamlit Button (text part) within the Nav Item Row */
+    /* Targets the column holding the button */
+    .nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) {
+        padding-left: 0 !important; /* Ensure text starts close to icon (icon has margin-right) */
+        flex-grow: 1; /* Allow text column to take remaining space */
     }
 
-    /* Styling the icon's container within the nav item row */
-    .nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(1) {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        flex-grow: 0 !important;
-        flex-shrink: 0 !important;
-        /* The .nav-icon margin-right will create space before text */
-    }
-
-    /* Styling the st.button WIDGET (text part) within the second column */
-    .nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) { /* Target the column itself */
-        padding-left: 0 !important; /* Ensure text starts immediately after icon column (icon has margin-right) */
-    }
-    .nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button {
+    .nav-item-row .stButton button {
         text-align: left !important;
-        padding: 0 !important;
+        padding: 0 !important; /* Remove internal padding of Streamlit's button */
         margin: 0 !important;
         border: none !important;
-        background-color: transparent !important;
-        color: inherit !important;
-        font-weight: inherit !important;
-        font-size: 0.90rem !important; /* Slightly smaller, cleaner font */
+        background-color: transparent !important; /* CRUCIAL: Button itself is transparent */
+        color: inherit !important; /* Inherit color from .nav-item-row */
+        font-weight: inherit !important; /* Inherit font-weight from .nav-item-row */
+        font-size: 0.875rem !important; /* Clean font size for nav text */
         line-height: 1.5 !important;
         width: 100% !important;
         display: block !important;
         box-shadow: none !important;
         outline: none !important;
-    }
-    .nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button:hover,
-    .nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button:focus,
-    .nav-item-row [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button:active {
-        background-color: transparent !important;
-        color: inherit !important;
+        cursor: pointer !important; /* Ensure the button text area is clickable */
     }
 
-    /* Welcome text, user info, hr etc. */
-    .welcome-text-sidebar {
-        font-size: 1.05rem; /* Adjusted size */
-        font-weight: 500;
-        color: #e8eaed !important; /* Light text */
-        margin-bottom: 0.75rem;
-        padding: 0.25rem 0.5rem; /* Consistent with item padding */
+    /* Remove Streamlit's default button hover/active effects as .nav-item-row handles it */
+    .nav-item-row .stButton button:hover,
+    .nav-item-row .stButton button:focus,
+    .nav-item-row .stButton button:active {
+        background-color: transparent !important;
+        color: inherit !important;
+        box-shadow: none !important;
+        border: none !important; /* Ensure no border appears on focus/active */
     }
+
+
+    /* --- User Info and Other Sidebar Elements --- */
+    .welcome-text-sidebar {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #e8eaed !important; /* Light text for welcome */
+        margin-bottom: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
     .user-profile-img-container {
         text-align: center;
         margin-bottom: 0.5rem;
     }
     .user-profile-img-container img {
         border-radius: 50%;
-        width: 70px; /* Slightly smaller */
-        height: 70px;
+        width: 60px; /* Slightly smaller profile image */
+        height: 60px;
         object-fit: cover;
         border: 2px solid #5f6368; /* Border color for dark theme */
     }
+
     .user-position-text {
         text-align: center;
-        font-size: 0.8rem; /* Adjusted size */
+        font-size: 0.75rem; /* Smaller position text */
         color: #bdc1c6 !important; /* Lighter gray text */
         margin-bottom: 1rem;
     }
+
     .sidebar-content-wrapper hr {
         margin: 1rem 0;
-        border-color: rgba(255, 255, 255, 0.1) !important; /* Lighter divider for dark theme */
-        opacity: 1;
+        border: none !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important; /* Lighter divider for dark theme */
     }
 
-    /* Logout Button Container and specific row styling */
+    /* Logout Button Styling */
     .logout-button-container {
-        margin-top: auto;
+        margin-top: auto; /* Pushes logout to the bottom */
         padding-top: 1rem;
     }
-    .nav-item-row.logout-row-styling {
-        background-color: transparent !important; /* Default transparent */
-        color: #e8eaed !important; /* Light text */
-        border: 1px solid #5f6368; /* Subtle border for logout */
+    /* Logout button reuses nav-item-row but with specific overrides if needed or a new class */
+    .nav-item-row.logout-row-styling { /* Class specifically for the logout row div */
+        background-color: transparent !important;
+        color: #e8eaed !important;
+        border: 1px solid #5f6368; /* Subtle border for logout button */
     }
     .nav-item-row.logout-row-styling:hover {
-        background-color: #282a2d !important; /* Darker hover for logout */
-        color: #fff !important;
-        border-color: #282a2d;
+        background-color: #c53929 !important; /* Reddish hover for logout */
+        color: #ffffff !important;
+        border-color: #c53929 !important;
     }
     .nav-item-row.logout-row-styling .nav-icon {
-        color: #e8eaed !important; /* Icon color same as text */
+        color: #e8eaed !important; /* Default icon color for logout */
     }
     .nav-item-row.logout-row-styling:hover .nav-icon {
-        color: #fff !important;
+        color: #ffffff !important; /* Icon color on logout hover */
     }
-    .nav-item-row.logout-row-styling [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button {
-        color: inherit !important;
-        font-weight: 500 !important;
+    /* The .stButton button inside logout-row-styling inherits general nav item button styles */
+    /* No need for specific override unless text color needs to differ from icon on hover */
+
+
+    /* --- Global Message Notifications (Keep or Theme) --- */
+    .custom-notification {
+        padding: 1rem; /* More padding */
+        border-radius: 6px;
+        margin-bottom: 1rem; /* More margin */
+        border: 1px solid transparent;
+        font-size: 0.9rem;
+    }
+    .custom-notification.success {
+        color: #155724; background-color: #d4edda; border-color: #c3e6cb;
+    }
+    .custom-notification.error {
+        color: #721c24; background-color: #f8d7da; border-color: #f5c6cb;
+    }
+    .custom-notification.info {
+        color: #0c5460; background-color: #d1ecf1; border-color: #bee5eb;
+    }
+    .custom-notification.warning {
+        color: #856404; background-color: #fff3cd; border-color: #ffeeba;
     }
 
-    /* Global message notifications (adjust if needed for overall theme) */
-    .custom-notification { /* ... keep as is or theme ... */ }
-    .custom-notification.success { /* ... keep as is or theme ... */ }
-    /* ... etc. for other notification types ... */
-
-    /* Main content card styling (ensure it contrasts with the dark sidebar) */
+    /* --- Main Content Card Styling --- */
+    /* Ensure main content area has a contrasting background if sidebar is dark */
     div[data-testid="stAppViewContainer"] > .main {
-        background-color: #fff; /* Assuming main content area is light themed */
+        background-color: #f0f2f5; /* Light gray main background for contrast */
     }
     .card {
         background-color: #ffffff;
-        padding: 24px;
+        padding: 1.5rem; /* More padding for cards */
         border-radius: 8px;
-        margin-bottom: 24px;
-        border: 1px solid #e0e0e0; /* Lighter border for cards on white bg */
-        box-shadow: 0 1px 2px 0 rgba(60,64,67,0.1);
+        margin-bottom: 1.5rem; /* More margin for cards */
+        border: 1px solid #d1d5da; /* Subtle border for cards */
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.04); /* Softer shadow */
     }
     .button-column-container .stButton button {
         width: 100%;
+        /* Consider theming these buttons too if needed */
     }
     .employee-progress-item h6 {
         margin-bottom: 0.25rem;
         font-size: 1rem;
-        color: #202124; /* Darker text for card content */
+        color: #202124;
     }
      .employee-progress-item p {
         font-size: 0.85rem;
