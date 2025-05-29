@@ -88,162 +88,64 @@ import streamlit as st
 # Add your CSS styles using st.markdown
 st.markdown("""
 <style>
-    /* Import Google Fonts - No inheritance */
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-
-    /* Root Variables - Only for colors, no layout */
+    /* Main styling */
     :root {
-        /* Color Variables Only */
-        --primary-blue: #4285F4;
-        --sidebar-blue: #1a73e8;
-        --pure-white: #ffffff;
-        --divider-white: rgba(255, 255, 255, 0.2);
-        --body-gray: #f8f9fa;
-        --card-white: #ffffff;
-        --text-dark: #202124;
-        --text-gray: #5f6368;
-        --border-light: #dadce0;
+        --kaggle-blue: #20BEFF;
+        --kaggle-dark: #1C1C1C;
+        --kaggle-light: #F5F5F5;
+        --kaggle-gray: #E0E0E0;
     }
-
-    /* Base Body - No inheritance */
-    body.streamlit-app {
-        font-family: 'Roboto', sans-serif;
-        background-color: var(--body-gray);
-        color: var(--text-dark);
-        line-height: 1.5;
-        margin: 0;
-        padding: 0;
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background-color: white !important;
+        border-right: 1px solid var(--kaggle-gray) !important;
     }
-
-    /* Main Content Area - Independent */
-    div[data-testid="stAppViewContainer"] > .main > .block-container {
-        padding: 2rem 3rem !important;
-        max-width: 1200px;
+    
+    .sidebar-icon {
+        font-size: 20px;
+        margin-right: 10px;
+        color: #666;
     }
-
-    /* Sidebar Container - Independent */
-    section[data-testid="stSidebar"] {
-        background-color: var(--sidebar-blue) !important;
-        padding: 0 !important;
-        width: 280px !important;
-        box-shadow: none !important;
-        border-right: none !important;
-    }
-
-    /* Welcome Header - Independent */
-    div[data-testid="stSidebar"] .welcome-text {
-        color: var(--pure-white) !important;
-        font-weight: 500;
-        font-size: 1.1rem;
-        padding: 24px 24px 20px !important;
-        margin: 0 !important;
-        border-bottom: 1px solid var(--divider-white) !important;
-    }
-
-    /* Navigation Items Container - Independent */
-    div[data-testid="stSidebar"] div.stRadio {
+    
+    .sidebar-item {
+        padding: 8px 16px;
+        border-radius: 4px;
+        margin: 4px 0;
         display: flex;
-        flex-direction: column;
-        gap: 0;
+        align-items: center;
     }
-
-    /* Individual Navigation Items - Independent */
-    div[data-testid="stSidebar"] div.stRadio > label {
-        display: block;
-        padding: 16px 24px !important;
-        margin: 0 !important;
-        background: transparent !important;
-        border-radius: 0 !important;
-        border-bottom: 1px solid var(--divider-white) !important;
+    
+    .sidebar-item:hover {
+        background-color: var(--kaggle-light);
     }
-
-    /* Navigation Text - Independent */
-    div[data-testid="stSidebar"] div.stRadio > label > div > p {
-        color: var(--pure-white) !important;
-        font-size: 0.9rem;
-        font-weight: 400;
-        margin: 0 !important;
-        letter-spacing: 0.3px;
+    
+    .sidebar-item.active {
+        background-color: #E6F7FF;
+        color: var(--kaggle-blue);
+        font-weight: 500;
     }
-
-    /* Active Navigation Item - Independent */
-    div[data-testid="stSidebar"] div.stRadio div[aria-checked="true"] + label {
-        background-color: rgba(255, 255, 255, 0.1) !important;
+    
+    .sidebar-item.active .sidebar-icon {
+        color: var(--kaggle-blue);
     }
-
-    div[data-testid="stSidebar"] div.stRadio div[aria-checked="true"] + label > div > p {
-        font-weight: 500 !important;
-    }
-
-    /* Sidebar Icons - Independent */
-    div[data-testid="stSidebar"] span.material-symbols-outlined {
-        color: var(--pure-white) !important;
-        font-size: 20px !important;
-        margin-right: 16px !important;
-        vertical-align: middle;
-        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
-    }
-
-    /* Cards - Independent */
-    div.stCard {
-        background-color: var(--card-white);
-        padding: 24px;
+    
+    /* Main content styling */
+    .dataset-card {
+        border: 1px solid var(--kaggle-gray);
         border-radius: 8px;
-        margin-bottom: 24px;
-        border: 1px solid var(--border-light);
-        box-shadow: 0 1px 2px 0 rgba(60,64,67,0.1);
+        padding: 16px;
+        margin-bottom: 16px;
     }
-
-    /* Buttons - Independent */
-    button.stButton > button {
-        background-color: var(--primary-blue) !important;
-        color: var(--pure-white) !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 10px 16px !important;
-        font-weight: 500 !important;
-        font-family: 'Roboto', sans-serif;
-    }
-
-    /* Form Inputs - Independent */
-    input.stTextInput {
-        border-radius: 8px !important;
-        border: 1px solid var(--border-light) !important;
-        padding: 10px 12px !important;
-        font-family: 'Roboto', sans-serif;
-    }
-
-    /* Empty State Messages - Independent */
-    div.stMarkdown p.empty-state {
-        color: var(--text-gray);
-        font-style: italic;
-        font-family: 'Roboto', sans-serif;
-    }
-
-    /* Time/Date Display - Independent */
-    div.stMarkdown.time-display {
-        color: var(--text-gray);
-        font-size: 0.875rem;
-        text-align: right;
-        margin-top: 20px;
-        font-family: 'Roboto', sans-serif;
-    }
-
-    /* Search Box - Independent */
-    input.stTextInput[type="search"] {
-        border-radius: 20px !important;
-        padding: 10px 16px !important;
-        font-family: 'Roboto', sans-serif;
-    }
-
-    /* Check In/Out Buttons - Independent */
-    button.stButton.check-in-button > button,
-    button.stButton.check-out-button > button {
-        width: 100%;
-        margin: 8px 0;
+    
+    .dataset-title {
+        color: var(--kaggle-blue);
+        font-size: 18px;
+        font-weight: 600;
     }
 </style>
+
+
 """, unsafe_allow_html=True)
 
 # Your Streamlit app code continues here...
