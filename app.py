@@ -443,11 +443,23 @@ with st.sidebar:
 
     st.markdown(f"<div class='welcome-text-sidebar'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
 
-    # user_sidebar_info = USERS.get(current_user["username"], {})
-    # if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
-    #     st.markdown("<div class='user-profile-img-container'>", unsafe_allow_html=True)
-    #     st.image(user_sidebar_info["profile_photo"])
-    #     st.markdown("</div>", unsafe_allow_html=True)
+    with st.sidebar:
+    st.markdown('<div class="sidebar-content-wrapper">', unsafe_allow_html=True)
+
+    st.markdown(f"<div class='welcome-text-sidebar'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
+
+    user_sidebar_info = USERS.get(current_user["username"], {})
+    profile_photo = user_sidebar_info.get("profile_photo")
+    if profile_photo and os.path.exists(profile_photo):  # Fixed the condition check
+        st.markdown("<div class='user-profile-img-container'>", unsafe_allow_html=True)
+        st.image(profile_photo)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown(
+        f"<div class='user-position-text'>{user_sidebar_info.get('position', 'N/A')}</div>",
+        unsafe_allow_html=True
+    )
+    st.markdown("<hr>", unsafe_allow_html=True)
 
     st.markdown(
         f"<div class='user-position-text'>{user_sidebar_info.get('position', 'N/A')}</div>",
