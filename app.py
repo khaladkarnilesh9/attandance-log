@@ -9,10 +9,6 @@ import os
 import pytz
 import plotly.express as px
 
-nav = st.session_state.get('nav', 'Attendance')
-if 'nav' not in st.session_state:
-    st.session_state.nav = nav
-
 # --- Matplotlib Configuration ---
 import matplotlib
 matplotlib.use('Agg')
@@ -186,7 +182,6 @@ html_css = """
         opacity: 1 !important;
     }
 </style>
-
 st.markdown(html_css, unsafe_allow_html=True)
 
 # --- Credentials & User Info ---
@@ -325,6 +320,7 @@ if "user_message" in st.session_state and st.session_state.user_message:
     st.session_state.message_type = None
 #--------------------------------------------sidebar--------------------------------------------------
 
+# Sidebar Navigation
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
     
@@ -388,6 +384,7 @@ with st.sidebar:
     )
 
     st.markdown("---")
+
 
 #------------------------------------------------------------------------closed navbar
 
@@ -850,12 +847,4 @@ elif nav == "Create Order":
 
         st.markdown(f"**Grand Total: ₹{order_df['Total'].sum():,.2f}**")
 
-st.components.v1.html("""
-<script>
-window.addEventListener('message', function(event) {
-    if (event.data.type === 'streamlit:setComponentValue') {
-        Streamlit.setComponentValue(event.data.value);
-    }
-});
-</script>
-""", height=0)
+st.components.v1.html(""", height=0)
