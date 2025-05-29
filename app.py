@@ -325,39 +325,53 @@ with st.sidebar:
     st.markdown(f"<div class='welcome-text'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
     
     # Navigation items with icons
-    nav_items = """
+    nav_items = f"""
     <div class="sidebar-nav">
-        <a class="nav-item {'active' if nav == 'Attendance' else ''}" href="#">
+        <a class="nav-item {'active' if nav == 'Attendance' else ''}" onclick="window.navLocation='Attendance'">
             <span class="nav-icon">calendar_today</span>
             <span>Attendance</span>
         </a>
-        <a class="nav-item {'active' if nav == 'Upload Activity Photo' else ''}" href="#">
+        <a class="nav-item {'active' if nav == 'Upload Activity Photo' else ''}" onclick="window.navLocation='Upload Activity Photo'">
             <span class="nav-icon">cloud_upload</span>
             <span>Upload Activity Photo</span>
         </a>
-        <a class="nav-item {'active' if nav == 'Allowance' else ''}" href="#">
+        <a class="nav-item {'active' if nav == 'Allowance' else ''}" onclick="window.navLocation='Allowance'">
             <span class="nav-icon">payments</span>
             <span>Allowance</span>
         </a>
-        <a class="nav-item {'active' if nav == 'Goal Tracker' else ''}" href="#">
+        <a class="nav-item {'active' if nav == 'Goal Tracker' else ''}" onclick="window.navLocation='Goal Tracker'">
             <span class="nav-icon">track_changes</span>
             <span>Goal Tracker</span>
         </a>
-        <a class="nav-item {'active' if nav == 'Payment Collection Tracker' else ''}" href="#">
+        <a class="nav-item {'active' if nav == 'Payment Collection Tracker' else ''}" onclick="window.navLocation='Payment Collection Tracker'">
             <span class="nav-icon">point_of_sale</span>
             <span>Payment Collection</span>
         </a>
-        <a class="nav-item {'active' if nav == 'View Logs' else ''}" href="#">
+        <a class="nav-item {'active' if nav == 'View Logs' else ''}" onclick="window.navLocation='View Logs'">
             <span class="nav-icon">list_alt</span>
             <span>View Logs</span>
         </a>
-        <a class="nav-item {'active' if nav == 'Create Order' else ''}" href="#">
+        <a class="nav-item {'active' if nav == 'Create Order' else ''}" onclick="window.navLocation='Create Order'">
             <span class="nav-icon">add_shopping_cart</span>
             <span>Create Order</span>
         </a>
     </div>
     """
     st.markdown(nav_items, unsafe_allow_html=True)
+    
+    # JavaScript to handle navigation
+    st.markdown("""
+    <script>
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            window.parent.postMessage({
+                type: 'streamlit:setComponentValue',
+                value: this.getAttribute('onclick').match(/'([^']+)'/)[1]
+            }, '*');
+        });
+    });
+    </script>
+    """, unsafe_allow_html=True)
     
     # Rest of your sidebar content
     user_sidebar_info = USERS.get(current_user["username"], {})
