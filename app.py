@@ -82,103 +82,172 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     fig.tight_layout(pad=1.5)
     return fig
 
-html_css = """
+hhtml_css = """
+import streamlit as st
+
+# Add your CSS styles using st.markdown
+st.markdown("""
 <style>
-    /* Import Google Fonts */
+    /* Import Google Fonts - No inheritance */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
+    /* Root Variables - Only for colors, no layout */
     :root {
-        /* Color Variables */
-        --primary-color: #4285F4;
-        --sidebar-bg: #598ed499;
-        --sidebar-text: rgba(255, 255, 255, 0.9);
-        --sidebar-text-active: white;
-        --sidebar-divider: rgba(255, 255, 255, 0.2);
-        --body-bg-color: #f8f9fa;
-        --card-bg-color: #ffffff;
-        --text-color: ##0f4d88;
-        --text-muted-color: #5f6368;
-        --border-color: #dadce0;
+        /* Color Variables Only */
+        --primary-blue: #4285F4;
+        --sidebar-blue: #1a73e8;
+        --pure-white: #ffffff;
+        --divider-white: rgba(255, 255, 255, 0.2);
+        --body-gray: #f8f9fa;
+        --card-white: #ffffff;
+        --text-dark: #202124;
+        --text-gray: #5f6368;
+        --border-light: #dadce0;
     }
 
-    /* Base Styles */
-    body {
+    /* Base Body - No inheritance */
+    body.streamlit-app {
         font-family: 'Roboto', sans-serif;
-        background-color: var(--body-bg-color);
-        color: var(--text-color);
+        background-color: var(--body-gray);
+        color: var(--text-dark);
+        line-height: 1.5;
+        margin: 0;
+        padding: 0;
     }
 
-    /* Sidebar Styles - Simplified Text Navigation */
-    [data-testid="stSidebar"] {
-        background-color: var(--sidebar-bg) !important;
+    /* Main Content Area - Independent */
+    div[data-testid="stAppViewContainer"] > .main > .block-container {
+        padding: 2rem 3rem !important;
+        max-width: 1200px;
+    }
+
+    /* Sidebar Container - Independent */
+    section[data-testid="stSidebar"] {
+        background-color: var(--sidebar-blue) !important;
         padding: 0 !important;
+        width: 280px !important;
+        box-shadow: none !important;
+        border-right: none !important;
     }
 
-    /* Welcome Header */
-    [data-testid="stSidebar"] .welcome-text {
-        color: white !important;
-        font-weight: 500 !important;
-        padding: 24px 24px 16px !important;
+    /* Welcome Header - Independent */
+    div[data-testid="stSidebar"] .welcome-text {
+        color: var(--pure-white) !important;
+        font-weight: 500;
+        font-size: 1.1rem;
+        padding: 24px 24px 20px !important;
         margin: 0 !important;
-        border-bottom: 1px solid var(--sidebar-divider) !important;
+        border-bottom: 1px solid var(--divider-white) !important;
     }
 
-    /* Navigation Items - Plain Text with Dividers */
-    [data-testid="stSidebar"] .stRadio > label {
+    /* Navigation Items Container - Independent */
+    div[data-testid="stSidebar"] div.stRadio {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    /* Individual Navigation Items - Independent */
+    div[data-testid="stSidebar"] div.stRadio > label {
         display: block;
-        padding: 12px 24px !important;
+        padding: 16px 24px !important;
         margin: 0 !important;
         background: transparent !important;
         border-radius: 0 !important;
-        border-bottom: 1px solid var(--sidebar-divider) !important;
-        transition: none !important;
+        border-bottom: 1px solid var(--divider-white) !important;
     }
 
-    /* Remove button styling */
-    [data-testid="stSidebar"] .stRadio > label:hover {
-        background: transparent !important;
-    }
-
-    /* Text Styling */
-    [data-testid="stSidebar"] .stRadio > label > div > p {
-        color: var(--sidebar-text) !important;
-        font-size: 14px !important;
-        font-weight: 400 !important;
+    /* Navigation Text - Independent */
+    div[data-testid="stSidebar"] div.stRadio > label > div > p {
+        color: var(--pure-white) !important;
+        font-size: 0.9rem;
+        font-weight: 400;
         margin: 0 !important;
+        letter-spacing: 0.3px;
     }
 
-    /* Active Item Styling */
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
-        color: var(--sidebar-text-active) !important;
+    /* Active Navigation Item - Independent */
+    div[data-testid="stSidebar"] div.stRadio div[aria-checked="true"] + label {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    div[data-testid="stSidebar"] div.stRadio div[aria-checked="true"] + label > div > p {
         font-weight: 500 !important;
     }
 
-    /* Remove last divider */
-    [data-testid="stSidebar"] .stRadio > label:last-child {
-        border-bottom: none !important;
+    /* Sidebar Icons - Independent */
+    div[data-testid="stSidebar"] span.material-symbols-outlined {
+        color: var(--pure-white) !important;
+        font-size: 20px !important;
+        margin-right: 16px !important;
+        vertical-align: middle;
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
     }
 
-    /* Main Content Area */
-    .main .block-container {
-        padding: 2rem 3rem !important;
-    }
-
-    /* Card Styling */
-    .card {
-        background-color: white;
-        border-radius: 8px;
+    /* Cards - Independent */
+    div.stCard {
+        background-color: var(--card-white);
         padding: 24px;
+        border-radius: 8px;
         margin-bottom: 24px;
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--border-light);
+        box-shadow: 0 1px 2px 0 rgba(60,64,67,0.1);
     }
 
-    /* Empty State Messages */
-    .main .stMarkdown p {
-        color: var(--text-muted-color);
+    /* Buttons - Independent */
+    button.stButton > button {
+        background-color: var(--primary-blue) !important;
+        color: var(--pure-white) !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 10px 16px !important;
+        font-weight: 500 !important;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    /* Form Inputs - Independent */
+    input.stTextInput {
+        border-radius: 8px !important;
+        border: 1px solid var(--border-light) !important;
+        padding: 10px 12px !important;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    /* Empty State Messages - Independent */
+    div.stMarkdown p.empty-state {
+        color: var(--text-gray);
         font-style: italic;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    /* Time/Date Display - Independent */
+    div.stMarkdown.time-display {
+        color: var(--text-gray);
+        font-size: 0.875rem;
+        text-align: right;
+        margin-top: 20px;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    /* Search Box - Independent */
+    input.stTextInput[type="search"] {
+        border-radius: 20px !important;
+        padding: 10px 16px !important;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    /* Check In/Out Buttons - Independent */
+    button.stButton.check-in-button > button,
+    button.stButton.check-out-button > button {
+        width: 100%;
+        margin: 8px 0;
     }
 </style>
+""", unsafe_allow_html=True)
+
+# Your Streamlit app code continues here...
+
 """
 st.markdown(html_css, unsafe_allow_html=True)
 
