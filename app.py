@@ -24,60 +24,74 @@ try:
 except ImportError:
     PILLOW_INSTALLED = False
 
-# <<<< REMOVE ENTIRE OLD html_css BLOCK STARTING HERE >>>>
-# html_css = """
-# <style>
-#    ... (all your old CSS) ...
-# </style>
-# """
-# st.markdown(html_css, unsafe_allow_html=True) # Also remove this line
-# <<<< REMOVE ENTIRE OLD html_css BLOCK ENDING HERE >>>>
 
-
-# <<<< ADD BOOTSTRAP AND NEW CUSTOM CSS HERE >>>>
+# <<<< ADD BOOTSTRAP, MATERIAL ICONS AND NEW CUSTOM CSS HERE >>>>
 st.markdown("""
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 """, unsafe_allow_html=True)
-# We don't strictly need Bootstrap JS for this sidebar, but it's good practice if other BS components are used.
-# <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 st.markdown("""
 <style>
-    /* Streamlit's default sidebar container */
-    section[data-testid="stSidebar"] > div:first-child {
-        padding: 0 !important; /* Remove Streamlit's default padding */
-        /* background-color: #f8f9fa !important; */ /* Set by .sidebar-content-wrapper */
-        /* height: 100vh; */ /* Streamlit manages overall sidebar height */
+    /* Apply Roboto to the whole app, and Material Symbols Outlined for icons */
+    body, .stButton button, .stTextInput input, .stTextArea textarea, .stSelectbox select {
+        font-family: 'Roboto', sans-serif;
+    }
+    .material-symbols-outlined {
+        font-family: 'Material Symbols Outlined';
+        font-weight: normal;
+        font-style: normal;
+        font-size: 20px; /* Preferred icon size */
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        white-space: nowrap;
+        word-wrap: normal;
+        direction: ltr;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        -moz-osx-font-smoothing: grayscale;
+        font-feature-settings: 'liga';
+        vertical-align: middle; /* Align icon with text */
+        margin-right: 8px; /* Space between icon and text */
     }
 
-    /* Our custom Bootstrap-styled wrapper inside Streamlit's sidebar */
+    /* Streamlit's default sidebar container */
+    section[data-testid="stSidebar"] > div:first-child {
+        padding: 0 !important;
+    }
+
     .sidebar-content-wrapper {
-        background-color: #f8f9fa !important; /* Bootstrap 'bg-light' equivalent */
-        height: 100%; /* Fill the vertical space of Streamlit's sidebar */
+        background-color: #f8f9fa !important;
+        height: 100%;
         display: flex;
         flex-direction: column;
-        padding: 1rem; /* Overall padding for sidebar content */
+        padding: 1rem;
     }
 
     /* Styling for st.button to look like Bootstrap nav-links */
     .sidebar-nav .stButton button {
-        display: block !important;
+        display: flex !important; /* Changed to flex for icon alignment */
+        align-items: center !important; /* Vertically align icon and text */
         width: 100% !important;
         text-align: left !important;
         border: none !important;
-        padding: 0.5rem 1rem !important;
+        padding: 0.6rem 1rem !important; /* Slightly more padding for icon */
         margin-bottom: 0.125rem !important;
-        border-radius: 0.375rem !important; /* Bootstrap 5 standard border-radius */
+        border-radius: 0.375rem !important;
         font-weight: 400 !important;
+        font-size: 0.95rem !important; /* Ensure button text size is consistent */
         line-height: 1.5 !important;
         background-color: transparent !important;
-        color: #212529 !important; /* Default Bootstrap link color on light background */
+        color: #212529 !important;
         transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
     }
     .sidebar-nav .stButton button:hover {
         color: #000 !important;
-        background-color: #e9ecef !important; /* Light gray hover */
+        background-color: #e9ecef !important;
     }
     .sidebar-nav .stButton button:focus,
     .sidebar-nav .stButton button:active {
@@ -85,26 +99,37 @@ st.markdown("""
         outline: none !important;
     }
 
+    /* Ensure icon color matches button text color */
+    .sidebar-nav .stButton button .material-symbols-outlined {
+        color: inherit !important; /* Icon inherits color from button text */
+        font-size: 20px !important; /* Consistent icon size */
+    }
+    
+
     /* Active navigation button styling */
     .sidebar-nav div.active-button-wrapper .stButton button {
         font-weight: 500 !important;
         color: #fff !important;
-        background-color: #0d6efd !important; /* Bootstrap primary color */
+        background-color: #0d6efd !important;
     }
     .sidebar-nav div.active-button-wrapper .stButton button:hover {
         color: #fff !important;
-        background-color: #0b5ed7 !important; /* Darker primary on hover */
+        background-color: #0b5ed7 !important;
+    }
+    /* Icon color for active button */
+    .sidebar-nav div.active-button-wrapper .stButton button .material-symbols-outlined {
+        color: #fff !important; /* White icon for active state */
     }
 
-    /* Welcome text */
+
     .welcome-text-sidebar {
         font-size: 1.1rem;
         font-weight: 500;
-        color: #212529; /* Dark text */
+        color: #212529;
         margin-bottom: 0.5rem;
+        padding-left: 0.5rem; /* Align with nav items if they have padding */
     }
 
-    /* User profile image */
     .user-profile-img-container {
         text-align: center;
         margin-bottom: 0.5rem;
@@ -114,65 +139,58 @@ st.markdown("""
         width: 80px;
         height: 80px;
         object-fit: cover;
-        border: 2px solid #dee2e6; /* Bootstrap light border */
+        border: 2px solid #dee2e6;
     }
 
-    /* User position text */
     .user-position-text {
         text-align: center;
         font-size: 0.875em;
-        color: #6c757d; /* Bootstrap muted text color */
+        color: #6c757d;
         margin-bottom: 1rem;
     }
 
-    /* Sidebar HR */
     .sidebar-content-wrapper hr {
         margin: 1rem 0;
         opacity: 0.25;
     }
 
-    /* Logout button container & styling */
     .logout-button-container {
-        margin-top: auto; /* Pushes logout to the bottom */
-        padding-top: 1rem; /* Space above logout if other elements are short */
+        margin-top: auto;
+        padding-top: 1rem;
     }
     .logout-button-container .stButton button {
-        background-color: #6c757d !important; /* Bootstrap secondary/gray */
+        background-color: #6c757d !important;
         color: white !important;
         border: none !important;
         width: 100% !important;
         font-weight: 500 !important;
+        /* Ensure logout button also aligns icon if one were added */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center; /* Center if only text or icon+text */
     }
     .logout-button-container .stButton button:hover {
-        background-color: #5a6268 !important; /* Darker gray on hover */
+        background-color: #5a6268 !important;
         color: white !important;
     }
-    /* Global message styling (if you had any specific classes) */
-    .custom-notification { /* Example from your previous code */
+    /* Global message styling */
+    .custom-notification {
         padding: 10px;
         border-radius: 5px;
         margin-bottom: 15px;
         border: 1px solid transparent;
     }
     .custom-notification.success {
-        color: #0f5132;
-        background-color: #d1e7dd;
-        border-color: #badbcc;
+        color: #0f5132; background-color: #d1e7dd; border-color: #badbcc;
     }
     .custom-notification.error {
-        color: #842029;
-        background-color: #f8d7da;
-        border-color: #f5c2c7;
+        color: #842029; background-color: #f8d7da; border-color: #f5c2c7;
     }
     .custom-notification.info {
-        color: #055160;
-        background-color: #cff4fc;
-        border-color: #b6effb;
+        color: #055160; background-color: #cff4fc; border-color: #b6effb;
     }
     .custom-notification.warning {
-        color: #664d03;
-        background-color: #fff3cd;
-        border-color: #ffecb5;
+        color: #664d03; background-color: #fff3cd; border-color: #ffecb5;
     }
 
 </style>
@@ -204,21 +222,21 @@ if PILLOW_INSTALLED:
                 try: font = ImageFont.truetype("arial.ttf", 40)
                 except IOError: font = ImageFont.load_default()
                 text = user_key[:2].upper()
-                if hasattr(draw, 'textbbox'): # More modern PIL
+                if hasattr(draw, 'textbbox'): 
                     bbox = draw.textbbox((0,0), text, font=font); text_width, text_height = bbox[2]-bbox[0], bbox[3]-bbox[1]
-                    text_x, text_y = (120-text_width)/2, (120-text_height)/2 - bbox[1] # Adjust y based on bbox[1]
-                elif hasattr(draw, 'textsize'): # Older PIL
+                    text_x, text_y = (120-text_width)/2, (120-text_height)/2 - bbox[1] 
+                elif hasattr(draw, 'textsize'): 
                     text_width, text_height = draw.textsize(text, font=font); text_x, text_y = (120-text_width)/2, (120-text_height)/2
-                else: # Fallback if textsize and textbbox not available
+                else: 
                     text_x, text_y = 30,30
                 draw.text((text_x, text_y), text, fill=(28,78,128), font=font); img.save(img_path)
-            except Exception: pass # Ignore if placeholder creation fails
+            except Exception: pass 
 
 # --- File Paths & Timezone & Directories ---
 ATTENDANCE_FILE = "attendance.csv"; ALLOWANCE_FILE = "allowances.csv"; GOALS_FILE = "goals.csv"; PAYMENT_GOALS_FILE = "payment_goals.csv"
 ACTIVITY_LOG_FILE = "activity_log.csv"
 ACTIVITY_PHOTOS_DIR = "activity_photos"
-ATTENDANCE_PHOTOS_DIR = "attendance_photos" # Used if attendance page still captures its own photos
+ATTENDANCE_PHOTOS_DIR = "attendance_photos" 
 
 if not os.path.exists(ACTIVITY_PHOTOS_DIR):
     try: os.makedirs(ACTIVITY_PHOTOS_DIR)
@@ -231,7 +249,7 @@ TARGET_TIMEZONE = "Asia/Kolkata"
 try: tz = pytz.timezone(TARGET_TIMEZONE)
 except pytz.exceptions.UnknownTimeZoneError: st.error(f"Invalid TARGET_TIMEZONE: '{TARGET_TIMEZONE}'."); st.stop()
 def get_current_time_in_tz(): return datetime.now(timezone.utc).astimezone(tz)
-def get_quarter_str_for_year(year, for_current_display=False): # Parameter for_current_display not used, can be removed
+def get_quarter_str_for_year(year, for_current_display=False): 
     now_month = get_current_time_in_tz().month
     if 1 <= now_month <= 3: return f"{year}-Q1"
     elif 4 <= now_month <= 6: return f"{year}-Q2"
@@ -244,31 +262,27 @@ def load_data(path, columns):
         try:
             if os.path.getsize(path) > 0:
                 df = pd.read_csv(path)
-                # Ensure all expected columns exist, add if missing
                 for col in columns:
-                    if col not in df.columns: df[col] = pd.NA # Use pd.NA for missing values
-                # Convert specific columns to numeric, coercing errors
+                    if col not in df.columns: df[col] = pd.NA 
                 num_cols = ["Amount", "TargetAmount", "AchievedAmount", "Latitude", "Longitude"]
                 for nc in num_cols:
                     if nc in df.columns: df[nc] = pd.to_numeric(df[nc], errors='coerce')
                 return df
-            else: return pd.DataFrame(columns=columns) # File exists but is empty
-        except pd.errors.EmptyDataError: return pd.DataFrame(columns=columns) # Explicitly handle EmptyDataError
+            else: return pd.DataFrame(columns=columns) 
+        except pd.errors.EmptyDataError: return pd.DataFrame(columns=columns) 
         except Exception as e: st.error(f"Error loading {path}: {e}."); return pd.DataFrame(columns=columns)
     else:
-        # File does not exist, create it with headers
         df = pd.DataFrame(columns=columns);
         try: df.to_csv(path, index=False)
-        except Exception as e: st.warning(f"Could not create {path}: {e}") # Warn if creation fails
+        except Exception as e: st.warning(f"Could not create {path}: {e}") 
         return df
 
-ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude"] # NO ImageFile for general attendance
+ATTENDANCE_COLUMNS = ["Username", "Type", "Timestamp", "Latitude", "Longitude"] 
 ALLOWANCE_COLUMNS = ["Username", "Type", "Amount", "Reason", "Date"]
 GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
 PAYMENT_GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmount", "AchievedAmount", "Status"]
 ACTIVITY_LOG_COLUMNS = ["Username", "Timestamp", "Description", "ImageFile", "Latitude", "Longitude"]
 
-# --- Load DataFrames globally ---
 attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS)
 allowance_df = load_data(ALLOWANCE_FILE, ALLOWANCE_COLUMNS)
 goals_df = load_data(GOALS_FILE, GOALS_COLUMNS)
@@ -280,9 +294,8 @@ activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS)
 if "user_message" not in st.session_state: st.session_state.user_message = None
 if "message_type" not in st.session_state: st.session_state.message_type = None
 if "auth" not in st.session_state: st.session_state.auth = {"logged_in": False, "username": None, "role": None}
-
 # --- Function to render Plotly Express grouped bar chart ---
-def render_goal_chart(df: pd.DataFrame, chart_title: str):
+def render_goal_chart(df: pd.DataFrame, chart_title: str): # Defined earlier, keep as is
     if df.empty:
         st.warning("No data available to plot.")
         return
@@ -304,7 +317,7 @@ def render_goal_chart(df: pd.DataFrame, chart_title: str):
     st.plotly_chart(fig, use_container_width=True)
 
 # --- Function to create Matplotlib Donut Chart ---
-def create_donut_chart(progress_percentage, chart_title="Progress", achieved_color='#2ecc71', remaining_color='#f0f0f0', center_text_color=None):
+def create_donut_chart(progress_percentage, chart_title="Progress", achieved_color='#2ecc71', remaining_color='#f0f0f0', center_text_color=None): # Defined earlier
     fig, ax = plt.subplots(figsize=(2.5, 2.5), dpi=90)
     fig.patch.set_alpha(0); ax.patch.set_alpha(0)
     progress_percentage = max(0.0, min(float(progress_percentage), 100.0))
@@ -320,7 +333,7 @@ def create_donut_chart(progress_percentage, chart_title="Progress", achieved_col
     return fig
 
 # --- Function to create Matplotlib Grouped Bar Chart for Team Progress ---
-def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col="Target", achieved_col="Achieved", user_col="Employee"):
+def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col="Target", achieved_col="Achieved", user_col="Employee"): # Defined earlier
     if summary_df.empty: return None
     labels = summary_df[user_col].tolist(); target_amounts = summary_df[target_col].fillna(0).tolist(); achieved_amounts = summary_df[achieved_col].fillna(0).tolist()
     x = np.arange(len(labels)); width = 0.35
@@ -346,11 +359,10 @@ if not st.session_state.auth["logged_in"]:
         message_placeholder_login.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
         st.session_state.user_message = None; st.session_state.message_type = None
     
-    # Simple login form without extra card div, Bootstrap can style body/container
     st.markdown("<h3>🔐 Login</h3>", unsafe_allow_html=True)
     uname = st.text_input("Username", key="login_uname")
     pwd = st.text_input("Password", type="password", key="login_pwd")
-    if st.button("Login", key="login_button", type="primary"): # Use Bootstrap primary button style
+    if st.button("Login", key="login_button", type="primary"): 
         user_creds = USERS.get(uname)
         if user_creds and user_creds["password"] == pwd:
             st.session_state.auth = {"logged_in": True, "username": uname, "role": user_creds["role"]}
@@ -359,7 +371,7 @@ if not st.session_state.auth["logged_in"]:
     st.stop()
 
 # --- Main Application ---
-current_user = st.session_state.auth # User is authenticated at this point
+current_user = st.session_state.auth 
 
 # Global Message Display for Main Application
 message_placeholder_main = st.empty()
@@ -373,26 +385,26 @@ if "user_message" in st.session_state and st.session_state.user_message:
     st.session_state.message_type = None
 
 
-# <<<< ENTIRE SIDEBAR SECTION WILL BE REPLACED >>>>
-nav_options = [
-    "Attendance",
-    "Upload Activity Photo",
-    "Allowance",
-    "Goal Tracker",
-    "Payment Collection Tracker",
-    "View Logs",
-    "Create Order"
+# <<<< MODIFIED SIDEBAR SECTION >>>>
+# Define navigation options with labels and Material Icon names
+nav_options_with_icons = [
+    {"label": "Attendance", "icon": "schedule"},
+    {"label": "Upload Activity Photo", "icon": "add_a_photo"},
+    {"label": "Allowance", "icon": "payments"},
+    {"label": "Goal Tracker", "icon": "emoji_events"},
+    {"label": "Payment Collection Tracker", "icon": "receipt_long"},
+    {"label": "View Logs", "icon": "wysiwyg"}, # was summarize
+    {"label": "Create Order", "icon": "add_shopping_cart"}
 ]
 
 # Initialize active_page in session state if not already set
 if "active_page" not in st.session_state:
-    st.session_state.active_page = nav_options[0]
+    st.session_state.active_page = nav_options_with_icons[0]["label"] # Default to first label
 
 def set_active_page_callback(page_name):
     st.session_state.active_page = page_name
 
 with st.sidebar:
-    # This outer div will be styled by .sidebar-content-wrapper from custom CSS
     st.markdown('<div class="sidebar-content-wrapper">', unsafe_allow_html=True)
 
     st.markdown(f"<div class='welcome-text-sidebar'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
@@ -400,7 +412,7 @@ with st.sidebar:
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
         st.markdown("<div class='user-profile-img-container'>", unsafe_allow_html=True)
-        st.image(user_sidebar_info["profile_photo"]) # Width controlled by CSS
+        st.image(user_sidebar_info["profile_photo"])
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown(
@@ -410,39 +422,67 @@ with st.sidebar:
 
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    # Navigation Links using st.button styled by CSS
     st.markdown('<div class="sidebar-nav">', unsafe_allow_html=True)
-    for option in nav_options:
-        button_key = f"nav_btn_{option.lower().replace(' ', '_').replace('(', '').replace(')', '')}" # Make key more robust
-        is_active = (st.session_state.active_page == option)
+    for item in nav_options_with_icons:
+        option_label = item["label"]
+        option_icon = item["icon"]
         
-        # Wrap active button in a div to apply specific styling
+        # Construct the HTML for the button label with icon
+        # Streamlit button label does not render HTML. We use markdown as a workaround.
+        # We will use st.button and rely on CSS to style the icon within if Streamlit's internal structure allows it.
+        # The st.button's 'icon' param is for specific emoji-like icons.
+        # For Material Icons, they need to be part of the text or styled with ::before.
+        
+        button_text_with_icon_html = f'<span class="material-symbols-outlined">{option_icon}</span> {option_label}'
+        
+        button_key = f"nav_btn_{option_label.lower().replace(' ', '_').replace('(', '').replace(')', '')}"
+        is_active = (st.session_state.active_page == option_label)
+        
+        # This approach embeds HTML into the button label.
+        # The custom CSS for .stButton button and .material-symbols-outlined will handle styling.
         if is_active:
             st.markdown('<div class="active-button-wrapper">', unsafe_allow_html=True)
-            st.button(option, key=button_key, on_click=set_active_page_callback, args=(option,), use_container_width=True)
+            # The button_text_with_icon_html will be treated as a string by st.button
+            # We rely on the CSS to apply 'Material Symbols Outlined' font to the button.
+            st.button(
+                button_text_with_icon_html, 
+                key=button_key, 
+                on_click=set_active_page_callback, 
+                args=(option_label,), 
+                use_container_width=True,
+                unsafe_allow_html=True # THIS IS KEY for rendering HTML in button
+            )
             st.markdown('</div>', unsafe_allow_html=True)
         else:
-            st.button(option, key=button_key, on_click=set_active_page_callback, args=(option,), use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-nav
+            st.button(
+                button_text_with_icon_html, 
+                key=button_key, 
+                on_click=set_active_page_callback, 
+                args=(option_label,), 
+                use_container_width=True,
+                unsafe_allow_html=True # THIS IS KEY
+            )
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    # Logout Button - Placed at the bottom due to margin-top: auto on its container
     st.markdown('<div class="logout-button-container">', unsafe_allow_html=True)
-    if st.button("Logout", key="logout_button_sidebar", use_container_width=True):
+    # Adding logout icon
+    logout_button_html = '<span class="material-symbols-outlined">logout</span> Logout'
+    if st.button(logout_button_html, key="logout_button_sidebar", use_container_width=True, unsafe_allow_html=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.session_state.user_message = "Logged out successfully."
         st.session_state.message_type = "info"
         st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True) # Close logout-button-container
+    st.markdown('</div>', unsafe_allow_html=True) 
     
-    st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-content-wrapper
-# <<<< END OF REPLACEMENT FOR SIDEBAR SECTION >>>>
+    st.markdown('</div>', unsafe_allow_html=True) 
+# <<<< END OF MODIFIED SIDEBAR SECTION >>>>
 
 
 # --- Main Content ---
-# IMPORTANT: All 'if nav == "..."' must be changed to 'if st.session_state.active_page == "..."'
+# IMPORTANT: All 'if st.session_state.active_page == "..."' must remain.
 
 if st.session_state.active_page == "Attendance":
-    st.markdown('<div class="card">', unsafe_allow_html=True) # Assuming stCard is a class for main content cards
+    st.markdown('<div class="card">', unsafe_allow_html=True) 
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
     st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Upload Activity Photo' section.", icon="ℹ️")
     st.markdown("---"); st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
@@ -836,10 +876,8 @@ elif st.session_state.active_page == "View Logs":
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif st.session_state.active_page == "Create Order":
-    st.title("Create New Order") # This can be styled by Bootstrap by default or wrapped in .card
+    st.title("Create New Order") 
 
-    # Load store and product data
-    # Ensure these CSV files are in the same directory as app.py
     try:
         stores_df = pd.read_csv("agri_stores.csv")
         products_df = pd.read_csv("symplanta_products_with_images.csv")
@@ -847,29 +885,21 @@ elif st.session_state.active_page == "Create Order":
         st.error("Error: agri_stores.csv or symplanta_products_with_images.csv not found. Please ensure they are in the application directory.")
         st.stop()
 
-
-    # Store selector
     store_name = st.selectbox("Select Store", sorted(stores_df["StoreName"].dropna().astype(str).unique()))
-    
-    # Product selector
     product_name = st.selectbox(
         "Select Product",
         sorted(products_df["Product Name"].dropna().astype(str).unique())
     )
-
     product_sizes = products_df[products_df["Product Name"] == product_name]
-
     size = st.selectbox(
         "Select Size",
         sorted(product_sizes["Size"].dropna().astype(str).unique())
     )
-
     quantity = st.number_input("Enter Quantity", min_value=1, value=1)
 
     if st.button("Add to Order", type="primary"):
         if "order_items" not in st.session_state:
             st.session_state["order_items"] = []
-
         selected_product_df = product_sizes[product_sizes["Size"] == size]
         if not selected_product_df.empty:
             selected_product = selected_product_df.iloc[0]
@@ -886,20 +916,15 @@ elif st.session_state.active_page == "Create Order":
         else:
             st.warning("Selected product size details not found.")
 
-
-    # Show current order items
     if "order_items" in st.session_state and st.session_state["order_items"]:
         st.subheader("🧾 Order Summary")
         order_df = pd.DataFrame(st.session_state["order_items"])
-        # Ensure "Total" and "Unit Price" are numeric before formatting
         order_df["Unit Price"] = pd.to_numeric(order_df["Unit Price"], errors='coerce').fillna(0)
         order_df["Total"] = pd.to_numeric(order_df["Total"], errors='coerce').fillna(0)
         
-        # Format currency columns
         order_df_display = order_df.copy()
         order_df_display["Unit Price"] = order_df_display["Unit Price"].apply(lambda x: f"₹{x:,.2f}")
         order_df_display["Total"] = order_df_display["Total"].apply(lambda x: f"₹{x:,.2f}")
         
         st.dataframe(order_df_display, use_container_width=True)
-
         st.markdown(f"**Grand Total: ₹{order_df['Total'].sum():,.2f}**")
