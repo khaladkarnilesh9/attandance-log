@@ -83,7 +83,10 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     return fig
 
 html_css = """
-html_css = """
+import streamlit as st
+
+# Add your CSS styles using st.markdown
+st.markdown("""
 <style>
     /* Import Google Fonts - No inheritance */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
@@ -91,24 +94,16 @@ html_css = """
 
     /* Root Variables - Only for colors, no layout */
     :root {
-        /* Existing Color Variables */
+        /* Color Variables Only */
         --primary-blue: #4285F4;
+        --sidebar-blue: #1a73e8;
         --pure-white: #ffffff;
-        --body-gray: #f8f9fa; /* Used for main app body */
+        --divider-white: rgba(255, 255, 255, 0.2);
+        --body-gray: #f8f9fa;
         --card-white: #ffffff;
         --text-dark: #202124;
         --text-gray: #5f6368;
         --border-light: #dadce0;
-
-        /* New Sidebar Specific Colors (Kaggle-inspired) */
-        --sidebar-bg: #FFFFFF; /* Kaggle uses white or very light gray like F8F9FA */
-        --sidebar-text: #3C4043; /* Dark gray for text */
-        --sidebar-icon: #5F6368; /* Slightly lighter gray for icons */
-        --sidebar-divider: #E0E0E0; /* Light gray for dividers within sidebar */
-        --sidebar-item-hover-bg: #F1F3F4; /* Light gray for item hover */
-        --sidebar-item-active-bg: #E8F0FE; /* Light blue for active item background (Google style) */
-        --sidebar-item-active-text: #1967D2; /* Blue for active item text */
-        --sidebar-item-active-border: #1967D2; /* Blue for active item left border */
     }
 
     /* Base Body - No inheritance */
@@ -127,158 +122,71 @@ html_css = """
         max-width: 1200px;
     }
 
-    /* --- SIDEBAR STYLING STARTS --- */
-
     /* Sidebar Container - Independent */
     section[data-testid="stSidebar"] {
-        background-color: var(--sidebar-bg) !important;
-        padding: 16px 0px !important; /* Top/bottom padding for sidebar content area */
+        background-color: var(--sidebar-blue) !important;
+        padding: 0 !important;
         width: 280px !important;
-        box-shadow: 1px 0 4px rgba(0,0,0,0.07) !important; /* Subtle right shadow */
-        border-right: 1px solid var(--sidebar-divider) !important; /* Subtle right border */
-        color: var(--sidebar-text) !important; /* Default text color for sidebar */
+        box-shadow: none !important;
+        border-right: none !important;
     }
 
     /* Welcome Header - Independent */
     div[data-testid="stSidebar"] .welcome-text {
-        color: var(--text-dark) !important; /* Dark text, no longer white or blue */
+        color: var(--pure-white) !important;
         font-weight: 500;
-        font-size: 1.1rem; /* 17.6px */
-        padding: 16px 24px !important; /* Consistent padding */
-        margin: 0 0 8px 0 !important; /* Margin below welcome text */
-        /* border-bottom: 1px solid var(--sidebar-divider) !important; Removed, Kaggle has less dividers */
+        font-size: 1.1rem;
+        padding: 24px 24px 20px !important;
+        margin: 0 !important;
+        border-bottom: 1px solid var(--divider-white) !important;
     }
 
     /* Navigation Items Container - Independent */
     div[data-testid="stSidebar"] div.stRadio {
         display: flex;
         flex-direction: column;
-        gap: 0px; /* Items will manage their own spacing or be contiguous */
-        padding: 0 12px; /* Horizontal padding for the block of nav items */
+        gap: 0;
     }
 
-    /* Individual Navigation Items (Radio Labels) - Independent */
-    div[data-testid="stSidebar"] div.stRadio > label { /* Assuming this targets each nav item label */
-        display: flex !important; /* Use flex for icon alignment if icons are added */
-        align-items: center !important; /* Vertically align icon and text */
-        padding: 10px 12px !important; /* Padding inside each item */
-        margin: 1px 0 !important; /* Minimal vertical margin between items */
+    /* Individual Navigation Items - Independent */
+    div[data-testid="stSidebar"] div.stRadio > label {
+        display: block;
+        padding: 16px 24px !important;
+        margin: 0 !important;
         background: transparent !important;
-        border-radius: 6px !important; /* Rounded corners for items */
-        border: none !important; /* No borders by default */
-        transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
-        cursor: pointer;
-        position: relative; /* For the active item's left border pseudo-element */
-        line-height: 1.4; /* Ensure consistent line height */
+        border-radius: 0 !important;
+        border-bottom: 1px solid var(--divider-white) !important;
     }
 
-    div[data-testid="stSidebar"] div.stRadio > label:hover {
-        background-color: var(--sidebar-item-hover-bg) !important;
-        color: var(--sidebar-text) !important; /* Ensure text color remains on hover if not changing */
-    }
-
-    /* Navigation Text (inside each nav item label) - Independent */
+    /* Navigation Text - Independent */
     div[data-testid="stSidebar"] div.stRadio > label > div > p {
-        color: var(--sidebar-text) !important; /* Use sidebar text color */
-        font-size: 0.9rem; /* Approx 14.4px, Kaggle uses similar */
+        color: var(--pure-white) !important;
+        font-size: 0.9rem;
         font-weight: 400;
         margin: 0 !important;
-        letter-spacing: 0.2px;
+        letter-spacing: 0.3px;
     }
 
     /* Active Navigation Item - Independent */
-    div[data-testid="stSidebar"] div.stRadio div[aria-checked="true"] + label { /* Assuming this targets the active item's label */
-        background-color: var(--sidebar-item-active-bg) !important;
+    div[data-testid="stSidebar"] div.stRadio div[aria-checked="true"] + label {
+        background-color: rgba(255, 255, 255, 0.1) !important;
     }
 
-    /* Active Navigation Item Left Border (Kaggle style) */
-    div[data-testid="stSidebar"] div.stRadio div[aria-checked="true"] + label::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        height: 60%; /* Height of the active indicator */
-        width: 3px; /* Width of the active indicator */
-        background-color: var(--sidebar-item-active-border);
-        border-radius: 0 3px 3px 0; /* Slightly rounded right edge of the indicator */
-    }
-
-    /* Active Navigation Item Text */
     div[data-testid="stSidebar"] div.stRadio div[aria-checked="true"] + label > div > p {
-        color: var(--sidebar-item-active-text) !important; /* Active text color */
-        font-weight: 500 !important; /* Make active text slightly bolder */
-    }
-
-    /* Active Navigation Item Icon (if icons are used) */
-    div[data-testid="stSidebar"] div.stRadio div[aria-checked="true"] + label span.material-symbols-outlined {
-        color: var(--sidebar-item-active-text) !important; /* Active icon color same as text */
-        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20; /* Optional: Fill icon when active */
-    }
-
-    /* Sidebar Icons - General styling for Material Symbols if used in the sidebar */
-    div[data-testid="stSidebar"] span.material-symbols-outlined {
-        color: var(--sidebar-icon) !important;
-        font-size: 20px !important;
-        margin-right: 12px !important; /* Space between icon and text */
-        vertical-align: middle; /* Helps align icon with text */
-        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20; /* Default icon style */
-        line-height: 1; /* Prevent extra space due to icon line height */
-    }
-
-    /* Sidebar User Info Section */
-    div[data-testid="stSidebar"] div[data-testid="stImage"] { /* Container for st.image (profile photo) */
-        display: flex;
-        justify-content: center;
-        padding-top: 12px; /* Space above image */
-        padding-bottom: 8px; /* Space below image */
-    }
-
-    div[data-testid="stSidebar"] div[data-testid="stImage"] img {
-        border-radius: 50%; /* Circular profile photo */
-        border: 2px solid var(--sidebar-divider); /* Subtle border for profile image */
-        object-fit: cover; /* Ensure image covers the area well if not square */
-    }
-
-    /* User position text (st.markdown for user position) */
-    div[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] > p {
-        color: var(--text-gray) !important; 
-        text-align: center; 
-        font-size: 0.85em !important; 
-        margin-bottom: 12px !important; 
-    }
-
-
-    /* Sidebar Divider (st.markdown("---")) */
-    div[data-testid="stSidebar"] hr {
-        border: none !important;
-        border-top: 1px solid var(--sidebar-divider) !important;
-        margin: 16px 16px !important; /* Adjust spacing and add horizontal margin */
-    }
-
-    /* Sidebar Logout Button */
-    div[data-testid="stSidebar"] button.stButton > button {
-        background-color: var(--sidebar-item-hover-bg) !important; /* Light gray background */
-        color: var(--sidebar-text) !important; /* Standard text color */
-        border: 1px solid var(--sidebar-divider) !important; /* Subtle border */
-        width: calc(100% - 24px) !important; /* Full width minus padding of stRadio */
-        margin: 16px auto 0 auto !important; /* Centered with margin */
-        display: block !important;
-        border-radius: 6px !important;
         font-weight: 500 !important;
-        padding: 8px 16px !important;
     }
 
-    div[data-testid="stSidebar"] button.stButton > button:hover {
-        background-color: var(--sidebar-divider) !important; /* Slightly darker hover */
-        border-color: var(--text-gray) !important;
+    /* Sidebar Icons - Independent */
+    div[data-testid="stSidebar"] span.material-symbols-outlined {
+        color: var(--pure-white) !important;
+        font-size: 20px !important;
+        margin-right: 16px !important;
+        vertical-align: middle;
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
     }
-
-    /* --- SIDEBAR STYLING ENDS --- */
-
 
     /* Cards - Independent */
-    div.stCard { 
+    div.stCard {
         background-color: var(--card-white);
         padding: 24px;
         border-radius: 8px;
@@ -287,8 +195,8 @@ html_css = """
         box-shadow: 0 1px 2px 0 rgba(60,64,67,0.1);
     }
 
-    /* Buttons - Independent (General buttons outside sidebar) */
-    body:not(div[data-testid="stSidebar"]) button.stButton > button { 
+    /* Buttons - Independent */
+    button.stButton > button {
         background-color: var(--primary-blue) !important;
         color: var(--pure-white) !important;
         border: none !important;
@@ -299,7 +207,7 @@ html_css = """
     }
 
     /* Form Inputs - Independent */
-    input.stTextInput { 
+    input.stTextInput {
         border-radius: 8px !important;
         border: 1px solid var(--border-light) !important;
         padding: 10px 12px !important;
@@ -337,6 +245,9 @@ html_css = """
     }
 </style>
 """
+unsafe_allow_html=True)
+
+# Your Streamlit app code continues here...
 """
 st.markdown(html_css, unsafe_allow_html=True)
 
