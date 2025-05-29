@@ -91,28 +91,21 @@ html_css = """
     :root {
         /* Color Variables */
         --primary-color: #4285F4;
-        --secondary-color: #34A853;
-        --accent-color: #EA4335;
-        --yellow-color: #FBBC05;
         --sidebar-bg: #1a73e8;
-        --sidebar-text:#ffffff;
+        --sidebar-text: white; /* Pure white text */
         --sidebar-text-active: white;
-        --sidebar-divider: rgba(255, 255, 255, 0.3);
+        --sidebar-divider: rgba(255, 255, 255, 0.2); /* Semi-transparent white divider */
         --body-bg-color: #f8f9fa;
         --card-bg-color: #ffffff;
         --text-color: #202124;
         --text-muted-color: #5f6368;
         --border-color: #dadce0;
-        --input-border-color: #dadce0;
         
         /* Typography */
         --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         
-        /* Spacing & Effects */
-        --border-radius: 8px;
-        --border-radius-lg: 12px;
-        --box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-        --box-shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.1);
+        /* Spacing */
+        --nav-item-padding: 16px 24px; /* Increased padding for nav items */
     }
 
     /* Base Styles */
@@ -121,99 +114,60 @@ html_css = """
         background-color: var(--body-bg-color);
         color: var(--text-color);
         line-height: 1.5;
-        font-weight: 400;
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        color: var(--text-color);
-        font-weight: 500;
-        letter-spacing: -0.25px;
     }
 
     /* Main Content Area */
     .main .block-container {
         padding: 2rem 3rem !important;
-        max-width: 1200px !important;
-    }
-
-    .main .block-container > div:first-child > div:first-child > div:first-child > h1 {
-        font-size: 1.75rem;
-        font-weight: 500;
-        padding-bottom: 16px;
-        margin-bottom: 24px;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    /* Cards */
-    .card {
-        background-color: var(--card-bg-color);
-        padding: 24px;
-        border-radius: var(--border-radius);
-        box-shadow: var(--box-shadow-sm);
-        margin-bottom: 24px;
-        border: 1px solid var(--border-color);
-    }
-
-    .card h3 {
-        margin-top: 0;
-        color: var(--text-color);
-        padding-bottom: 12px;
-        margin-bottom: 20px;
-        font-size: 1.25rem;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
     }
 
     /* Sidebar Styles */
     [data-testid="stSidebar"] {
         background-color: var(--sidebar-bg) !important;
-        padding: 10px !important;
-        width: 280px !important;
-        box-shadow: none !important;
-        border-right: none !important;
-        color:#FFFFFF;
-    }
-
-    [data-testid="stSidebar"] .sidebar-content {
-        padding: 0;
+        padding: 0 !important;
     }
 
     /* Sidebar Header */
     [data-testid="stSidebar"] .welcome-text {
         color: white !important;
-        font-size: 1rem !important;
         font-weight: 500 !important;
-        padding: 24px 24px 16px !important;
+        padding: 24px 24px 20px !important;
         margin: 0 !important;
         border-bottom: 1px solid var(--sidebar-divider) !important;
+    }
+
+    /* Navigation Items Container */
+    [data-testid="stSidebar"] .stRadio {
+        display: flex;
+        flex-direction: column;
     }
 
     /* Navigation Items */
     [data-testid="stSidebar"] .stRadio > label {
         display: block;
-        padding: 14px 24px !important;
+        padding: var(--nav-item-padding) !important;
         margin: 0 !important;
         background: transparent !important;
         border-radius: 0 !important;
         border-bottom: 1px solid var(--sidebar-divider) !important;
-        transition: none !important;
+        transition: background-color 0.2s ease;
     }
 
     /* Navigation Text */
     [data-testid="stSidebar"] .stRadio > label > div > p {
         color: var(--sidebar-text) !important;
-        font-size: 0.875rem !important;
+        font-size: 0.9rem !important;
         font-weight: 400 !important;
         margin: 0 !important;
-        padding: 0 !important;
-        display: flex;
-        align-items: center;
+        letter-spacing: 0.3px;
     }
 
-    /* Active Item */
+    /* Active Navigation Item */
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
     [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
-        color: var(--sidebar-text-active) !important;
         font-weight: 500 !important;
     }
 
@@ -223,26 +177,16 @@ html_css = """
         font-size: 20px !important;
         margin-right: 16px !important;
         vertical-align: middle;
-        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
     }
 
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined {
-        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important;
-    }
-
-    /* Form Elements */
-    .stTextInput input,
-    .stNumberInput input,
-    .stTextArea textarea,
-    .stDateInput input,
-    .stTimeInput input,
-    .stSelectbox div[data-baseweb="select"] > div {
-        border-radius: var(--border-radius) !important;
-        border: 1px solid var(--input-border-color) !important;
-        padding: 10px 12px !important;
-        font-size: 0.875rem !important;
-        color: var(--text-color) !important;
-        background-color: var(--card-bg-color) !important;
+    /* Cards */
+    .card {
+        background-color: var(--card-bg-color);
+        padding: 24px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--box-shadow-sm);
     }
 
     /* Buttons */
@@ -255,14 +199,15 @@ html_css = """
         font-weight: 500 !important;
     }
 
-    /* Check In/Out Buttons */
-    .stButton button:contains("Check In"),
-    .stButton button:contains("Check Out") {
-        width: 100%;
-        margin: 8px 0;
+    /* Form Elements */
+    .stTextInput input,
+    .stSelectbox select {
+        border-radius: var(--border-radius) !important;
+        border: 1px solid var(--border-color) !important;
+        padding: 10px 12px !important;
     }
 
-    /* Data Display */
+    /* Empty State Messages */
     .main .stMarkdown p {
         color: var(--text-muted-color);
         font-style: italic;
@@ -282,6 +227,7 @@ html_css = """
         padding: 10px 16px !important;
     }
 </style>
+
 """
 st.markdown(html_css, unsafe_allow_html=True)
 
