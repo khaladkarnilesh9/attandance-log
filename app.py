@@ -346,9 +346,7 @@ with st.sidebar:
     # nav_options = ["Attendance", "Upload Activity Photo", "Allowance", "Goal Tracker", "Payment Collection Tracker", "View Logs", "Create Order"]
     # nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
 
-    nav = option_menu(    
-    None,
-    ["Home", "Attendance", "Upload Activity Photo", "Goal Tracker", "Payment Collection Tracker","View Logs","Create Order"],
+    nav_options=["Home", "Attendance", "Upload Activity Photo", "Goal Tracker", "Payment Collection Tracker","View Logs","Create Order"],
     icons=['house','calendar','image', 'database', 'book', 'fingerprint', 'currency-dollar'],
     menu_icon="cast",
     default_index=0,
@@ -371,8 +369,7 @@ with st.sidebar:
             "margin-right": "10px",
             "color": "#666",
         },
-    }
-)    
+    }   
 
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
