@@ -479,18 +479,18 @@ if st.session_state.user_message:
     st.session_state.message_type = None
 
 # --- SIDEBAR IMPLEMENTATION ---
-with st.sidebar:
-    st.markdown('<div class="sidebar-content-wrapper">', unsafe_allow_html=True)
+# with st.sidebar:
+#     st.markdown('<div class="sidebar-content-wrapper">', unsafe_allow_html=True)
 
-    current_username = current_user_auth_info['username']
-    user_details = USERS.get(current_username, {})
+#     current_username = current_user_auth_info['username']
+#     user_details = USERS.get(current_username, {})
 
-    st.markdown(f"<div class='welcome-text-sidebar'>Welcome, {current_username}!</div>", unsafe_allow_html=True)
+#     st.markdown(f"<div class='welcome-text-sidebar'>Welcome, {current_username}!</div>", unsafe_allow_html=True)
 
-    if user_details.get("profile_photo") and os.path.exists(user_details["profile_photo"]):
-        st.markdown("<div class='user-profile-img-container'>", unsafe_allow_html=True)
-        st.image(user_details["profile_photo"]) # Width controlled by CSS
-        st.markdown("</div>", unsafe_allow_html=True)
+#     if user_details.get("profile_photo") and os.path.exists(user_details["profile_photo"]):
+#         st.markdown("<div class='user-profile-img-container'>", unsafe_allow_html=True)
+#         st.image(user_details["profile_photo"]) # Width controlled by CSS
+#         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown(
         f"<div class='user-position-text'>{user_details.get('position', 'N/A')}</div>",
