@@ -813,7 +813,7 @@ elif selected == "Create Order":
         if selected_category_filter_co != "All Categories": filtered_products_df_co = products_df_co[products_df_co['Category'] == selected_category_filter_co]
         product_variant_options_co = {"": "Choose a product..."}
         if not filtered_products_df_co.empty:
-            for _, row in filtered_products_df_co.iterrows(): product_variant_options_co[row['ProductVariantID']] = f"{row['ProductName']} ({row.get('UnitOfMeasure', 'N/A')}) - ₹{pd.to_numeric(row.get('Price'), errors='coerce'):.2f}"
+            for _, row in filtered_products_df_co.iterrows(): product_variant_options_co[row['SKU']] = ... # Using SKU as the key # and later: # "ProductVariantID": item_data['SKU'], # Storing SKU as ProductVariantID or add a new SKU field = f"{row['ProductName']} ({row.get('UnitOfMeasure', 'N/A')}) - ₹{pd.to_numeric(row.get('Price'), errors='coerce'):.2f}"
         col_prod_co, col_qty_co, col_add_btn_co = st.columns([3, 1, 1.5])
         with col_prod_co:
             st.session_state.co_current_product_id = st.selectbox(
