@@ -120,7 +120,7 @@ html_css = """
 
     /* Sidebar Container - Independent */
     section[data-testid="stSidebar"] {
-        background-color: skyblue !important;
+        background-color: #e8f2fc !important;
         padding: 0 !important;
         width: 280px !important;
         box-shadow: none !important;
@@ -150,7 +150,7 @@ html_css = """
     div[data-testid="stSidebar"] div.stRadio > label {
         display: block;
         padding: 16px 24px !important;
-        margin: 0 !important;
+        margin: 4px !important;
         background: transparent !important;
         border-radius: 0 !important;
         border-bottom: 1px solid var(--divider-white) !important;
@@ -159,7 +159,7 @@ html_css = """
     /* Navigation Text - Independent */
     div[data-testid="stSidebar"] div.stRadio > label > div > p {
         color: var(--pure-white) !important;
-        font-size: 0.9rem;
+        font-size: 20px;
         font-weight: 400;
         margin: 0 !important;
         letter-spacing: 0.3px;
