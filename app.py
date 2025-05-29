@@ -66,15 +66,25 @@ st.markdown("""
 with st.sidebar:
     st.markdown("""
     <div style="padding: 16px 0 24px 16px; border-bottom: 1px solid #E0E0E0; margin-bottom: 16px;">
-        <h2 style="color: var(--kaggle-blue); margin: 0;">Kaggle</h2>
-        <p style="color: #666; margin: 4px 0 0 0;">Datasets</p>
+        <h2 style="color: var(--kaggle-blue); margin: 0;">Trackspere</h2>
+        <p style="color: #666; margin: 4px 0 0 0;">Track your Buissness</p>
     </div>
-    """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)    
     
-    selected = option_menu(
+    nav_options = [
+        "Attendance",
+        "Upload Activity Photo",
+        "Allowance",
+        "Goal Tracker",
+        "Payment Collection Tracker",
+        "View Logs",
+        "Create Order"
+    ]
+    
+    selected = option_menu(    
         None,
-        ["Home", "Datasets", "Notebooks", "Discussions", "Learn"],
-        icons=['house', 'database', 'book', 'chat', 'lightbulb'],
+        ["Home", "Attendance", "Upload Activity Photo", "Goal Tracker", "Payment Collection Tracker","View Logs","Create Order"],
+        icons=['house','calender','photo', 'database', 'book', 'fingureprint', 'doller'],
         menu_icon="cast",
         default_index=0,
         styles={
