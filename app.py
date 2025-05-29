@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta
-from streamlit_option_menu import option_menu # Import for the new sidebar
+from streamlit_option_menu import option_menu # Crucial import
 import os
 import pytz
 import plotly.express as px
@@ -114,254 +114,124 @@ if "user_message" not in st.session_state: st.session_state.user_message = None
 if "message_type" not in st.session_state: st.session_state.message_type = None
 if "auth" not in st.session_state: st.session_state.auth = {"logged_in": False, "username": None, "role": None}
 if "order_items" not in st.session_state: st.session_state.order_items = []
+if "active_page" not in st.session_state: st.session_state.active_page = "Attendance" # Default page
 
-
-# --- CSS STYLING (Adapted from your Kaggle example, with some theming) ---
+# --- CSS STYLING (Kaggle-like from your example, adapted for the app) ---
 st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<!-- Bootstrap Icons are usually loaded by streamlit-option-menu, but good to have a general font link -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 <style>
-    /* Main styling - Using your Kaggle-like theme */
+    /* Main styling - Kaggle-like theme */
     :root {
         --kaggle-blue: #20BEFF; /* Main accent color */
-        --kaggle-dark-text: #333333; /* For text on light backgrounds */
+        --kaggle-dark-text: #333333;
         --kaggle-light-bg: #FFFFFF; /* Sidebar background */
         --kaggle-content-bg: #F5F5F5; /* Main content area background */
-        --kaggle-gray-border: #E0E0E0; /* Borders and dividers */
+        --kaggle-gray-border: #E0E0E0;
         --kaggle-hover-bg: #f0f8ff; /* Light blue hover for items */
-        --kaggle-selected-bg: #E6F7FF; /* Background for selected item */
-        --kaggle-selected-text: var(--kaggle-blue); /* Text color for selected item */
-        --kaggle-icon-color: #555555; /* Default icon color */
-        --kaggle-icon-selected-color: var(--kaggle-blue); /* Icon color for selected item */
+        --kaggle-selected-bg: #E6F7FF;
+        --kaggle-selected-text: var(--kaggle-blue);
+        --kaggle-icon-color: #555555;
+        --kaggle-icon-selected-color: var(--kaggle-blue);
     }
     
-    /* Base body for main content area */
-    div[data-testid="stAppViewContainer"] > .main {
+    body { /* Ensure body takes the content background */
         background-color: var(--kaggle-content-bg) !important;
+    }
+    div[data-testid="stAppViewContainer"] > .main { /* Main content area */
+        background-color: var(--kaggle-content-bg) !important;
+        padding: 1.5rem; /* Add padding to main content area */
     }
 
     /* Sidebar styling */
-    section[data-testid="stSidebar"] > div:first-child { /* Target the direct child for background */
+    section[data-testid="stSidebar"] > div:first-child {
         background-color: var(--kaggle-light-bg) !important;
         border-right: 1px solid var(--kaggle-gray-border) !important;
-        padding: 0 !important; /* Remove default padding if option_menu handles it */
+        padding: 0px !important; /* Let content inside manage padding */
         height: 100vh;
         display: flex;
         flex-direction: column;
     }
     
-    /* Sidebar Header (App Name & Subtitle) */
-    .sidebar-header {
+    .sidebar-app-header {
         padding: 20px 16px 16px 16px;
         border-bottom: 1px solid var(--kaggle-gray-border);
     }
-    .sidebar-header h2 {
+    .sidebar-app-header h2 {
         color: var(--kaggle-blue);
-        font-size: 1.5rem; /* App name size */
-        margin: 0; font-weight: 600; /* Bold app name */
+        font-size: 1.5rem; margin: 0; font-weight: 600;
     }
-    .sidebar-header p {
-        color: #666;
-        font-size: 0.85rem; margin: 4px 0 0 0;
+    .sidebar-app-header p {
+        color: #666; font-size: 0.85rem; margin: 4px 0 0 0;
     }
 
-    /* User Info Block Styling */
-    .sidebar-user-info {
+    .sidebar-user-info-block {
         padding: 12px 16px;
         display: flex;
         align-items: center;
-        gap: 12px; /* Space between image and text */
+        gap: 12px;
         border-bottom: 1px solid var(--kaggle-gray-border);
     }
-    .user-profile-img-sidebar {
+    .user-profile-img-display { /* Class for the img tag if st.image allows it, or its container */
         border-radius: 50% !important;
-        width: 40px !important;
-        height: 40px !important;
+        width: 40px !important; height: 40px !important;
         object-fit: cover !important;
         border: 1px solid var(--kaggle-gray-border) !important;
     }
-    .user-details-sidebar div:nth-child(1) { /* Username */
-        color: var(--kaggle-dark-text) !important;
-        font-size: 0.95rem;
-        font-weight: 500;
+    .user-details-text-block div:nth-child(1) { /* Username */
+        color: var(--kaggle-dark-text) !important; font-size: 0.95rem; font-weight: 500;
     }
-    .user-details-sidebar div:nth-child(2) { /* Position */
-        color: #777 !important;
-        font-size: 0.8rem;
+    .user-details-text-block div:nth-child(2) { /* Position */
+        color: #777 !important; font-size: 0.8rem;
     }
     
-    /* Logout Button Container in Sidebar */
-    .logout-button-container-sidebar {
+    /* Logout Button Container */
+    .logout-button-container-main {
         margin-top: auto; /* Pushes to bottom */
-        padding: 16px; /* Padding around logout */
+        padding: 16px;
+        border-top: 1px solid var(--kaggle-gray-border); /* Separator above logout */
     }
-    .logout-button-container-sidebar .stButton button {
+    .logout-button-container-main .stButton button {
         background-color: transparent !important;
-        color: #d32f2f !important; /* Reddish color for logout */
+        color: #d32f2f !important; /* Reddish color */
         border: 1px solid #ef9a9a !important; /* Light red border */
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        font-size: 0.9rem !important;
-        border-radius: 6px !important;
-        width: 100% !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        font-size: 0.9rem !important; border-radius: 6px !important; width: 100% !important;
     }
-    .logout-button-container-sidebar .stButton button:hover {
-        background-color: rgba(211, 47, 47, 0.1) !important; /* Light red hover */
+    .logout-button-container-main .stButton button:hover {
+        background-color: rgba(211, 47, 47, 0.05) !important; /* Light red hover */
         border-color: #d32f2f !important;
     }
-    .logout-button-container-sidebar .stButton button .material-symbols-outlined { /* If using material icon for logout */
-        font-size: 18px !important; margin-right: 8px; color: inherit;
+    .logout-button-container-main .stButton button i.bi { /* If using Bootstrap icon in logout button */
+        margin-right: 8px;
     }
-
 
     /* Main content card styling */
-    .card { /* This class is applied via st.markdown in your page logic */
+    .card {
         border: 1px solid var(--kaggle-gray-border);
-        border-radius: 8px;
-        padding: 24px; /* More padding for cards */
-        margin-bottom: 20px; /* Space between cards */
-        background-color: var(--kaggle-light-bg); /* White cards */
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border-radius: 8px; padding: 24px; margin-bottom: 20px;
+        background-color: var(--kaggle-light-bg);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
-    /* Example of styling elements within a card */
-    .card h3 {
-        color: var(--kaggle-blue);
-        font-size: 1.2rem;
-        margin-top: 0;
-    }
+    .card h3 { color: var(--kaggle-blue); font-size: 1.3rem; margin-top: 0; margin-bottom: 1rem;}
     
     /* Custom notification styling */
     .custom-notification { padding: 1rem; border-radius: 6px; margin-bottom: 1rem; border: 1px solid transparent; font-size: 0.9rem; }
-    .custom-notification.success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
-    .custom-notification.error { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
-    /* ... (other .custom-notification types if needed) ... */
+    .custom-notification.success { color: #0f5132; background-color: #d1e7dd; border-color: #badbcc; }
+    .custom-notification.error { color: #842029; background-color: #f8d7da; border-color: #f5c2c7; }
 </style>
 """, unsafe_allow_html=True)
 
 
-# --- LOGIN PAGE ---
-if not st.session_state.auth["logged_in"]:
-    st.title("TrackSphere Login")
-    message_placeholder_login = st.empty()
-    if st.session_state.user_message:
-        message_placeholder_login.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
-        st.session_state.user_message = None; st.session_state.message_type = None
-
-    st.markdown("<div class='card' style='max-width: 400px; margin: 3rem auto; padding: 2rem;'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='text-align: center; color: var(--kaggle-blue);'>🔐 Login to TrackSphere</h3>", unsafe_allow_html=True)
-    uname = st.text_input("Username", key="login_uname_app")
-    pwd = st.text_input("Password", type="password", key="login_pwd_app")
-    if st.button("Login", key="login_button_app", type="primary", use_container_width=True): # Streamlit primary button
-        user_creds = USERS.get(uname)
-        if user_creds and user_creds["password"] == pwd:
-            st.session_state.auth = {"logged_in": True, "username": uname, "role": user_creds["role"]}
-            st.session_state.user_message = "Login successful!"; st.session_state.message_type = "success"; st.rerun()
-        else: st.error("Invalid username or password.")
-    st.markdown("</div>", unsafe_allow_html=True); st.stop()
-
-# --- MAIN APPLICATION AFTER LOGIN ---
-current_user = st.session_state.auth
-
-message_placeholder_main = st.empty()
-if st.session_state.user_message:
-    message_placeholder_main.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
-    st.session_state.user_message = None; st.session_state.message_type = None
-
-
-# --- SIDEBAR IMPLEMENTATION WITH streamlit_option_menu (Kaggle-like) ---
-with st.sidebar:
-    # App Header in Sidebar
-    st.markdown("""
-    <div class="sidebar-header">
-        <h2>TrackSphere</h2>
-        <p>Field Activity Tracker</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # User Info
-    current_username_display = current_user.get('username', 'Guest')
-    user_details_display = USERS.get(current_username_display, {})
-    profile_photo_path_display = user_details_display.get("profile_photo", "")
-
-    st.markdown('<div class="sidebar-user-info">', unsafe_allow_html=True)
-    if profile_photo_path_display and os.path.exists(profile_photo_path_display) and PILLOW_INSTALLED:
-        st.image(profile_photo_path_display, width=40, output_format='auto', use_column_width='never',
-                 # Apply class via markdown wrapper if st.image doesn't support class_name
-                 # The CSS can target `img` within `.sidebar-user-info`
-                )
-    else: # Fallback icon
-        st.markdown(f"""<span class="material-icons" style="font-size: 40px; color: var(--kaggle-icon-color); margin-right:12px; vertical-align:middle;">account_circle</span>""", unsafe_allow_html=True)
-    
-    st.markdown(f"""
-        <div class="user-details-sidebar">
-            <div>{current_username_display}</div>
-            <div>{user_details_display.get('position', 'N/A')}</div>
-        </div>
-    """, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Navigation Menu
-    # Using Bootstrap Icons by default for streamlit-option-menu
-    app_menu_options = ["Attendance", "Upload Activity Photo", "Allowance", "Goal Tracker", "Payment Collection Tracker", "View Logs", "Create Order"]
-    app_menu_icons = ['calendar2-check', 'camera', 'wallet2', 'graph-up-arrow', 'cash-coin', 'journal-text', 'cart-plus-fill']
-    
-    # Default to "Attendance" if current active page is not in options (e.g., after logout/login)
-    if st.session_state.get('active_page') not in app_menu_options:
-        st.session_state.active_page = "Attendance" # Or your preferred default
-    
-    default_app_menu_index = app_menu_options.index(st.session_state.active_page)
-
-    selected = option_menu(
-        menu_title=None,
-        options=app_menu_options,
-        icons=app_menu_icons,
-        default_index=default_app_menu_index,
-        orientation="vertical",
-        on_change=lambda key: st.session_state.update(active_page=key),
-        styles={
-            "container": {"padding": "0px 8px !important", "background-color": "var(--kaggle-light-bg)"},
-            "icon": {"color": "var(--kaggle-icon-color)", "font-size": "18px", "margin-right":"10px"},
-            "nav-link": {
-                "font-size": "0.9rem", # Slightly larger nav text
-                "text-align": "left",
-                "margin": "4px 0px",
-                "padding": "10px 16px",
-                "color": "var(--kaggle-dark-text)", # Darker text for light bg
-                "border-radius": "6px",
-                "--hover-color": "var(--kaggle-hover-bg)" # Use CSS var for hover
-            },
-            "nav-link-selected": {
-                "background-color": "var(--kaggle-selected-bg)",
-                "color": "var(--kaggle-selected-text)",
-                "font-weight": "500",
-            },
-            "nav-link-selected > i.icon": { # Target icon within selected link for Bootstrap Icons
-                 "color": "var(--kaggle-icon-selected-color) !important",
-             }
-        }
-    )
-    
-    # Logout Button
-    st.markdown('<div class="logout-button-container-sidebar">', unsafe_allow_html=True)
-    # You can use a Bootstrap icon here too if preferred, e.g. <i class="bi bi-box-arrow-right"></i>
-    logout_label_html_app = """<span class="material-symbols-outlined">logout</span> Logout"""
-    if st.button(logout_label_html_app, key="logout_sidebar_app_btn", use_container_width=True, unsafe_allow_html=True):
-        st.session_state.auth = {"logged_in": False, "username": None, "role": None}
-        st.session_state.user_message = "Logged out successfully."
-        st.session_state.message_type = "info"
-        st.session_state.active_page = app_menu_options[0] # Reset to first page on logout
-        st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
-
-
-# --- MAIN CONTENT PAGE ROUTING (using `selected` from option_menu) ---
-# (Plotting functions: render_goal_chart, create_donut_chart, create_team_progress_bar_chart - keep as before)
-# ... (plotting functions definitions from your previous full code) ...
+# --- PLOTTING FUNCTIONS (Keep as they were) ---
+# ... (render_goal_chart, create_donut_chart, create_team_progress_bar_chart functions from your provided code) ...
 def render_goal_chart(df: pd.DataFrame, chart_title: str):
-    if df.empty: st.warning("No data to plot."); return
+    if df.empty: st.warning("No data available to plot."); return
     df_chart = df.copy(); df_chart[["TargetAmount", "AchievedAmount"]] = df_chart[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce").fillna(0)
     df_melted = df_chart.melt(id_vars="MonthYear", value_vars=["TargetAmount", "AchievedAmount"], var_name="Metric", value_name="Amount")
     if df_melted.empty: st.warning(f"No data to plot for {chart_title}."); return
-    fig = px.bar(df_melted, x="MonthYear", y="Amount", color="Metric", barmode="group", labels={"MonthYear": "Quarter", "Amount": "Amount (INR)", "Metric": "Metric"}, title=chart_title, color_discrete_map={'TargetAmount': '#20BEFF', 'AchievedAmount': '#34A853'}) # Kaggle blue, Green
+    fig = px.bar(df_melted, x="MonthYear", y="Amount", color="Metric", barmode="group", labels={"MonthYear": "Quarter", "Amount": "Amount (INR)", "Metric": "Metric"}, title=chart_title, color_discrete_map={'TargetAmount': '#20BEFF', 'AchievedAmount': '#34A853'})
     fig.update_layout(height=400, xaxis_title="Quarter", yaxis_title="Amount (INR)", legend_title_text='Metric', plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font_color='#333333')
     fig.update_xaxes(showgrid=False, zeroline=False, color='#555555'); fig.update_yaxes(showgrid=True, gridcolor='rgba(0,0,0,0.05)', zeroline=False, color='#555555')
     st.plotly_chart(fig, use_container_width=True)
@@ -398,59 +268,242 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     autolabel(rects1, '#007bff'); autolabel(rects2, '#188038'); fig.tight_layout(pad=1.2); return fig
 
 
-# The rest of your page logic (Attendance, Upload Photo, etc.) goes here,
-# using `if selected == "Page Name":` for routing.
-# Ensure you copy the full logic for each page from your previous complete code.
+# --- LOGIN PAGE ---
+if not st.session_state.auth["logged_in"]:
+    st.title("TrackSphere Login")
+    message_placeholder_login = st.empty()
+    if st.session_state.user_message:
+        message_placeholder_login.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
+        st.session_state.user_message = None; st.session_state.message_type = None
+
+    st.markdown("<div class='card' style='max-width: 400px; margin: 3rem auto; padding: 2rem;'>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center; color: var(--kaggle-blue);'>🔐 Login to TrackSphere</h3>", unsafe_allow_html=True)
+    uname = st.text_input("Username", key="login_uname_app_key") # Unique key
+    pwd = st.text_input("Password", type="password", key="login_pwd_app_key") # Unique key
+    if st.button("Login", key="login_button_app_key", type="primary", use_container_width=True):
+        user_creds = USERS.get(uname)
+        if user_creds and user_creds["password"] == pwd:
+            st.session_state.auth = {"logged_in": True, "username": uname, "role": user_creds["role"]}
+            st.session_state.user_message = "Login successful!"; st.session_state.message_type = "success"
+            st.session_state.active_page = "Attendance" # Default page after login
+            st.rerun()
+        else: st.error("Invalid username or password.")
+    st.markdown("</div>", unsafe_allow_html=True); st.stop()
+
+# --- MAIN APPLICATION AFTER LOGIN ---
+current_user = st.session_state.auth # Contains {'logged_in': True, 'username': ..., 'role': ...}
+
+message_placeholder_main = st.empty()
+if st.session_state.user_message:
+    message_placeholder_main.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
+    st.session_state.user_message = None; st.session_state.message_type = None
+
+
+# --- SIDEBAR IMPLEMENTATION ---
+with st.sidebar:
+    st.markdown("""
+    <div class="sidebar-app-header">
+        <h2>TrackSphere</h2>
+        <p>Field Activity Tracker</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    current_username_sb = current_user.get('username', 'Guest')
+    user_details_sb = USERS.get(current_username_sb, {})
+    profile_photo_sb = user_details_sb.get("profile_photo", "")
+
+    st.markdown('<div class="sidebar-user-info-block">', unsafe_allow_html=True)
+    if profile_photo_sb and os.path.exists(profile_photo_sb) and PILLOW_INSTALLED:
+        # For st.image, direct class application is not possible. CSS targets img within the container.
+        st.image(profile_photo_sb, width=40,
+                 # The class 'user-profile-img-display' in CSS will target this image if specific styling is needed
+                 # beyond what can be applied to the container.
+                )
+    else:
+        st.markdown(f"""<span class="bi bi-person-circle" style="font-size: 36px; color: var(--kaggle-icon-color); vertical-align:middle;"></span>""", unsafe_allow_html=True) # Bootstrap Icon
+
+    st.markdown(f"""
+        <div class="user-details-text-block">
+            <div>{current_username_sb}</div>
+            <div>{user_details_sb.get('position', 'N/A')}</div>
+        </div>
+    """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    app_menu_options = ["Attendance", "Upload Activity Photo", "Allowance", "Goal Tracker", "Payment Collection Tracker", "View Logs", "Create Order"]
+    # Corresponding Bootstrap Icons (https://icons.getbootstrap.com/)
+    app_menu_icons = ['calendar2-check', 'camera', 'wallet', 'graph-up', 'cash-stack', 'journals', 'cart3']
+
+    if 'active_page' not in st.session_state or st.session_state.active_page not in app_menu_options:
+        st.session_state.active_page = app_menu_options[0] # Default to first option
+    
+    default_idx = app_menu_options.index(st.session_state.active_page)
+
+    selected = option_menu(
+        menu_title=None,
+        options=app_menu_options,
+        icons=app_menu_icons,
+        default_index=default_idx,
+        orientation="vertical",
+        on_change=lambda key: st.session_state.update(active_page=key), # Update active_page
+        key='main_option_menu', # Added a key for the option_menu itself
+        styles={
+            "container": {"padding": "5px 8px !important", "background-color": "var(--kaggle-light-bg)"}, # Allow option_menu to fill
+            "icon": {"color": "var(--kaggle-icon-color)", "font-size": "18px", "margin-right":"10px"},
+            "nav-link": {
+                "font-size": "0.9rem", "text-align": "left", "margin": "4px 0px",
+                "padding": "10px 16px", "color": "var(--kaggle-dark-text)",
+                "border-radius": "6px", "--hover-color": "var(--kaggle-hover-bg)"
+            },
+            "nav-link-selected": {
+                "background-color": "var(--kaggle-selected-bg)",
+                "color": "var(--kaggle-selected-text)", "font-weight": "500",
+            },
+            "nav-link-selected > i.icon": { # For Bootstrap Icons (often rendered as <i>)
+                 "color": "var(--kaggle-icon-selected-color) !important",
+            }
+        }
+    )
+    
+    st.markdown('<div class="logout-button-container-main">', unsafe_allow_html=True)
+    # Using a Bootstrap icon for logout button
+    if st.button("🚪 Logout", key="logout_app_btn", use_container_width=True): # Plain text or Emoji
+        st.session_state.auth = {"logged_in": False, "username": None, "role": None}
+        st.session_state.user_message = "Logged out successfully."
+        st.session_state.message_type = "info"
+        st.session_state.active_page = app_menu_options[0]
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# --- MAIN CONTENT PAGE ROUTING ---
+# The 'selected' variable from option_menu now dictates the page.
+# Ensure your page logic (Attendance, Upload Photo, etc.) is correctly placed in these blocks.
 
 if selected == "Attendance":
     # ... (Your full Attendance page logic from the previous complete code) ...
-    # Example:
-    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown('<div class="card">', unsafe_allow_html=True) # Wrap page content in a card
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
-    # ... your attendance implementation ...
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Upload Activity Photo' section.", icon="ℹ️")
+    st.markdown("---")
+    st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
+    col1_att, col2_att = st.columns(2)
+    common_data_att = {"Username": current_user["username"], "Latitude": pd.NA, "Longitude": pd.NA}
+
+    def process_general_attendance(attendance_type):
+        global attendance_df
+        now_str_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
+        new_entry_data = {"Type": attendance_type, "Timestamp": now_str_display, **common_data_att}
+        for col_name in ATTENDANCE_COLUMNS:
+            if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA
+        new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
+        attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
+        try:
+            attendance_df.to_csv(ATTENDANCE_FILE, index=False)
+            st.session_state.user_message = f"{attendance_type} recorded at {now_str_display}."
+            st.session_state.message_type = "success"; st.rerun()
+        except Exception as e:
+            st.session_state.user_message = f"Error saving attendance: {e}"
+            st.session_state.message_type = "error"; st.rerun()
+
+    with col1_att:
+        if st.button("✅ Check In", key="check_in_btn_main_no_photo_page", use_container_width=True, type="primary"):
+            process_general_attendance("Check-In")
+    with col2_att:
+        if st.button("🚪 Check Out", key="check_out_btn_main_no_photo_page", use_container_width=True, type="primary"):
+            process_general_attendance("Check-Out")
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
 
 elif selected == "Upload Activity Photo":
-    # ... (Your full Upload Activity Photo page logic) ...
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
-    # ... your upload photo implementation ...
+    current_lat, current_lon = pd.NA, pd.NA
+    with st.form(key="activity_photo_form_page"):
+        st.markdown("<h6>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True)
+        activity_description = st.text_area("Brief description of activity/visit:", key="activity_desc_page_key")
+        img_file_buffer_activity = st.camera_input("Take a picture of your activity/visit", key="activity_camera_page_key")
+        submit_activity_photo = st.form_submit_button("⬆️ Upload Photo and Log Activity")
+    if submit_activity_photo:
+        if img_file_buffer_activity is None: st.warning("Please take a picture before submitting.")
+        elif not activity_description.strip(): st.warning("Please provide a description for the activity.")
+        else:
+            now_for_filename = get_current_time_in_tz().strftime("%Y%m%d_%H%M%S")
+            now_for_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
+            image_filename_activity = f"{current_user['username']}_activity_{now_for_filename}.jpg"
+            image_path_activity = os.path.join(ACTIVITY_PHOTOS_DIR, image_filename_activity)
+            try:
+                with open(image_path_activity, "wb") as f: f.write(img_file_buffer_activity.getbuffer())
+                new_activity_data = {"Username": current_user["username"], "Timestamp": now_for_display, "Description": activity_description, "ImageFile": image_filename_activity, "Latitude": current_lat, "Longitude": current_lon}
+                for col_name in ACTIVITY_LOG_COLUMNS:
+                    if col_name not in new_activity_data: new_activity_data[col_name] = pd.NA
+                new_activity_entry = pd.DataFrame([new_activity_data], columns=ACTIVITY_LOG_COLUMNS)
+                activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True) # Update global df
+                activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
+                st.session_state.user_message = "Activity photo and log uploaded!"; st.session_state.message_type = "success"; st.rerun()
+            except Exception as e: st.session_state.user_message = f"Error saving activity: {e}"; st.session_state.message_type = "error"; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif selected == "Allowance":
-    # ... (Your full Allowance page logic) ...
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💼 Claim Allowance</h3>", unsafe_allow_html=True)
+    a_type = st.radio("Type:", ["Travel", "Dinner", "Medical", "Internet", "Other"], key="allowance_type_radio_page", horizontal=True)
+    amount = st.number_input("Amount (INR):", min_value=0.01, step=10.0, format="%.2f", key="allowance_amount_page_key")
+    reason = st.text_area("Reason:", key="allowance_reason_page_key", placeholder="Please provide a clear justification...")
+    if st.button("Submit Allowance Request", key="submit_allowance_page_key", use_container_width=True, type="primary"):
+        if a_type and amount > 0 and reason.strip():
+            date_str = get_current_time_in_tz().strftime("%Y-%m-%d")
+            new_entry_data = {"Username": current_user["username"], "Type": a_type, "Amount": amount, "Reason": reason, "Date": date_str}
+            new_entry = pd.DataFrame([new_entry_data], columns=ALLOWANCE_COLUMNS)
+            allowance_df = pd.concat([allowance_df, new_entry], ignore_index=True) # Update global df
+            try:
+                allowance_df.to_csv(ALLOWANCE_FILE, index=False)
+                st.session_state.user_message = f"Allowance for ₹{amount:.2f} submitted."; st.session_state.message_type = "success"; st.rerun()
+            except Exception as e: st.session_state.user_message = f"Error submitting allowance: {e}"; st.session_state.message_type = "error"; st.rerun()
+        else: st.warning("Please complete all fields with valid values.")
     st.markdown('</div>', unsafe_allow_html=True)
 
+# --- The rest of your pages (Goal Tracker, Payment Tracker, View Logs, Create Order) ---
+# You need to copy the full logic for these pages from your most complete previous version.
+# Ensure you replace any old navigation variable (like 'nav' or 'st.session_state.active_page' for routing)
+# with 'selected' and use current_user['username'] and current_user['role'] for user-specific data/views.
+
+# Example placeholder structure for other pages:
 elif selected == "Goal Tracker":
-    # ... (Your full Goal Tracker page logic) ...
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # ... PASTE YOUR FULL GOAL TRACKER LOGIC HERE ...
+    st.write(f"Content for Goal Tracker. User: {current_user['username']}, Role: {current_user['role']}")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 elif selected == "Payment Collection Tracker":
-    # ... (Your full Payment Collection Tracker page logic) ...
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💰 Payment Collection Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # ... PASTE YOUR FULL PAYMENT COLLECTION TRACKER LOGIC HERE ...
+    st.write(f"Content for Payment Collection Tracker. User: {current_user['username']}")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 elif selected == "View Logs":
-    # ... (Your full View Logs page logic) ...
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📊 View Logs</h3>", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # ... PASTE YOUR FULL VIEW LOGS LOGIC HERE ...
+    st.write(f"Content for View Logs. User: {current_user['username']}")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 elif selected == "Create Order":
-    # ... (Your full Create Order page logic) ...
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🛒 Create New Order</h3>", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # ... PASTE YOUR FULL CREATE ORDER LOGIC HERE ...
+    try:
+        stores_df = pd.read_csv("agri_stores.csv")
+        products_df = pd.read_csv("symplanta_products_with_images.csv")
+        st.write(f"Create Order page for {current_user['username']}")
+        # ... your order creation UI ...
+    except FileNotFoundError:
+        st.error("Order data files (agri_stores.csv, symplanta_products_with_images.csv) not found.")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# Default to "Home" or your first actual page if 'selected' somehow becomes None
-# Though option_menu should always return a valid option or the default.
-elif selected == "Home" or selected is None: # Added a Home option
+elif selected == "Home" or selected is None: # Default/Fallback
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.header(f"🏠 Welcome Home, {current_user['username']}!") # Use current_user here
+    st.header(f"🏠 Welcome Home, {current_user['username']}!")
     st.write("Select an option from the sidebar to manage your activities.")
     st.markdown('</div>', unsafe_allow_html=True)
