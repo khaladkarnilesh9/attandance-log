@@ -120,11 +120,12 @@ html_css = """
 
     /* Sidebar Container - Independent */
     section[data-testid="stSidebar"] {
-        background-color: var(--sidebar-blue) !important;
+        background-color: white !important;
         padding: 0 !important;
         width: 280px !important;
         box-shadow: none !important;
         border-right: none !important;
+        color:red;
     }
 
     /* Welcome Header - Independent */
