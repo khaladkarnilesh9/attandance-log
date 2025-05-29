@@ -1,4 +1,3 @@
-
 # Placeholder for the corrected Streamlit app.py code
 # Add your full working application logic here...
 # import streamlit as st # Commented out the initial one, as it's re-imported later.
@@ -25,162 +24,161 @@ try:
 except ImportError:
     PILLOW_INSTALLED = False
 
-# --- Function to render Plotly Express grouped bar chart ---
-def render_goal_chart(df: pd.DataFrame, chart_title: str):
-    if df.empty:
-        st.warning("No data available to plot.")
-        return
-    df_chart = df.copy()
-    df_chart[["TargetAmount", "AchievedAmount"]] = df_chart[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce").fillna(0)
-    df_melted = df_chart.melt(id_vars="MonthYear",
-                              value_vars=["TargetAmount", "AchievedAmount"],
-                              var_name="Metric",
-                              value_name="Amount")
-    if df_melted.empty:
-        st.warning(f"No data to plot for {chart_title} after processing.")
-        return
-    fig = px.bar(df_melted, x="MonthYear", y="Amount", color="Metric", barmode="group",
-                 labels={"MonthYear": "Quarter", "Amount": "Amount (INR)", "Metric": "Metric"},
-                 title=chart_title,
-                 color_discrete_map={'TargetAmount': '#3498db', 'AchievedAmount': '#2ecc71'})
-    fig.update_layout(height=400, xaxis_title="Quarter", yaxis_title="Amount (INR)", legend_title_text='Metric')
-    fig.update_xaxes(type='category')
-    st.plotly_chart(fig, use_container_width=True)
+# <<<< REMOVE ENTIRE OLD html_css BLOCK STARTING HERE >>>>
+# html_css = """
+# <style>
+#    ... (all your old CSS) ...
+# </style>
+# """
+# st.markdown(html_css, unsafe_allow_html=True) # Also remove this line
+# <<<< REMOVE ENTIRE OLD html_css BLOCK ENDING HERE >>>>
 
-# --- Function to create Matplotlib Donut Chart ---
-def create_donut_chart(progress_percentage, chart_title="Progress", achieved_color='#2ecc71', remaining_color='#f0f0f0', center_text_color=None):
-    fig, ax = plt.subplots(figsize=(2.5, 2.5), dpi=90)
-    fig.patch.set_alpha(0); ax.patch.set_alpha(0)
-    progress_percentage = max(0.0, min(float(progress_percentage), 100.0))
-    remaining_percentage = 100.0 - progress_percentage
-    if progress_percentage <= 0.01: sizes = [100.0]; slice_colors = [remaining_color]; actual_progress_display = 0.0
-    elif progress_percentage >= 99.99: sizes = [100.0]; slice_colors = [achieved_color]; actual_progress_display = 100.0
-    else: sizes = [progress_percentage, remaining_percentage]; slice_colors = [achieved_color, remaining_color]; actual_progress_display = progress_percentage
-    ax.pie(sizes, colors=slice_colors, startangle=90, counterclock=False, wedgeprops=dict(width=0.4, edgecolor='white'))
-    centre_circle = plt.Circle((0,0),0.60,fc='white'); fig.gca().add_artist(centre_circle)
-    text_color_to_use = center_text_color if center_text_color else (achieved_color if actual_progress_display > 0 else '#4A4A4A')
-    ax.text(0, 0, f"{actual_progress_display:.0f}%", ha='center', va='center', fontsize=12, fontweight='bold', color=text_color_to_use)
-    ax.axis('equal'); plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-    return fig
 
-# --- Function to create Matplotlib Grouped Bar Chart for Team Progress ---
-def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col="Target", achieved_col="Achieved", user_col="Employee"):
-    if summary_df.empty: return None
-    labels = summary_df[user_col].tolist(); target_amounts = summary_df[target_col].fillna(0).tolist(); achieved_amounts = summary_df[achieved_col].fillna(0).tolist()
-    x = np.arange(len(labels)); width = 0.35
-    fig, ax = plt.subplots(figsize=(max(6, len(labels) * 0.8), 5), dpi=100)
-    rects1 = ax.bar(x - width/2, target_amounts, width, label='Target', color='#3498db', alpha=0.8)
-    rects2 = ax.bar(x + width/2, achieved_amounts, width, label='Achieved', color='#2ecc71', alpha=0.8)
-    ax.set_ylabel('Amount (INR)', fontsize=10); ax.set_title(title, fontsize=12, fontweight='bold', pad=15)
-    ax.set_xticks(x); ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=9); ax.legend(fontsize=9)
-    ax.spines['top'].set_visible(False); ax.spines['right'].set_visible(False); ax.yaxis.grid(True, linestyle='--', alpha=0.7)
-    def autolabel(rects):
-        for rect in rects:
-            height = rect.get_height()
-            if height > 0: ax.annotate(f'{height:,.0f}', xy=(rect.get_x() + rect.get_width() / 2, height), xytext=(0, 3), textcoords="offset points", ha='center', va='bottom', fontsize=7, color='#333')
-    autolabel(rects1); autolabel(rects2)
-    fig.tight_layout(pad=1.5)
-    return fig
+# <<<< ADD BOOTSTRAP AND NEW CUSTOM CSS HERE >>>>
+st.markdown("""
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+""", unsafe_allow_html=True)
+# We don't strictly need Bootstrap JS for this sidebar, but it's good practice if other BS components are used.
+# <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-html_css = """
+st.markdown("""
 <style>
-    /* Import Google Fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-
-    :root {
-        /* Color Variables */
-        --primary-color: #4285F4;
-        --sidebar-bg: #598ed499;
-        --sidebar-text: rgba(255, 255, 255, 0.9);
-        --sidebar-text-active: white;
-        --sidebar-divider: rgba(255, 255, 255, 0.2);
-        --body-bg-color: #f8f9fa;
-        --card-bg-color: #ffffff;
-        --text-color: ##0f4d88;
-        --text-muted-color: #5f6368;
-        --border-color: #dadce0;
+    /* Streamlit's default sidebar container */
+    section[data-testid="stSidebar"] > div:first-child {
+        padding: 0 !important; /* Remove Streamlit's default padding */
+        /* background-color: #f8f9fa !important; */ /* Set by .sidebar-content-wrapper */
+        /* height: 100vh; */ /* Streamlit manages overall sidebar height */
     }
 
-    /* Base Styles */
-    body {
-        font-family: 'Roboto', sans-serif;
-        background-color: var(--body-bg-color);
-        color: var(--text-color);
+    /* Our custom Bootstrap-styled wrapper inside Streamlit's sidebar */
+    .sidebar-content-wrapper {
+        background-color: #f8f9fa !important; /* Bootstrap 'bg-light' equivalent */
+        height: 100%; /* Fill the vertical space of Streamlit's sidebar */
+        display: flex;
+        flex-direction: column;
+        padding: 1rem; /* Overall padding for sidebar content */
     }
 
-    /* Sidebar Styles - Simplified Text Navigation */
-    [data-testid="stSidebar"] {
-        background-color: var(--sidebar-bg) !important;
-        padding: 0 !important;
-    }
-
-    /* Welcome Header */
-    [data-testid="stSidebar"] .welcome-text {
-        color: white !important;
-        font-weight: 500 !important;
-        padding: 24px 24px 16px !important;
-        margin: 0 !important;
-        border-bottom: 1px solid var(--sidebar-divider) !important;
-    }
-
-    /* Navigation Items - Plain Text with Dividers */
-    [data-testid="stSidebar"] .stRadio > label {
-        display: block;
-        padding: 12px 24px !important;
-        margin: 0 !important;
-        background: transparent !important;
-        border-radius: 0 !important;
-        border-bottom: 1px solid var(--sidebar-divider) !important;
-        transition: none !important;
-    }
-
-    /* Remove button styling */
-    [data-testid="stSidebar"] .stRadio > label:hover {
-        background: transparent !important;
-    }
-
-    /* Text Styling */
-    [data-testid="stSidebar"] .stRadio > label > div > p {
-        color: var(--sidebar-text) !important;
-        font-size: 14px !important;
+    /* Styling for st.button to look like Bootstrap nav-links */
+    .sidebar-nav .stButton button {
+        display: block !important;
+        width: 100% !important;
+        text-align: left !important;
+        border: none !important;
+        padding: 0.5rem 1rem !important;
+        margin-bottom: 0.125rem !important;
+        border-radius: 0.375rem !important; /* Bootstrap 5 standard border-radius */
         font-weight: 400 !important;
-        margin: 0 !important;
+        line-height: 1.5 !important;
+        background-color: transparent !important;
+        color: #212529 !important; /* Default Bootstrap link color on light background */
+        transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+    }
+    .sidebar-nav .stButton button:hover {
+        color: #000 !important;
+        background-color: #e9ecef !important; /* Light gray hover */
+    }
+    .sidebar-nav .stButton button:focus,
+    .sidebar-nav .stButton button:active {
+        box-shadow: none !important;
+        outline: none !important;
     }
 
-    /* Active Item Styling */
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
-        color: var(--sidebar-text-active) !important;
+    /* Active navigation button styling */
+    .sidebar-nav div.active-button-wrapper .stButton button {
+        font-weight: 500 !important;
+        color: #fff !important;
+        background-color: #0d6efd !important; /* Bootstrap primary color */
+    }
+    .sidebar-nav div.active-button-wrapper .stButton button:hover {
+        color: #fff !important;
+        background-color: #0b5ed7 !important; /* Darker primary on hover */
+    }
+
+    /* Welcome text */
+    .welcome-text-sidebar {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #212529; /* Dark text */
+        margin-bottom: 0.5rem;
+    }
+
+    /* User profile image */
+    .user-profile-img-container {
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+    .user-profile-img-container img {
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border: 2px solid #dee2e6; /* Bootstrap light border */
+    }
+
+    /* User position text */
+    .user-position-text {
+        text-align: center;
+        font-size: 0.875em;
+        color: #6c757d; /* Bootstrap muted text color */
+        margin-bottom: 1rem;
+    }
+
+    /* Sidebar HR */
+    .sidebar-content-wrapper hr {
+        margin: 1rem 0;
+        opacity: 0.25;
+    }
+
+    /* Logout button container & styling */
+    .logout-button-container {
+        margin-top: auto; /* Pushes logout to the bottom */
+        padding-top: 1rem; /* Space above logout if other elements are short */
+    }
+    .logout-button-container .stButton button {
+        background-color: #6c757d !important; /* Bootstrap secondary/gray */
+        color: white !important;
+        border: none !important;
+        width: 100% !important;
         font-weight: 500 !important;
     }
-
-    /* Remove last divider */
-    [data-testid="stSidebar"] .stRadio > label:last-child {
-        border-bottom: none !important;
+    .logout-button-container .stButton button:hover {
+        background-color: #5a6268 !important; /* Darker gray on hover */
+        color: white !important;
+    }
+    /* Global message styling (if you had any specific classes) */
+    .custom-notification { /* Example from your previous code */
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        border: 1px solid transparent;
+    }
+    .custom-notification.success {
+        color: #0f5132;
+        background-color: #d1e7dd;
+        border-color: #badbcc;
+    }
+    .custom-notification.error {
+        color: #842029;
+        background-color: #f8d7da;
+        border-color: #f5c2c7;
+    }
+    .custom-notification.info {
+        color: #055160;
+        background-color: #cff4fc;
+        border-color: #b6effb;
+    }
+    .custom-notification.warning {
+        color: #664d03;
+        background-color: #fff3cd;
+        border-color: #ffecb5;
     }
 
-    /* Main Content Area */
-    .main .block-container {
-        padding: 2rem 3rem !important;
-    }
-
-    /* Card Styling */
-    .card {
-        background-color: white;
-        border-radius: 8px;
-        padding: 24px;
-        margin-bottom: 24px;
-        border: 1px solid var(--border-color);
-    }
-
-    /* Empty State Messages */
-    .main .stMarkdown p {
-        color: var(--text-muted-color);
-        font-style: italic;
-    }
 </style>
-"""
-st.markdown(html_css, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
+# <<<< END OF BOOTSTRAP AND NEW CUSTOM CSS >>>>
+
 
 # --- Credentials & User Info ---
 USERS = {
@@ -283,112 +281,198 @@ if "user_message" not in st.session_state: st.session_state.user_message = None
 if "message_type" not in st.session_state: st.session_state.message_type = None
 if "auth" not in st.session_state: st.session_state.auth = {"logged_in": False, "username": None, "role": None}
 
+# --- Function to render Plotly Express grouped bar chart ---
+def render_goal_chart(df: pd.DataFrame, chart_title: str):
+    if df.empty:
+        st.warning("No data available to plot.")
+        return
+    df_chart = df.copy()
+    df_chart[["TargetAmount", "AchievedAmount"]] = df_chart[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce").fillna(0)
+    df_melted = df_chart.melt(id_vars="MonthYear",
+                              value_vars=["TargetAmount", "AchievedAmount"],
+                              var_name="Metric",
+                              value_name="Amount")
+    if df_melted.empty:
+        st.warning(f"No data to plot for {chart_title} after processing.")
+        return
+    fig = px.bar(df_melted, x="MonthYear", y="Amount", color="Metric", barmode="group",
+                 labels={"MonthYear": "Quarter", "Amount": "Amount (INR)", "Metric": "Metric"},
+                 title=chart_title,
+                 color_discrete_map={'TargetAmount': '#3498db', 'AchievedAmount': '#2ecc71'})
+    fig.update_layout(height=400, xaxis_title="Quarter", yaxis_title="Amount (INR)", legend_title_text='Metric')
+    fig.update_xaxes(type='category')
+    st.plotly_chart(fig, use_container_width=True)
+
+# --- Function to create Matplotlib Donut Chart ---
+def create_donut_chart(progress_percentage, chart_title="Progress", achieved_color='#2ecc71', remaining_color='#f0f0f0', center_text_color=None):
+    fig, ax = plt.subplots(figsize=(2.5, 2.5), dpi=90)
+    fig.patch.set_alpha(0); ax.patch.set_alpha(0)
+    progress_percentage = max(0.0, min(float(progress_percentage), 100.0))
+    remaining_percentage = 100.0 - progress_percentage
+    if progress_percentage <= 0.01: sizes = [100.0]; slice_colors = [remaining_color]; actual_progress_display = 0.0
+    elif progress_percentage >= 99.99: sizes = [100.0]; slice_colors = [achieved_color]; actual_progress_display = 100.0
+    else: sizes = [progress_percentage, remaining_percentage]; slice_colors = [achieved_color, remaining_color]; actual_progress_display = progress_percentage
+    ax.pie(sizes, colors=slice_colors, startangle=90, counterclock=False, wedgeprops=dict(width=0.4, edgecolor='white'))
+    centre_circle = plt.Circle((0,0),0.60,fc='white'); fig.gca().add_artist(centre_circle)
+    text_color_to_use = center_text_color if center_text_color else (achieved_color if actual_progress_display > 0 else '#4A4A4A')
+    ax.text(0, 0, f"{actual_progress_display:.0f}%", ha='center', va='center', fontsize=12, fontweight='bold', color=text_color_to_use)
+    ax.axis('equal'); plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    return fig
+
+# --- Function to create Matplotlib Grouped Bar Chart for Team Progress ---
+def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col="Target", achieved_col="Achieved", user_col="Employee"):
+    if summary_df.empty: return None
+    labels = summary_df[user_col].tolist(); target_amounts = summary_df[target_col].fillna(0).tolist(); achieved_amounts = summary_df[achieved_col].fillna(0).tolist()
+    x = np.arange(len(labels)); width = 0.35
+    fig, ax = plt.subplots(figsize=(max(6, len(labels) * 0.8), 5), dpi=100)
+    rects1 = ax.bar(x - width/2, target_amounts, width, label='Target', color='#3498db', alpha=0.8)
+    rects2 = ax.bar(x + width/2, achieved_amounts, width, label='Achieved', color='#2ecc71', alpha=0.8)
+    ax.set_ylabel('Amount (INR)', fontsize=10); ax.set_title(title, fontsize=12, fontweight='bold', pad=15)
+    ax.set_xticks(x); ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=9); ax.legend(fontsize=9)
+    ax.spines['top'].set_visible(False); ax.spines['right'].set_visible(False); ax.yaxis.grid(True, linestyle='--', alpha=0.7)
+    def autolabel(rects):
+        for rect in rects:
+            height = rect.get_height()
+            if height > 0: ax.annotate(f'{height:,.0f}', xy=(rect.get_x() + rect.get_width() / 2, height), xytext=(0, 3), textcoords="offset points", ha='center', va='bottom', fontsize=7, color='#333')
+    autolabel(rects1); autolabel(rects2)
+    fig.tight_layout(pad=1.5)
+    return fig
+
+
 if not st.session_state.auth["logged_in"]:
     st.title("TrackSphere Login")
     message_placeholder_login = st.empty()
     if st.session_state.user_message:
         message_placeholder_login.markdown(f"<div class='custom-notification {st.session_state.message_type}'>{st.session_state.user_message}</div>", unsafe_allow_html=True)
         st.session_state.user_message = None; st.session_state.message_type = None
-    st.markdown('<div class="login-container card">', unsafe_allow_html=True)
+    
+    # Simple login form without extra card div, Bootstrap can style body/container
     st.markdown("<h3>🔐 Login</h3>", unsafe_allow_html=True)
     uname = st.text_input("Username", key="login_uname")
     pwd = st.text_input("Password", type="password", key="login_pwd")
-    if st.button("Login", key="login_button"):
+    if st.button("Login", key="login_button", type="primary"): # Use Bootstrap primary button style
         user_creds = USERS.get(uname)
         if user_creds and user_creds["password"] == pwd:
             st.session_state.auth = {"logged_in": True, "username": uname, "role": user_creds["role"]}
             st.session_state.user_message = "Login successful!"; st.session_state.message_type = "success"; st.rerun()
-        else: st.error("Invalid username or password.") # This error displays directly, which is fine here.
-    st.markdown('</div>', unsafe_allow_html=True); st.stop()
+        else: st.error("Invalid username or password.")
+    st.stop()
 
 # --- Main Application ---
 current_user = st.session_state.auth # User is authenticated at this point
 
-# --- Global Message Display for Main Application ---
-# This will display messages set in st.session_state by various actions before a rerun.
+# Global Message Display for Main Application
 message_placeholder_main = st.empty()
 if "user_message" in st.session_state and st.session_state.user_message:
-    message_type_main = st.session_state.get("message_type", "info") # Default to info
+    message_type_main = st.session_state.get("message_type", "info")
     message_placeholder_main.markdown(
         f"<div class='custom-notification {message_type_main}'>{st.session_state.user_message}</div>",
         unsafe_allow_html=True
     )
-    # Clear the message after displaying it so it doesn't reappear
     st.session_state.user_message = None
     st.session_state.message_type = None
 
 
+# <<<< ENTIRE SIDEBAR SECTION WILL BE REPLACED >>>>
+nav_options = [
+    "Attendance",
+    "Upload Activity Photo",
+    "Allowance",
+    "Goal Tracker",
+    "Payment Collection Tracker",
+    "View Logs",
+    "Create Order"
+]
+
+# Initialize active_page in session state if not already set
+if "active_page" not in st.session_state:
+    st.session_state.active_page = nav_options[0]
+
+def set_active_page_callback(page_name):
+    st.session_state.active_page = page_name
+
 with st.sidebar:
-    st.markdown(f"<div class='welcome-text'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
+    # This outer div will be styled by .sidebar-content-wrapper from custom CSS
+    st.markdown('<div class="sidebar-content-wrapper">', unsafe_allow_html=True)
 
-    nav_options = [
-        "Attendance",
-        "Upload Activity Photo",
-        "Allowance",
-        "Goal Tracker",
-        "Payment Collection Tracker",
-        "View Logs",
-        "Create Order"
-    ]
-
-    nav = st.radio("Navigation", nav_options, key="sidebar_nav_main")
+    st.markdown(f"<div class='welcome-text-sidebar'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
 
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
-        st.image(user_sidebar_info["profile_photo"], width=100)
+        st.markdown("<div class='user-profile-img-container'>", unsafe_allow_html=True)
+        st.image(user_sidebar_info["profile_photo"]) # Width controlled by CSS
+        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown(
-        f"<p style='text-align:center; font-size:0.9em; color: #e0e0e0;'>{user_sidebar_info.get('position', 'N/A')}</p>",
+        f"<div class='user-position-text'>{user_sidebar_info.get('position', 'N/A')}</div>",
         unsafe_allow_html=True
     )
 
-    st.markdown("---")
+    st.markdown("<hr>", unsafe_allow_html=True)
 
+    # Navigation Links using st.button styled by CSS
+    st.markdown('<div class="sidebar-nav">', unsafe_allow_html=True)
+    for option in nav_options:
+        button_key = f"nav_btn_{option.lower().replace(' ', '_').replace('(', '').replace(')', '')}" # Make key more robust
+        is_active = (st.session_state.active_page == option)
+        
+        # Wrap active button in a div to apply specific styling
+        if is_active:
+            st.markdown('<div class="active-button-wrapper">', unsafe_allow_html=True)
+            st.button(option, key=button_key, on_click=set_active_page_callback, args=(option,), use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+        else:
+            st.button(option, key=button_key, on_click=set_active_page_callback, args=(option,), use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-nav
+
+    # Logout Button - Placed at the bottom due to margin-top: auto on its container
+    st.markdown('<div class="logout-button-container">', unsafe_allow_html=True)
     if st.button("Logout", key="logout_button_sidebar", use_container_width=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.session_state.user_message = "Logged out successfully."
         st.session_state.message_type = "info"
         st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True) # Close logout-button-container
+    
+    st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-content-wrapper
+# <<<< END OF REPLACEMENT FOR SIDEBAR SECTION >>>>
 
-
-#------------------------------------------------------------------------closed navbar
 
 # --- Main Content ---
-if nav == "Attendance":
-    st.markdown('<div class="card">', unsafe_allow_html=True)
+# IMPORTANT: All 'if nav == "..."' must be changed to 'if st.session_state.active_page == "..."'
+
+if st.session_state.active_page == "Attendance":
+    st.markdown('<div class="card">', unsafe_allow_html=True) # Assuming stCard is a class for main content cards
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
-    st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Upload Activity Photo' section.", icon="ℹ️") # Updated info
+    st.info("📍 Location services are currently disabled for attendance. Photos for specific activities can be uploaded from the 'Upload Activity Photo' section.", icon="ℹ️")
     st.markdown("---"); st.markdown('<div class="button-column-container">', unsafe_allow_html=True)
     col1, col2 = st.columns(2); common_data = {"Username": current_user["username"], "Latitude": pd.NA, "Longitude": pd.NA}
 
     def process_general_attendance(attendance_type):
-        global attendance_df # Ensure we modify the global df
+        global attendance_df
         now_str_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
         new_entry_data = {"Type": attendance_type, "Timestamp": now_str_display, **common_data}
-        for col_name in ATTENDANCE_COLUMNS: # ATTENDANCE_COLUMNS no longer has ImageFile
+        for col_name in ATTENDANCE_COLUMNS:
             if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA
         new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
-        # It's generally better to reload data after a rerun rather than immediately after modification,
-        # but for now, we keep the existing pattern of concat, save, then set session state for message.
         temp_attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
         try:
             temp_attendance_df.to_csv(ATTENDANCE_FILE, index=False)
-            # attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS) # Data will be reloaded on rerun
             st.session_state.user_message = f"{attendance_type} recorded at {now_str_display}."; st.session_state.message_type = "success"; st.rerun()
         except Exception as e: st.session_state.user_message = f"Error saving attendance: {e}"; st.session_state.message_type = "error"; st.rerun()
 
     with col1:
-        if st.button("✅ Check In", key="check_in_btn_main_no_photo", use_container_width=True):
+        if st.button("✅ Check In", key="check_in_btn_main_no_photo", use_container_width=True, type="primary"):
             process_general_attendance("Check-In")
     with col2:
-        if st.button("🚪 Check Out", key="check_out_btn_main_no_photo", use_container_width=True):
+        if st.button("🚪 Check Out", key="check_out_btn_main_no_photo", use_container_width=True, type="primary"):
             process_general_attendance("Check-Out")
     st.markdown('</div></div>', unsafe_allow_html=True)
 
-elif nav == "Upload Activity Photo":
+elif st.session_state.active_page == "Upload Activity Photo":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
-    current_lat = pd.NA; current_lon = pd.NA # Placeholder, actual location capture not implemented here
+    current_lat = pd.NA; current_lon = pd.NA
     with st.form(key="activity_photo_form"):
         st.markdown("<h6>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True)
         activity_description = st.text_area("Brief description of activity/visit:", key="activity_desc")
@@ -410,32 +494,30 @@ elif nav == "Upload Activity Photo":
                 new_activity_entry = pd.DataFrame([new_activity_data], columns=ACTIVITY_LOG_COLUMNS)
                 temp_activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True)
                 temp_activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
-                # activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS) # Reloaded on rerun
                 st.session_state.user_message = "Activity photo and log uploaded!"; st.session_state.message_type = "success"; st.rerun()
             except Exception as e: st.session_state.user_message = f"Error saving activity: {e}"; st.session_state.message_type = "error"; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == "Allowance":
+elif st.session_state.active_page == "Allowance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💼 Claim Allowance</h3>", unsafe_allow_html=True)
     st.markdown("<div class='form-field-label'><h6>Select Allowance Type:</h6></div>", unsafe_allow_html=True)
     a_type = st.radio("", ["Travel", "Dinner", "Medical", "Internet", "Other"], key="allowance_type_radio_main", horizontal=True, label_visibility='collapsed')
     amount = st.number_input("Enter Amount (INR):", min_value=0.01, step=10.0, format="%.2f", key="allowance_amount_main")
     reason = st.text_area("Reason for Allowance:", key="allowance_reason_main", placeholder="Please provide a clear justification...")
-    if st.button("Submit Allowance Request", key="submit_allowance_btn_main", use_container_width=True):
+    if st.button("Submit Allowance Request", key="submit_allowance_btn_main", use_container_width=True, type="primary"):
         if a_type and amount > 0 and reason.strip():
             date_str = get_current_time_in_tz().strftime("%Y-%m-%d"); new_entry_data = {"Username": current_user["username"], "Type": a_type, "Amount": amount, "Reason": reason, "Date": date_str}
             new_entry = pd.DataFrame([new_entry_data], columns=ALLOWANCE_COLUMNS)
             temp_allowance_df = pd.concat([allowance_df, new_entry], ignore_index=True)
             try:
                 temp_allowance_df.to_csv(ALLOWANCE_FILE, index=False)
-                # allowance_df = load_data(ALLOWANCE_FILE, ALLOWANCE_COLUMNS) # Reloaded on rerun
                 st.session_state.user_message = f"Allowance for ₹{amount:.2f} submitted."; st.session_state.message_type = "success"; st.rerun()
             except Exception as e: st.session_state.user_message = f"Error submitting allowance: {e}"; st.session_state.message_type = "error"; st.rerun()
-        else: st.warning("Please complete all fields with valid values.") # This warning shows directly, fine.
+        else: st.warning("Please complete all fields with valid values.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == "Goal Tracker":
+elif st.session_state.active_page == "Goal Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_GOAL_YEAR = 2025; current_quarter_for_display = get_quarter_str_for_year(TARGET_GOAL_YEAR)
@@ -503,14 +585,13 @@ elif nav == "Goal Tracker":
                             new_row_df=pd.DataFrame([new_row_data],columns=GOALS_COLUMNS); editable_goals_df=pd.concat([editable_goals_df,new_row_df],ignore_index=True); msg_verb="set"
                         try:
                             editable_goals_df.to_csv(GOALS_FILE,index=False)
-                            # goals_df=load_data(GOALS_FILE,GOALS_COLUMNS) # Reloaded on rerun
                             st.session_state.user_message=f"Goal for {selected_emp} ({selected_period}) {msg_verb}!"; st.session_state.message_type="success"; st.rerun()
                         except Exception as e: st.session_state.user_message=f"Error saving goal: {e}"; st.session_state.message_type="error"; st.rerun()
     else: # Employee View
         st.markdown("<h4>My Sales Goals (2025 - Quarterly)</h4>", unsafe_allow_html=True)
         my_goals = goals_df[goals_df["Username"].astype(str) == str(current_user["username"])].copy()
         for col in ["TargetAmount", "AchievedAmount"]: my_goals[col] = pd.to_numeric(my_goals[col], errors="coerce").fillna(0.0)
-        current_g_df = my_goals[my_goals["MonthYear"] == current_quarter_for_display] # Renamed to avoid conflict
+        current_g_df = my_goals[my_goals["MonthYear"] == current_quarter_for_display] 
         st.markdown(f"<h5>Current Goal Period: {current_quarter_for_display}</h5>", unsafe_allow_html=True)
         if not current_g_df.empty:
             g = current_g_df.iloc[0]; target_amt = g["TargetAmount"]; achieved_amt = g["AchievedAmount"]
@@ -545,8 +626,7 @@ elif nav == "Goal Tracker":
                         st.rerun()
                 else:
                     st.session_state.user_message = "Could not find your current goal to update."
-                    st.session_state.message_type = "error"
-                    st.rerun() # Rerun to show message via global handler
+                    st.session_state.message_type = "error"; st.rerun()
         else: st.info(f"No goal set for {current_quarter_for_display}. Contact admin.")
         st.markdown("---"); st.markdown("<h5>My Past Goals (2025)</h5>", unsafe_allow_html=True)
         past_goals = my_goals[(my_goals["MonthYear"].astype(str).str.startswith(str(TARGET_GOAL_YEAR))) & (my_goals["MonthYear"].astype(str) != current_quarter_for_display)]
@@ -554,7 +634,7 @@ elif nav == "Goal Tracker":
         else: st.info(f"No past goal records for {TARGET_GOAL_YEAR}.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-elif nav == "Payment Collection Tracker":
+elif st.session_state.active_page == "Payment Collection Tracker":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💰 Payment Collection Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
     TARGET_YEAR_PAYMENT = 2025; current_quarter_display_payment = get_quarter_str_for_year(TARGET_YEAR_PAYMENT)
@@ -589,10 +669,9 @@ elif nav == "Payment Collection Tracker":
                     st.markdown("<h6>Overall Team Collection Performance:</h6>",unsafe_allow_html=True)
                     team_bar_fig_payment = create_team_progress_bar_chart(summary_df_payment,title="Team Collection Target vs. Achieved",target_col="Target",achieved_col="Achieved")
                     if team_bar_fig_payment:
-                        # Custom color for achieved bars in payment chart
                         for bar_group in team_bar_fig_payment.axes[0].containers:
-                            if bar_group.get_label()=='Achieved': # Make sure this label matches what's set in create_team_progress_bar_chart
-                                for bar in bar_group: bar.set_color('#2070c0') # Payment achieved color
+                            if bar_group.get_label()=='Achieved': 
+                                for bar in bar_group: bar.set_color('#2070c0')
                         st.pyplot(team_bar_fig_payment,use_container_width=True)
                     else: st.info("No collection data to plot for team bar chart.")
                 else: st.info(f"No payment collection data for {current_quarter_display_payment}.")
@@ -608,16 +687,16 @@ elif nav == "Payment Collection Tracker":
                 if not existing_payment_goal.empty:
                     g_payment=existing_payment_goal.iloc[0]; desc_payment=g_payment.get("GoalDescription",""); tgt_payment_val=float(pd.to_numeric(g_payment.get("TargetAmount",0.0),errors='coerce') or 0.0)
                     ach_payment_val=float(pd.to_numeric(g_payment.get("AchievedAmount",0.0),errors='coerce') or 0.0); stat_payment=g_payment.get("Status","Not Started")
-                    st.info(f"Editing payment goal for {selected_emp_payment} - {selected_period_payment}") # Added info
+                    st.info(f"Editing payment goal for {selected_emp_payment} - {selected_period_payment}")
                 with st.form(f"form_payment_{selected_emp_payment}_{selected_period_payment}_admin"):
-                    new_desc_payment=st.text_input("Collection Goal Description",value=desc_payment,key=f"desc_pay_{selected_emp_payment}_{selected_period_payment}_p_admin") # Changed from text_area
+                    new_desc_payment=st.text_input("Collection Goal Description",value=desc_payment,key=f"desc_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
                     new_tgt_payment=st.number_input("Target Collection (INR)",value=tgt_payment_val,min_value=0.0,step=1000.0,key=f"target_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
                     new_ach_payment=st.number_input("Collected Amount (INR)",value=ach_payment_val,min_value=0.0,step=500.0,key=f"achieved_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
-                    new_status_payment=st.selectbox("Status",status_options_payment,index=status_options_payment.index(stat_payment),key=f"status_pay_{selected_emp_payment}_{selected_period_payment}_p_admin") # Changed from radio
+                    new_status_payment=st.selectbox("Status",status_options_payment,index=status_options_payment.index(stat_payment),key=f"status_pay_{selected_emp_payment}_{selected_period_payment}_p_admin")
                     submitted_payment=st.form_submit_button("Save Goal")
                 if submitted_payment:
                     if not new_desc_payment.strip(): st.warning("Description required.")
-                    elif new_tgt_payment <= 0 and new_status_payment not in ["Cancelled","Not Started", "On Hold"]: st.warning("Target > 0 required unless status is Cancelled, Not Started or On Hold.") # Adjusted condition
+                    elif new_tgt_payment <= 0 and new_status_payment not in ["Cancelled","Not Started", "On Hold"]: st.warning("Target > 0 required unless status is Cancelled, Not Started or On Hold.")
                     else:
                         editable_payment_goals_df=payment_goals_df.copy(); existing_pg_indices=editable_payment_goals_df[(editable_payment_goals_df["Username"]==selected_emp_payment)&(editable_payment_goals_df["MonthYear"]==selected_period_payment)].index
                         if not existing_pg_indices.empty: editable_payment_goals_df.loc[existing_pg_indices[0]]=[selected_emp_payment,selected_period_payment,new_desc_payment,new_tgt_payment,new_ach_payment,new_status_payment]; msg_payment="updated"
@@ -628,14 +707,13 @@ elif nav == "Payment Collection Tracker":
                             new_row_df_p=pd.DataFrame([new_row_data_p],columns=PAYMENT_GOALS_COLUMNS); editable_payment_goals_df=pd.concat([editable_payment_goals_df,new_row_df_p],ignore_index=True); msg_payment="set"
                         try:
                             editable_payment_goals_df.to_csv(PAYMENT_GOALS_FILE,index=False)
-                            # payment_goals_df=load_data(PAYMENT_GOALS_FILE,PAYMENT_GOALS_COLUMNS) # Reloaded on rerun
                             st.session_state.user_message=f"Payment goal {msg_payment} for {selected_emp_payment} ({selected_period_payment})"; st.session_state.message_type="success"; st.rerun()
                         except Exception as e: st.session_state.user_message=f"Error saving payment goal: {e}"; st.session_state.message_type="error"; st.rerun()
     else: # Employee View
         st.markdown("<h4>My Payment Collection Goals (2025)</h4>", unsafe_allow_html=True)
         user_goals_payment = payment_goals_df[payment_goals_df["Username"]==current_user["username"]].copy()
         user_goals_payment[["TargetAmount","AchievedAmount"]] = user_goals_payment[["TargetAmount","AchievedAmount"]].apply(pd.to_numeric,errors="coerce").fillna(0.0)
-        current_payment_goal_period_df = user_goals_payment[user_goals_payment["MonthYear"]==current_quarter_display_payment] # Renamed
+        current_payment_goal_period_df = user_goals_payment[user_goals_payment["MonthYear"]==current_quarter_display_payment]
         st.markdown(f"<h5>Current Quarter: {current_quarter_display_payment}</h5>", unsafe_allow_html=True)
         if not current_payment_goal_period_df.empty:
             g_pay=current_payment_goal_period_df.iloc[0]; tgt_pay=g_pay["TargetAmount"]; ach_pay=g_pay["AchievedAmount"]
@@ -661,16 +739,13 @@ elif nav == "Payment Collection Tracker":
                     try:
                         editable_payment_goals_df.to_csv(PAYMENT_GOALS_FILE,index=False)
                         st.session_state.user_message = "Collection updated."
-                        st.session_state.message_type = "success"
-                        st.rerun()
+                        st.session_state.message_type = "success"; st.rerun()
                     except Exception as e:
                         st.session_state.user_message = f"Error updating collection: {e}"
-                        st.session_state.message_type = "error"
-                        st.rerun()
+                        st.session_state.message_type = "error"; st.rerun()
                 else:
                     st.session_state.user_message = "Could not find your current payment goal to update."
-                    st.session_state.message_type = "error"
-                    st.rerun() # Rerun to show message via global handler
+                    st.session_state.message_type = "error"; st.rerun()
         else: st.info(f"No collection goal for {current_quarter_display_payment}.")
         st.markdown("<h5>Past Quarters</h5>", unsafe_allow_html=True)
         past_payment_goals = user_goals_payment[user_goals_payment["MonthYear"]!=current_quarter_display_payment]
@@ -678,7 +753,7 @@ elif nav == "Payment Collection Tracker":
         else: st.info("No past collection goals.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == "View Logs":
+elif st.session_state.active_page == "View Logs":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📊 View Logs</h3>", unsafe_allow_html=True)
     def display_activity_logs_with_photos(df_logs, user_name_for_header):
@@ -696,14 +771,14 @@ elif nav == "View Logs":
                     image_path_to_display = os.path.join(ACTIVITY_PHOTOS_DIR, str(row['ImageFile']))
                     if os.path.exists(image_path_to_display):
                         try: st.image(image_path_to_display, width=150)
-                        except Exception as img_e: st.warning(f"Img err: {img_e}") # Show specific image error
+                        except Exception as img_e: st.warning(f"Img err: {img_e}")
                     else: st.caption(f"Img missing")
     def display_attendance_logs(df_logs, user_name_for_header):
         if df_logs.empty: st.warning(f"No general attendance records for {user_name_for_header}."); return
         df_logs_sorted = df_logs.sort_values(by="Timestamp", ascending=False).copy()
         st.markdown(f"<h5>General Attendance Records for: {user_name_for_header}</h5>", unsafe_allow_html=True)
         columns_to_show = ["Type", "Timestamp"]
-        if 'Latitude' in df_logs_sorted.columns and 'Longitude' in df_logs_sorted.columns: # Check if columns exist
+        if 'Latitude' in df_logs_sorted.columns and 'Longitude' in df_logs_sorted.columns:
             df_logs_sorted['Location'] = df_logs_sorted.apply(
                 lambda row: f"Lat: {row['Latitude']:.4f}, Lon: {row['Longitude']:.4f}"
                 if pd.notna(row['Latitude']) and pd.notna(row['Longitude']) else "Not Recorded", axis=1
@@ -713,18 +788,17 @@ elif nav == "View Logs":
 
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: View Employee Records</h4>", unsafe_allow_html=True)
-        # Ensure USERS keys are strings if selected_employee_log is compared to string DFs
         employee_name_list = list(USERS.keys())
-        if "admin" in employee_name_list: employee_name_list.remove("admin") # Exclude admin from this dropdown
+        if "admin" in employee_name_list: employee_name_list.remove("admin") 
 
         selected_employee_log = st.selectbox("Select Employee:", employee_name_list, key="log_employee_select_admin_activity")
 
-        if selected_employee_log: # Proceed only if an employee is selected
+        if selected_employee_log: 
             emp_activity_log = activity_log_df[activity_log_df["Username"] == selected_employee_log]
             display_activity_logs_with_photos(emp_activity_log, selected_employee_log)
             st.markdown("<br><hr><br>", unsafe_allow_html=True)
             emp_attendance_log = attendance_df[attendance_df["Username"] == selected_employee_log]
-            display_attendance_logs(emp_attendance_log, selected_employee_log) # Using simplified version
+            display_attendance_logs(emp_attendance_log, selected_employee_log)
             st.markdown("---"); st.markdown(f"<h5>Allowances for {selected_employee_log}</h5>", unsafe_allow_html=True)
             emp_allowance_log = allowance_df[allowance_df["Username"] == selected_employee_log]
             if not emp_allowance_log.empty: st.dataframe(emp_allowance_log.sort_values(by="Date", ascending=False).reset_index(drop=True), use_container_width=True)
@@ -746,7 +820,7 @@ elif nav == "View Logs":
         display_activity_logs_with_photos(my_activity_log, current_user["username"])
         st.markdown("<br><hr><br>", unsafe_allow_html=True)
         my_attendance_log = attendance_df[attendance_df["Username"] == current_user["username"]]
-        display_attendance_logs(my_attendance_log, current_user["username"]) # Using simplified version
+        display_attendance_logs(my_attendance_log, current_user["username"])
         st.markdown("---"); st.markdown("<h5>My Allowances</h5>", unsafe_allow_html=True)
         my_allowance_log = allowance_df[allowance_df["Username"] == current_user["username"]]
         if not my_allowance_log.empty: st.dataframe(my_allowance_log.sort_values(by="Date", ascending=False).reset_index(drop=True), use_container_width=True)
@@ -761,17 +835,22 @@ elif nav == "View Logs":
         else: st.warning("No payment collection goals records found for you")
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif nav == "Create Order":
-    st.title("Create New Order")
+elif st.session_state.active_page == "Create Order":
+    st.title("Create New Order") # This can be styled by Bootstrap by default or wrapped in .card
 
     # Load store and product data
-    stores_df = pd.read_csv("agri_stores.csv")
-    products_df = pd.read_csv("symplanta_products_with_images.csv")
+    # Ensure these CSV files are in the same directory as app.py
+    try:
+        stores_df = pd.read_csv("agri_stores.csv")
+        products_df = pd.read_csv("symplanta_products_with_images.csv")
+    except FileNotFoundError:
+        st.error("Error: agri_stores.csv or symplanta_products_with_images.csv not found. Please ensure they are in the application directory.")
+        st.stop()
+
 
     # Store selector
     store_name = st.selectbox("Select Store", sorted(stores_df["StoreName"].dropna().astype(str).unique()))
-    selected_store = stores_df[stores_df["StoreName"] == store_name].iloc[0]
-
+    
     # Product selector
     product_name = st.selectbox(
         "Select Product",
@@ -787,27 +866,40 @@ elif nav == "Create Order":
 
     quantity = st.number_input("Enter Quantity", min_value=1, value=1)
 
-    if st.button("Add to Order"):
+    if st.button("Add to Order", type="primary"):
         if "order_items" not in st.session_state:
             st.session_state["order_items"] = []
 
-        selected_product = product_sizes[product_sizes["Size"] == size].iloc[0]
-        item = {
-            "Store": store_name,
-            "Product": product_name,
-            "Size": size,
-            "Quantity": quantity,
-            "Unit Price": selected_product["Price"],
-            "Total": selected_product["Price"] * quantity
-        }
-        st.session_state["order_items"].append(item)
-        st.success("Item added to order!")
+        selected_product_df = product_sizes[product_sizes["Size"] == size]
+        if not selected_product_df.empty:
+            selected_product = selected_product_df.iloc[0]
+            item = {
+                "Store": store_name,
+                "Product": product_name,
+                "Size": size,
+                "Quantity": quantity,
+                "Unit Price": selected_product["Price"],
+                "Total": selected_product["Price"] * quantity
+            }
+            st.session_state["order_items"].append(item)
+            st.success("Item added to order!")
+        else:
+            st.warning("Selected product size details not found.")
+
 
     # Show current order items
     if "order_items" in st.session_state and st.session_state["order_items"]:
         st.subheader("🧾 Order Summary")
         order_df = pd.DataFrame(st.session_state["order_items"])
-        order_df["Total"] = order_df["Total"].round(2)
-        st.dataframe(order_df, use_container_width=True)
+        # Ensure "Total" and "Unit Price" are numeric before formatting
+        order_df["Unit Price"] = pd.to_numeric(order_df["Unit Price"], errors='coerce').fillna(0)
+        order_df["Total"] = pd.to_numeric(order_df["Total"], errors='coerce').fillna(0)
+        
+        # Format currency columns
+        order_df_display = order_df.copy()
+        order_df_display["Unit Price"] = order_df_display["Unit Price"].apply(lambda x: f"₹{x:,.2f}")
+        order_df_display["Total"] = order_df_display["Total"].apply(lambda x: f"₹{x:,.2f}")
+        
+        st.dataframe(order_df_display, use_container_width=True)
 
         st.markdown(f"**Grand Total: ₹{order_df['Total'].sum():,.2f}**")
