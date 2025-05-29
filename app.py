@@ -1,10 +1,7 @@
-
 # Placeholder for the corrected Streamlit app.py code
 # Add your full working application logic here...
 # import streamlit as st # Commented out the initial one, as it's re-imported later.
 # st.title("Attendance Log System - Placeholder") # Removed this initial title
-
-
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta
@@ -83,23 +80,26 @@ def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col
     return fig
 
 html_css = """
-    <style>
+<style>
     /* Import Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
     :root {
-        /* Color Variables */
-        --primary-color: #4285F4;
-        --sidebar-bg: #598ed499;
-        --sidebar-text: rgba(255, 255, 255, 0.9);
-        --sidebar-text-active: white;
-        --sidebar-divider: rgba(255, 255, 255, 0.2);
-        --body-bg-color: #f8f9fa;
+        /* Color Variables - Kaggle-inspired */
+        --primary-color: #20BEFF;
+        --sidebar-bg: #ffffff;
+        --sidebar-text: #2a2a2a;
+        --sidebar-text-active: #20BEFF;
+        --sidebar-text-hover: #20BEFF;
+        --sidebar-divider: #eaeaea;
+        --sidebar-icon: #737373;
+        --body-bg-color: #f7f7f7;
         --card-bg-color: #ffffff;
-        --text-color: ##0f4d88;
-        --text-muted-color: #5f6368;
-        --border-color: #dadce0;
+        --text-color: #2a2a2a;
+        --text-muted-color: #737373;
+        --border-color: #eaeaea;
+        --sidebar-highlight: #f3faff;
     }
 
     /* Base Styles */
@@ -109,35 +109,48 @@ html_css = """
         color: var(--text-color);
     }
 
-    /* Sidebar Styles - Simplified Text Navigation */
+    /* Sidebar Styles - Kaggle-like */
     [data-testid="stSidebar"] {
         background-color: var(--sidebar-bg) !important;
         padding: 0 !important;
+        border-right: 1px solid var(--sidebar-divider) !important;
+        box-shadow: none !important;
     }
 
     /* Welcome Header */
     [data-testid="stSidebar"] .welcome-text {
-        color: white !important;
-        font-weight: 500 !important;
+        color: var(--text-color) !important;
+        font-weight: 600 !important;
+        font-size: 18px !important;
         padding: 24px 24px 16px !important;
         margin: 0 !important;
         border-bottom: 1px solid var(--sidebar-divider) !important;
     }
 
-    /* Navigation Items - Plain Text with Dividers */
-    [data-testid="stSidebar"] .stRadio > label {
-        display: block;
-        padding: 12px 24px !important;
-        margin: 0 !important;
-        background: transparent !important;
-        border-radius: 0 !important;
-        border-bottom: 1px solid var(--sidebar-divider) !important;
-        transition: none !important;
+    /* Navigation Items - Kaggle-like */
+    [data-testid="stSidebar"] .stRadio > div {
+        display: flex;
+        flex-direction: column;
+        gap: 4px !important;
     }
 
-    /* Remove button styling */
-    [data-testid="stSidebar"] .stRadio > label:hover {
+    [data-testid="stSidebar"] .stRadio > label {
+        display: flex !important;
+        align-items: center;
+        padding: 10px 24px !important;
+        margin: 0 !important;
         background: transparent !important;
+        border-radius: 6px !important;
+        transition: all 0.2s ease !important;
+    }
+
+    /* Hover state */
+    [data-testid="stSidebar"] .stRadio > label:hover {
+        background-color: var(--sidebar-highlight) !important;
+    }
+
+    [data-testid="stSidebar"] .stRadio > label:hover > div > p {
+        color: var(--sidebar-text-hover) !important;
     }
 
     /* Text Styling */
@@ -146,17 +159,37 @@ html_css = """
         font-size: 14px !important;
         font-weight: 400 !important;
         margin: 0 !important;
+        transition: color 0.2s ease !important;
     }
 
     /* Active Item Styling */
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label {
+        background-color: var(--sidebar-highlight) !important;
+    }
+
     [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
         color: var(--sidebar-text-active) !important;
         font-weight: 500 !important;
     }
 
-    /* Remove last divider */
-    [data-testid="stSidebar"] .stRadio > label:last-child {
-        border-bottom: none !important;
+    /* Profile section */
+    [data-testid="stSidebar"] .stImage {
+        margin: 0 auto 12px auto !important;
+        border-radius: 50% !important;
+    }
+
+    [data-testid="stSidebar"] .stMarkdown p {
+        text-align: center !important;
+        color: var(--text-muted-color) !important;
+        font-size: 13px !important;
+        margin-bottom: 16px !important;
+    }
+
+    /* Divider */
+    [data-testid="stSidebar"] hr {
+        margin: 16px 24px !important;
+        border-color: var(--sidebar-divider) !important;
+        opacity: 1 !important;
     }
 
     /* Main Content Area */
@@ -171,28 +204,7 @@ html_css = """
         padding: 24px;
         margin-bottom: 24px;
         border: 1px solid var(--border-color);
-    }
-
-    /* Empty State Messages */
-    .main .stMarkdown p {
-        color: var(--text-muted-color);
-        font-style: italic;
-    }
-
-    /* Base Styles */
-    body {
-        font-family: 'Roboto', sans-serif;
-        background-color: var(--body-bg-color);
-        color: var(--text-color);
-    }
-
-   /* Card Styling */
-    .card {
-        background-color: white;
-        border-radius: 8px;
-        padding: 24px;
-        margin-bottom: 24px;
-        border: 1px solid var(--border-color);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
 
     /* Empty State Messages */
@@ -201,7 +213,7 @@ html_css = """
         font-style: italic;
     }
 </style>
-"""
+
 st.markdown(html_css, unsafe_allow_html=True)
 
 # --- Credentials & User Info ---
@@ -338,7 +350,7 @@ if "user_message" in st.session_state and st.session_state.user_message:
     # Clear the message after displaying it so it doesn't reappear
     st.session_state.user_message = None
     st.session_state.message_type = None
-
+#--------------------------------------------sidebar--------------------------------------------------
 
 with st.sidebar:
     st.markdown(f"<div class='welcome-text'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
