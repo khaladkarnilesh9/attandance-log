@@ -241,16 +241,11 @@ html_css = """
     }
 
     /* User position text (st.markdown for user position) */
-    /* Recommended: Remove inline 'color: #e0e0e0;' from Python for this to take full effect */
     div[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] > p {
-         /* This is a general selector for paragraphs in markdown in sidebar.
-            Be cautious if you have other st.markdown elements with p tags.
-            If user position markdown is wrapped in a div with a class, target that class.
-         */
-        color: var(--text-gray) !important; /* Ensure user position text is readable */
-        text-align: center; /* Center align from here if not from inline style */
-        font-size: 0.85em !important; /* Adjust size if needed */
-        margin-bottom: 12px !important; /* Space after user position */
+        color: var(--text-gray) !important; 
+        text-align: center; 
+        font-size: 0.85em !important; 
+        margin-bottom: 12px !important; 
     }
 
 
@@ -283,7 +278,7 @@ html_css = """
 
 
     /* Cards - Independent */
-    div.stCard { /* Ensure this doesn't conflict with sidebar styling if cards are used there */
+    div.stCard { 
         background-color: var(--card-white);
         padding: 24px;
         border-radius: 8px;
@@ -293,7 +288,7 @@ html_css = """
     }
 
     /* Buttons - Independent (General buttons outside sidebar) */
-    body:not(div[data-testid="stSidebar"]) button.stButton > button { /* More specific to avoid affecting sidebar button if not intended */
+    body:not(div[data-testid="stSidebar"]) button.stButton > button { 
         background-color: var(--primary-blue) !important;
         color: var(--pure-white) !important;
         border: none !important;
@@ -302,12 +297,9 @@ html_css = """
         font-weight: 500 !important;
         font-family: 'Roboto', sans-serif;
     }
-     /* If the above :not selector is too complex or doesn't work, revert to the original: */
-    /* button.stButton > button { ... } and rely on sidebar's higher specificity */
-
 
     /* Form Inputs - Independent */
-    input.stTextInput { /* Assuming this is for main content inputs */
+    input.stTextInput { 
         border-radius: 8px !important;
         border: 1px solid var(--border-light) !important;
         padding: 10px 12px !important;
@@ -342,9 +334,9 @@ html_css = """
     button.stButton.check-out-button > button {
         width: 100%;
         margin: 8px 0;
-        /* These might inherit general button style or need specific overrides if different */
     }
 </style>
+"""
 """
 st.markdown(html_css, unsafe_allow_html=True)
 
