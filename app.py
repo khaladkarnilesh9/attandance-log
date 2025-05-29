@@ -1,5 +1,85 @@
+# Placeholder for the corrected Streamlit app.py code
+# Add your full working application logic here...
+# import streamlit as st # Commented out the initial one, as it's re-imported later.
+# st.title("Attendance Log System - Placeholder") # Removed this initial title
 import streamlit as st
+import pandas as pd
+from datetime import datetime, timezone, timedelta
 from streamlit_option_menu import option_menu
+import os
+import pytz
+import plotly.express as px
+
+# --- Matplotlib Configuration ---
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+# --- Pillow for placeholder image generation ---
+try:
+    from PIL import Image, ImageDraw, ImageFont
+    PILLOW_INSTALLED = True
+except ImportError:
+    PILLOW_INSTALLED = False
+
+# --- Function to render Plotly Express grouped bar chart ---
+def render_goal_chart(df: pd.DataFrame, chart_title: str):
+    if df.empty:
+        st.warning("No data available to plot.")
+        return
+    df_chart = df.copy()
+    df_chart[["TargetAmount", "AchievedAmount"]] = df_chart[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce").fillna(0)
+    df_melted = df_chart.melt(id_vars="MonthYear",
+                              value_vars=["TargetAmount", "AchievedAmount"],
+                              var_name="Metric",
+                              value_name="Amount")
+    if df_melted.empty:
+        st.warning(f"No data to plot for {chart_title} after processing.")
+        return
+    fig = px.bar(df_melted, x="MonthYear", y="Amount", color="Metric", barmode="group",
+                 labels={"MonthYear": "Quarter", "Amount": "Amount (INR)", "Metric": "Metric"},
+                 title=chart_title,
+                 color_discrete_map={'TargetAmount': '#3498db', 'AchievedAmount': '#2ecc71'})
+    fig.update_layout(height=400, xaxis_title="Quarter", yaxis_title="Amount (INR)", legend_title_text='Metric')
+    fig.update_xaxes(type='category')
+    st.plotly_chart(fig, use_container_width=True)
+
+# --- Function to create Matplotlib Donut Chart ---
+def create_donut_chart(progress_percentage, chart_title="Progress", achieved_color='#2ecc71', remaining_color='#f0f0f0', center_text_color=None):
+    fig, ax = plt.subplots(figsize=(2.5, 2.5), dpi=90)
+    fig.patch.set_alpha(0); ax.patch.set_alpha(0)
+    progress_percentage = max(0.0, min(float(progress_percentage), 100.0))
+    remaining_percentage = 100.0 - progress_percentage
+    if progress_percentage <= 0.01: sizes = [100.0]; slice_colors = [remaining_color]; actual_progress_display = 0.0
+    elif progress_percentage >= 99.99: sizes = [100.0]; slice_colors = [achieved_color]; actual_progress_display = 100.0
+    else: sizes = [progress_percentage, remaining_percentage]; slice_colors = [achieved_color, remaining_color]; actual_progress_display = progress_percentage
+    ax.pie(sizes, colors=slice_colors, startangle=90, counterclock=False, wedgeprops=dict(width=0.4, edgecolor='white'))
+    centre_circle = plt.Circle((0,0),0.60,fc='white'); fig.gca().add_artist(centre_circle)
+    text_color_to_use = center_text_color if center_text_color else (achieved_color if actual_progress_display > 0 else '#4A4A4A')
+    ax.text(0, 0, f"{actual_progress_display:.0f}%", ha='center', va='center', fontsize=12, fontweight='bold', color=text_color_to_use)
+    ax.axis('equal'); plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    return fig
+
+# --- Function to create Matplotlib Grouped Bar Chart for Team Progress ---
+def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col="Target", achieved_col="Achieved", user_col="Employee"):
+    if summary_df.empty: return None
+    labels = summary_df[user_col].tolist(); target_amounts = summary_df[target_col].fillna(0).tolist(); achieved_amounts = summary_df[achieved_col].fillna(0).tolist()
+    x = np.arange(len(labels)); width = 0.35
+    fig, ax = plt.subplots(figsize=(max(6, len(labels) * 0.8), 5), dpi=100)
+    rects1 = ax.bar(x - width/2, target_amounts, width, label='Target', color='#3498db', alpha=0.8)
+    rects2 = ax.bar(x + width/2, achieved_amounts, width, label='Achieved', color='#2ecc71', alpha=0.8)
+    ax.set_ylabel('Amount (INR)', fontsize=10); ax.set_title(title, fontsize=12, fontweight='bold', pad=15)
+    ax.set_xticks(x); ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=9); ax.legend(fontsize=9)
+    ax.spines['top'].set_visible(False); ax.spines['right'].set_visible(False); ax.yaxis.grid(True, linestyle='--', alpha=0.7)
+    def autolabel(rects):
+        for rect in rects:
+            height = rect.get_height()
+            if height > 0: ax.annotate(f'{height:,.0f}', xy=(rect.get_x() + rect.get_width() / 2, height), xytext=(0, 3), textcoords="offset points", ha='center', va='bottom', fontsize=7, color='#333')
+    autolabel(rects1); autolabel(rects2)
+    fig.tight_layout(pad=1.5)
+    return fig
+
 
 # CSS styling for Kaggle-like interface
 st.markdown("""
