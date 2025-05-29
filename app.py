@@ -168,7 +168,7 @@ html_css = """
     /* Sidebar Styles */
     [data-testid="stSidebar"] {
         background-color: var(--sidebar-bg) !important;
-        padding: 0 !important;
+        padding: 10px !important;
         width: 280px !important;
         box-shadow: none !important;
         border-right: none !important;
