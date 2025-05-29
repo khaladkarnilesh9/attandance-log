@@ -71,16 +71,6 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)    
     
-    nav_options = [
-        "Attendance",
-        "Upload Activity Photo",
-        "Allowance",
-        "Goal Tracker",
-        "Payment Collection Tracker",
-        "View Logs",
-        "Create Order"
-    ]
-    
     selected = option_menu(    
         None,
         ["Home", "Attendance", "Upload Activity Photo", "Goal Tracker", "Payment Collection Tracker","View Logs","Create Order"],
