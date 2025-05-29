@@ -91,7 +91,7 @@ html_css = """
     :root {
         /* Color Variables */
         --primary-color: #4285F4;
-        --sidebar-bg: #1a73e8;
+        --sidebar-bg: #e3e8ee;
         --sidebar-text: white; /* Pure white text */
         --sidebar-text-active: white;
         --sidebar-divider: rgba(255, 255, 255, 0.2); /* Semi-transparent white divider */
