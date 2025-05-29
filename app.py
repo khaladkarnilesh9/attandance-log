@@ -326,6 +326,7 @@ with st.sidebar:
     
     # Navigation items with icons
     nav_items = f"""
+st.markdown("""
     <div class="sidebar-nav">
         <a class="nav-item {'active' if nav == 'Attendance' else ''}" onclick="window.navLocation='Attendance'">
             <span class="nav-icon">calendar_today</span>
@@ -356,6 +357,7 @@ with st.sidebar:
             <span>Create Order</span>
         </a>
     </div>
+""", unsafe_allow_html=True)
     """
     st.markdown(nav_items, unsafe_allow_html=True)
     
