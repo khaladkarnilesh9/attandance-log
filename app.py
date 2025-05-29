@@ -9,6 +9,10 @@ import os
 import pytz
 import plotly.express as px
 
+nav = st.session_state.get('nav', 'Attendance')
+if 'nav' not in st.session_state:
+    st.session_state.nav = nav
+
 # --- Matplotlib Configuration ---
 import matplotlib
 matplotlib.use('Agg')
@@ -845,3 +849,13 @@ elif nav == "Create Order":
         st.dataframe(order_df, use_container_width=True)
 
         st.markdown(f"**Grand Total: ₹{order_df['Total'].sum():,.2f}**")
+
+st.components.v1.html("""
+<script>
+window.addEventListener('message', function(event) {
+    if (event.data.type === 'streamlit:setComponentValue') {
+        Streamlit.setComponentValue(event.data.value);
+    }
+});
+</script>
+""", height=0)
