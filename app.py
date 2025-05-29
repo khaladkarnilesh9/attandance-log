@@ -172,6 +172,7 @@ html_css = """
         width: 280px !important;
         box-shadow: none !important;
         border-right: none !important;
+        color:#FFFFFF;
     }
 
     [data-testid="stSidebar"] .sidebar-content {
