@@ -343,14 +343,14 @@ if selected == "Attendance":
     with col2_att:
         if st.button("🚪 Check Out", key="check_out_btn_att_page_final_v3", use_container_width=True, type="primary"): process_general_attendance("Check-Out")
     st.markdown('</div>', unsafe_allow_html=True) # Close card
-    # --- End of Attendance Page Logic ---
+    
+# --- End of Attendance Page Logic ---
 
 elif selected == "Upload Activity Photo":
-    # --- Start of Upload Activity Photo Page Logic ---
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
     current_lat, current_lon = pd.NA, pd.NA # Placeholder
-    with st.form(key="activity_photo_form_upload_page_final_v3"):
+    with st.form(key="activity_photo_form_upload_page_final_v3"): # Ensured unique key
         st.markdown("<h6>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True)
         activity_description = st.text_area("Brief description:", key="activity_desc_upload_page_final_v3")
         img_file_buffer_activity = st.camera_input("Take a picture:", key="activity_camera_upload_page_final_v3")
@@ -359,7 +359,9 @@ elif selected == "Upload Activity Photo":
         if img_file_buffer_activity is None: st.warning("Please take a picture.")
         elif not activity_description.strip(): st.warning("Please provide a description.")
         else:
-            global activity_log_df # To modify global df
+            # No 'global activity_log_df' here
+            temp_activity_log_df = activity_log_df.copy() # Operate on a copy
+
             now_for_filename = get_current_time_in_tz().strftime("%Y%m%d_%H%M%S")
             now_for_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
             image_filename_activity = f"{current_user['username']}_activity_{now_for_filename}.jpg"
@@ -367,15 +369,22 @@ elif selected == "Upload Activity Photo":
             try:
                 with open(image_path_activity, "wb") as f: f.write(img_file_buffer_activity.getbuffer())
                 new_activity_data = {"Username": current_user['username'], "Timestamp": now_for_display, "Description": activity_description, "ImageFile": image_filename_activity, "Latitude": current_lat, "Longitude": current_lon}
-                for col_name in ACTIVITY_LOG_COLUMNS:
+                for col_name in ACTIVITY_LOG_COLUMNS: # Ensure all columns are present
                     if col_name not in new_activity_data: new_activity_data[col_name] = pd.NA
+                
                 new_activity_entry = pd.DataFrame([new_activity_data], columns=ACTIVITY_LOG_COLUMNS)
-                temp_activity_log_df = pd.concat([activity_log_df, new_activity_entry], ignore_index=True)
+                temp_activity_log_df = pd.concat([temp_activity_log_df, new_activity_entry], ignore_index=True)
+                
                 temp_activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
-                activity_log_df = temp_activity_log_df # Update global df
+                activity_log_df = temp_activity_log_df # Update global DataFrame AFTER successful save
+                
                 st.session_state.user_message = "Activity photo and log uploaded!"; st.session_state.message_type = "success"; st.rerun()
             except Exception as e: st.session_state.user_message = f"Error saving activity: {e}"; st.session_state.message_type = "error"; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
+
+# Next page logic (elif selected == "Allowance":)
+# ...
+
     # --- End of Upload Activity Photo Page Logic ---
 
 elif selected == "Allowance":
