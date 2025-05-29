@@ -186,62 +186,7 @@ html_css = """
         color: var(--text-color);
     }
 
-    /* Sidebar Styles - Simplified Text Navigation */
-    [data-testid="stSidebar"] {
-        background-color: var(--sidebar-bg) !important;
-        padding: 0 !important;
-    }
-
-    /* Welcome Header */
-    [data-testid="stSidebar"] .welcome-text {
-        color: white !important;
-        font-weight: 500 !important;
-        padding: 24px 24px 16px !important;
-        margin: 0 !important;
-        border-bottom: 1px solid var(--sidebar-divider) !important;
-    }
-
-    /* Navigation Items - Plain Text with Dividers */
-    [data-testid="stSidebar"] .stRadio > label {
-        display: block;
-        padding: 12px 24px !important;
-        margin: 0 !important;
-        background: transparent !important;
-        border-radius: 0 !important;
-        border-bottom: 1px solid var(--sidebar-divider) !important;
-        transition: none !important;
-    }
-
-    /* Remove button styling */
-    [data-testid="stSidebar"] .stRadio > label:hover {
-        background: transparent !important;
-    }
-
-    /* Text Styling */
-    [data-testid="stSidebar"] .stRadio > label > div > p {
-        color: var(--sidebar-text) !important;
-        font-size: 14px !important;
-        font-weight: 400 !important;
-        margin: 0 !important;
-    }
-
-    /* Active Item Styling */
-    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
-        color: var(--sidebar-text-active) !important;
-        font-weight: 500 !important;
-    }
-
-    /* Remove last divider */
-    [data-testid="stSidebar"] .stRadio > label:last-child {
-        border-bottom: none !important;
-    }
-
-    /* Main Content Area */
-    .main .block-container {
-        padding: 2rem 3rem !important;
-    }
-
-    /* Card Styling */
+   /* Card Styling */
     .card {
         background-color: white;
         border-radius: 8px;
