@@ -91,43 +91,107 @@ html_css = """
     :root {
         /* Color Variables */
         --primary-color: #4285F4;
-        --sidebar-bg: #598ed499;
+        --secondary-color: #34A853;
+        --accent-color: #EA4335;
+        --yellow-color: #FBBC05;
+        --sidebar-bg: #1a73e8;
         --sidebar-text: rgba(255, 255, 255, 0.9);
         --sidebar-text-active: white;
-        --sidebar-divider: rgba(255, 255, 255, 0.2);
+        --sidebar-divider: rgba(255, 255, 255, 0.3);
         --body-bg-color: #f8f9fa;
         --card-bg-color: #ffffff;
         --text-color: #202124;
         --text-muted-color: #5f6368;
         --border-color: #dadce0;
+        --input-border-color: #dadce0;
+        
+        /* Typography */
+        --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        
+        /* Spacing & Effects */
+        --border-radius: 8px;
+        --border-radius-lg: 12px;
+        --box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+        --box-shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.1);
     }
 
     /* Base Styles */
     body {
-        font-family: 'Roboto', sans-serif;
+        font-family: var(--font-family);
         background-color: var(--body-bg-color);
         color: var(--text-color);
+        line-height: 1.5;
+        font-weight: 400;
     }
 
-    /* Sidebar Styles - Simplified Text Navigation */
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--text-color);
+        font-weight: 500;
+        letter-spacing: -0.25px;
+    }
+
+    /* Main Content Area */
+    .main .block-container {
+        padding: 2rem 3rem !important;
+        max-width: 1200px !important;
+    }
+
+    .main .block-container > div:first-child > div:first-child > div:first-child > h1 {
+        font-size: 1.75rem;
+        font-weight: 500;
+        padding-bottom: 16px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    /* Cards */
+    .card {
+        background-color: var(--card-bg-color);
+        padding: 24px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-sm);
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color);
+    }
+
+    .card h3 {
+        margin-top: 0;
+        color: var(--text-color);
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+        font-size: 1.25rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Sidebar Styles */
     [data-testid="stSidebar"] {
         background-color: var(--sidebar-bg) !important;
         padding: 0 !important;
+        width: 280px !important;
+        box-shadow: none !important;
+        border-right: none !important;
     }
 
-    /* Welcome Header */
+    [data-testid="stSidebar"] .sidebar-content {
+        padding: 0;
+    }
+
+    /* Sidebar Header */
     [data-testid="stSidebar"] .welcome-text {
         color: white !important;
+        font-size: 1rem !important;
         font-weight: 500 !important;
         padding: 24px 24px 16px !important;
         margin: 0 !important;
         border-bottom: 1px solid var(--sidebar-divider) !important;
     }
 
-    /* Navigation Items - Plain Text with Dividers */
+    /* Navigation Items */
     [data-testid="stSidebar"] .stRadio > label {
         display: block;
-        padding: 12px 24px !important;
+        padding: 14px 24px !important;
         margin: 0 !important;
         background: transparent !important;
         border-radius: 0 !important;
@@ -135,48 +199,86 @@ html_css = """
         transition: none !important;
     }
 
-    /* Remove button styling */
-    [data-testid="stSidebar"] .stRadio > label:hover {
-        background: transparent !important;
-    }
-
-    /* Text Styling */
+    /* Navigation Text */
     [data-testid="stSidebar"] .stRadio > label > div > p {
         color: var(--sidebar-text) !important;
-        font-size: 14px !important;
+        font-size: 0.875rem !important;
         font-weight: 400 !important;
         margin: 0 !important;
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
     }
 
-    /* Active Item Styling */
+    /* Active Item */
     [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label > div > p {
         color: var(--sidebar-text-active) !important;
         font-weight: 500 !important;
     }
 
-    /* Remove last divider */
-    [data-testid="stSidebar"] .stRadio > label:last-child {
-        border-bottom: none !important;
+    /* Sidebar Icons */
+    [data-testid="stSidebar"] .material-symbols-outlined {
+        color: inherit !important;
+        font-size: 20px !important;
+        margin-right: 16px !important;
+        vertical-align: middle;
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
     }
 
-    /* Main Content Area */
-    .main .block-container {
-        padding: 2rem 3rem !important;
+    [data-testid="stSidebar"] .stRadio div[aria-checked="true"] + label .material-symbols-outlined {
+        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important;
     }
 
-    /* Card Styling */
-    .card {
-        background-color: white;
-        border-radius: 8px;
-        padding: 24px;
-        margin-bottom: 24px;
-        border: 1px solid var(--border-color);
+    /* Form Elements */
+    .stTextInput input,
+    .stNumberInput input,
+    .stTextArea textarea,
+    .stDateInput input,
+    .stTimeInput input,
+    .stSelectbox div[data-baseweb="select"] > div {
+        border-radius: var(--border-radius) !important;
+        border: 1px solid var(--input-border-color) !important;
+        padding: 10px 12px !important;
+        font-size: 0.875rem !important;
+        color: var(--text-color) !important;
+        background-color: var(--card-bg-color) !important;
     }
 
-    /* Empty State Messages */
+    /* Buttons */
+    .stButton button {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: var(--border-radius) !important;
+        padding: 10px 16px !important;
+        font-weight: 500 !important;
+    }
+
+    /* Check In/Out Buttons */
+    .stButton button:contains("Check In"),
+    .stButton button:contains("Check Out") {
+        width: 100%;
+        margin: 8px 0;
+    }
+
+    /* Data Display */
     .main .stMarkdown p {
         color: var(--text-muted-color);
         font-style: italic;
+    }
+
+    /* Time/Date Display */
+    .stMarkdown:has(+ .stMarkdown) {
+        color: var(--text-muted-color);
+        font-size: 0.875rem;
+        text-align: right;
+        margin-top: 20px;
+    }
+
+    /* Search Box */
+    .stTextInput input[type="search"] {
+        border-radius: 20px !important;
+        padding: 10px 16px !important;
     }
 </style>
 """
