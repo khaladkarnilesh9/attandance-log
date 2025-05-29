@@ -136,13 +136,14 @@ html_css = """
         padding: 24px 24px 20px !important;
         margin: 0 !important;
         border-bottom: 1px solid var(--divider-white) !important;
+        color: blue;
     }
 
     /* Navigation Items Container - Independent */
     div[data-testid="stSidebar"] div.stRadio {
         display: flex;
         flex-direction: column;
-        gap: 0;
+        gap: 10px;
     }
 
     /* Individual Navigation Items - Independent */
