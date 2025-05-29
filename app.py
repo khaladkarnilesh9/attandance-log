@@ -443,11 +443,11 @@ with st.sidebar:
 
     st.markdown(f"<div class='welcome-text-sidebar'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
 
-    user_sidebar_info = USERS.get(current_user["username"], {})
-    if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
-        st.markdown("<div class='user-profile-img-container'>", unsafe_allow_html=True)
-        st.image(user_sidebar_info["profile_photo"])
-        st.markdown("</div>", unsafe_allow_html=True)
+    # user_sidebar_info = USERS.get(current_user["username"], {})
+    # if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
+    #     st.markdown("<div class='user-profile-img-container'>", unsafe_allow_html=True)
+    #     st.image(user_sidebar_info["profile_photo"])
+    #     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown(
         f"<div class='user-position-text'>{user_sidebar_info.get('position', 'N/A')}</div>",
