@@ -301,7 +301,8 @@ if PILLOW_INSTALLED:
         img_path = user_data.get("profile_photo")
         if img_path and not os.path.exists(img_path):
             try:
-                img = Image.new('RGB', (120, 120), color = (200, 220, 240)); draw = ImageDraw.Draw(img)
+                # Changed background color to white (255, 255, 255)
+                img = Image.new('RGB', (120, 120), color = (255, 255, 255)); draw = ImageDraw.Draw(img)
                 try: font = ImageFont.truetype("arial.ttf", 40)
                 except IOError: font = ImageFont.load_default()
                 text = user_key[:2].upper()
@@ -315,7 +316,7 @@ if PILLOW_INSTALLED:
                     text_x, text_y = 30,30 # Approximate center
                 draw.text((text_x, text_y), text, fill=(28,78,128), font=font); img.save(img_path)
             except Exception: pass # Ignore if placeholder creation fails
-
+#-------------------------------------------------------------------------------------------------
 
 # --- File Paths & Timezone & Directories ---
 ATTENDANCE_FILE = "attendance.csv"
