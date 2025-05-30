@@ -159,9 +159,7 @@ st.markdown("""
         margin: 0.5rem 0 1.5rem 0;
     }
 
-    /* Navigation Items (Sidebar Buttons) - Targeting Streamlit's internal button structure */
-    /* Target the button container */
-    [data-testid="stSidebar"] .stButton > button {
+        [data-testid="stSidebar"] .stButton > button {
         display: flex; /* Use flexbox to align icon and text */
         align-items: center; /* Vertically align items */
         justify-content: flex-start; /* Align icon and text to start */
