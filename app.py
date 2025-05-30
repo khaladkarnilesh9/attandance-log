@@ -159,80 +159,49 @@ st.markdown("""
         margin: 0.5rem 0 1.5rem 0;
     }
 
-    /* Navigation Items (Sidebar Buttons) - Enhanced Styles */
-    .sidebar-nav-item {
+    /* Navigation Items (Sidebar Buttons) - DIRECTLY TARGETING ST.BUTTON */
+    /* All sidebar buttons */
+    [data-testid="stSidebar"] .stButton > button {
         display: flex;
         align-items: center;
+        justify-content: flex-start; /* Align icon and text to start */
         padding: 0.85rem 1.2rem; /* More padding for a bolder look */
-        margin: 0.25rem 0.75rem; /* Space between items */
+        margin: 0.25rem 0.75rem; /* Space between buttons */
         border-radius: 8px;
-        color: var(--text-color); /* Light text color for inactive items */
         font-size: 1.05rem; /* Slightly larger font */
         font-weight: 500;
         transition: background-color 0.2s, color 0.2s, transform 0.1s;
-        position: relative; /* Crucial for positioning the invisible button */
-        overflow: hidden; /* Hide any overflow */
-        /* Make this div the visual representation */
-        background-color: transparent;
+        width: calc(100% - 1.5rem); /* Account for margin left/right */
+        
+        background-color: transparent !important; /* Start transparent */
+        border: none !important; /* No border */
+        color: var(--text-color) !important; /* Light text color for inactive items */
     }
-    .sidebar-nav-item:hover {
-        background-color: var(--primary-bg); /* Darker on hover */
-        color: var(--accent-blue); /* Accent blue on hover */
+
+    /* Hover state for sidebar buttons */
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background-color: var(--primary-bg) !important; /* Darker on hover */
+        color: var(--accent-blue) !important; /* Accent blue on hover */
         transform: translateX(5px); /* Slight slide effect on hover */
     }
-    .sidebar-nav-item.active-nav-item {
-        background-color: var(--primary-bg); /* Darker for active */
-        color: var(--accent-blue); /* Accent blue for active */
-        box-shadow: 0 4px 12px rgba(138, 180, 248, 0.1); /* Subtle blue shadow */
-        transform: translateX(0); /* Ensure no slide for active */
+
+    /* Active state for sidebar buttons */
+    [data-testid="stSidebar"] .stButton > button.sidebar-active-btn {
+        background-color: var(--primary-bg) !important; /* Darker for active */
+        color: var(--accent-blue) !important; /* Accent blue for active */
+        box-shadow: 0 4px 12px rgba(138, 180, 248, 0.1) !important; /* Subtle blue shadow */
+        transform: translateX(0) !important; /* Ensure no slide for active */
     }
-    .sidebar-nav-item .material-symbols-outlined {
+
+    /* Styling for the icon within the button */
+    [data-testid="stSidebar"] .stButton > button .material-symbols-outlined {
         margin-right: 0.8rem; /* More space for icon */
         font-size: 1.6rem; /* Slightly larger icon */
         width: 28px; height: 28px; /* Fixed size for icons */
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        color: var(--text-color); /* Icon color for inactive */
-    }
-    .sidebar-nav-item.active-nav-item .material-symbols-outlined {
-        color: var(--accent-blue); /* Icon color for active */
-    }
-
-    /* !!! CRUCIAL FIX FOR DUPLICATE LABELS AND SPACING !!! */
-    /* Target the Streamlit button that appears directly after .sidebar-nav-item */
-    /* This targets the button (and its internal content div) */
-    .sidebar-nav-item + div[data-testid="stVerticalBlock"] > div[data-testid="stButton"] > button {
-        /* Make the actual button element completely transparent and cover the custom div */
-        background-color: transparent !important;
-        border: none !important;
-        color: transparent !important; /* Hide text color of the button */
-        opacity: 0 !important; /* Make the button itself transparent */
-        position: absolute !important; /* Position it over the custom div */
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        z-index: 10; /* Ensure it's on top for clicks */
-        cursor: pointer; /* Keep cursor pointer to indicate interactivity */
-        pointer-events: all !important; /* Ensure clicks pass through */
-        padding: 0 !important; /* Remove any padding that might cause extra space */
-        margin: 0 !important; /* Remove any margin that might cause extra space */
-    }
-
-    /* Explicitly hide the content div inside the Streamlit button */
-    .sidebar-nav-item + div[data-testid="stVerticalBlock"] > div[data-testid="stButton"] > button > div[data-testid="baseButton-children"] {
-        opacity: 0 !important; /* Hide the default button label text */
-        visibility: hidden !important; /* Ensure it's fully hidden */
-        width: 0 !important; /* Ensure it takes no space */
-        height: 0 !important; /* Ensure it takes no space */
-        overflow: hidden !important;
-    }
-
-    /* Make sure hover on the invisible button doesn't reveal anything */
-    .sidebar-nav-item + div[data-testid="stVerticalBlock"] > div[data-testid="stButton"] > button:hover {
-        background-color: transparent !important; /* Keep background transparent on hover */
-        border: none !important; /* No border on hover */
+        color: inherit; /* Icon color inherits from button text color */
     }
 
     /* Logout button specific styling (push to bottom) */
@@ -243,9 +212,6 @@ st.markdown("""
         background-color: var(--secondary-bg); /* Match sidebar background */
     }
     .logout-container .stButton > button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
         background-color: var(--error-color) !important; /* Red for logout, use !important to override */
         color: white !important; /* White text */
         border: none !important;
@@ -254,12 +220,7 @@ st.markdown("""
         font-weight: 600 !important;
         transition: background-color 0.2s, transform 0.1s !important;
         width: 100% !important; /* Make button full width */
-        /* Override the general invisible button styles for logout */
-        opacity: 1 !important; /* Make logout button visible */
-        position: static !important; /* Remove absolute positioning */
-        height: auto !important;
-        z-index: auto !important;
-        pointer-events: all !important; /* Ensure clicks pass through */
+        justify-content: center; /* Center content for logout button */
     }
     .logout-container .stButton > button:hover {
         background-color: #c0392b !important; /* Darker red on hover */
@@ -299,7 +260,7 @@ st.markdown("""
     }
     /* General Streamlit button styling for content area buttons */
     /* This overrides the invisible button style for regular page buttons */
-    .stButton > button:not(.logout-container .stButton > button):not([data-testid^="stSidebar"]) { /* Target buttons NOT in sidebar and not logout */
+    .stButton > button:not([data-testid^="stSidebar"]) { /* Target buttons NOT in sidebar */
         border-radius: 8px;
         font-weight: 600; /* Bolder button text */
         padding: 0.8rem 1.5rem; /* More padding for buttons */
@@ -436,19 +397,6 @@ st.markdown("""
     }
     
     /* Small adjustments for layout */
-    div[data-testid="stVerticalBlock"] > div:not(:last-child) {
-        /* This rule was adding too much space between the sidebar navigation items.
-           We want the internal margin of .sidebar-nav-item to control spacing.
-           Disabling or overriding this for sidebar to control spacing directly.
-        */
-        /* margin-bottom: 1.5rem; */
-    }
-    /* Specifically target and remove margin from Streamlit's internal block that wraps sidebar items */
-    [data-testid="stSidebarContent"] > div > div > div[data-testid="stVerticalBlock"] {
-        padding-bottom: 0 !important;
-        margin-bottom: 0 !important;
-    }
-
     /* Ensure text in main content is readable */
     .main-content-area p, .main-content-area li {
         color: var(--text-color);
@@ -1271,27 +1219,36 @@ else:
         nav_items = nav_items_admin if current_role == "admin" else nav_items_employee
 
         for page_name, icon_name in nav_items:
-            is_active = "active-nav-item" if st.session_state.active_page == page_name else ""
+            # Create the HTML label for the button
+            button_label_html = f'<span class="material-symbols-outlined">{icon_name}</span> {page_name}'
             
-            # The visual part of the button
-            st.markdown(f"""
-                <div class="sidebar-nav-item {is_active}">
-                    <span class="material-symbols-outlined">{icon_name}</span> {page_name}
-                </div>
-            """, unsafe_allow_html=True)
-            
-            # The functional (invisible) button for navigation
-            # Pass an empty string as the label to prevent duplicate text
-            # Ensure the key is unique and does not conflict
-            if st.button(" ", key=f"nav_btn_{page_name}_sidebar", use_container_width=True):
+            # Determine if this button should have the active class
+            active_class = "sidebar-active-btn" if st.session_state.active_page == page_name else ""
+
+            # Use st.button directly with HTML and the active class
+            if st.button(button_label_html, key=f"nav_btn_{page_name}_sidebar", use_container_width=True, unsafe_allow_html=True):
                 st.session_state.active_page = page_name
                 st.rerun()
+            
+            # Inject CSS class for the active button AFTER it's rendered.
+            # This is a common Streamlit trick to apply dynamic classes.
+            if st.session_state.active_page == page_name:
+                st.markdown(f"""
+                    <script>
+                        var buttons = parent.document.querySelectorAll('[data-testid="stSidebar"] button');
+                        for (var i = 0; i < buttons.length; i++) {{
+                            if (buttons[i].innerText.includes('{page_name}') && buttons[i].innerHTML.includes('{icon_name}')) {{
+                                buttons[i].classList.add('sidebar-active-btn');
+                            }} else {{
+                                buttons[i].classList.remove('sidebar-active-btn');
+                            }}
+                        }}
+                    </script>
+                """, unsafe_allow_html=True)
 
         # Logout Button
         st.markdown('<div class="logout-container">', unsafe_allow_html=True)
-        # Simplified logout button label to avoid TypeError with unsafe_allow_html on the button itself.
-        # The CSS will add the icon.
-        if st.button("Logout", key="logout_btn_sidebar", use_container_width=True):
+        if st.button('<span class="material-symbols-outlined">logout</span> Logout', key="logout_btn_sidebar", use_container_width=True, unsafe_allow_html=True):
             logout() # Call the global logout function
         st.markdown('</div>', unsafe_allow_html=True)
 
