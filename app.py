@@ -1133,7 +1133,7 @@ def activity_log_page():
 
 # --- Authentication Functions ---
 def login_page():
-    st.image("path/to/your/company_logo.png", width=200) # Optional: Add your company logo
+    st.image("https://picsum.photos/seed/logo_seed/200/100", width=200) # Use a seed for consistent image", width=200) # Optional: Add your company logo
     st.markdown("<h2 style='text-align: center; color: #2c3e50;'>Employee Login</h2>", unsafe_allow_html=True)
     
     with st.form("login_form"):
