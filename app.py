@@ -28,6 +28,44 @@ st.markdown("""
 
 st.markdown("""
 <style>
+
+    /* Add this to your existing <style> block */
+
+/* Target placeholder text for common input types */
+.stTextInput input::placeholder,
+.stTextArea textarea::placeholder,
+.stNumberInput input::placeholder {
+    color: white !important; /* Make placeholder text white */
+    opacity: 1; /* Ensure full visibility if it was faded */
+}
+
+/* You might also want to change the text color of the input itself for contrast */
+.stTextInput input,
+.stTextArea textarea,
+.stNumberInput input,
+.stSelectbox div[data-baseweb="select"] input { /* Target selectbox input too */
+    color: #333333; /* Darker text for input values */
+}
+
+/* If you want to change the border color of focused inputs to be consistent */
+.stTextInput input:focus,
+.stTextArea textarea:focus,
+.stNumberInput input:focus,
+.stSelectbox div[data-baseweb="select"]:focus-within { /* For selectbox, focus on its container */
+    border-color: #007bff; /* Primary blue on focus */
+    box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.25); /* Subtle glow */
+}
+
+/* Example: Change the border color of the inputs directly to make them more visible */
+.stTextInput div[data-baseweb="input"],
+.stTextArea div[data-baseweb="textarea"],
+.stNumberInput div[data-baseweb="input"] {
+    border: 1px solid #ced4da; /* A slightly darker border color */
+    border-radius: var(--border-radius);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+
     /* Your existing CSS here */
     html, body, [data-testid="stAppViewContainer"], [data-testid="stVerticalBlock"] {
         height: 100%;
