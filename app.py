@@ -529,14 +529,14 @@ def render_goal_chart(df: pd.DataFrame, chart_title: str):
     fig.update_layout(height=400, xaxis_title="Quarter", yaxis_title="Amount (INR)", legend_title_text='Metric',
                       plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', # Transparent background
                       font=dict(color=st.get_option("theme.textColor")), # Use Streamlit's theme color for text
-                      title_font_color=st.get_option("theme.primaryColor")), # Use Streamlit's primary color for title
-                      legend_font_color=st.get_option("theme.textColor"),
+                      title_font_color=st.get_option("theme.primaryColor"), # Align this
+                      legend_font_color=st.get_option("theme.textColor"), # This is the problematic line
                       xaxis=dict(gridcolor='rgba(100,100,100,0.2)', zerolinecolor='rgba(100,100,100,0.2)'),
                       yaxis=dict(gridcolor='rgba(100,100,100,0.2)', zerolinecolor='rgba(100,100,100,0.2)'))
     fig.update_xaxes(type='category', showgrid=True, gridwidth=1, gridcolor=st.get_option("theme.secondaryBackgroundColor"))
     fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor=st.get_option("theme.secondaryBackgroundColor"))
     st.plotly_chart(fig, use_container_width=True)
-
+    
 def create_donut_chart(progress_percentage, chart_title="Progress", achieved_color='#2ecc71', remaining_color='#f0f0f0', center_text_color=None):
     fig, ax = plt.subplots(figsize=(2.5, 2.5), dpi=90); fig.patch.set_alpha(0); ax.patch.set_alpha(0)
     progress_percentage = max(0.0, min(float(progress_percentage), 100.0))
