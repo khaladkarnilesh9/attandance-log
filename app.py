@@ -159,7 +159,7 @@ st.markdown("""
         font-weight: 500;
         transition: background-color 0.2s, color 0.2s, transform 0.1s;
         position: relative; /* Crucial for positioning the invisible button */
-        overflow: hidden;
+        overflow: hidden; /* Hide any overflow */
     }
     .sidebar-nav-item:hover {
         background-color: #3498db; /* Primary blue on hover */
@@ -187,15 +187,12 @@ st.markdown("""
 
     /* !!! CRUCIAL FIX FOR DUPLICATE LABELS !!! */
     /* Target the Streamlit button that appears directly after .sidebar-nav-item */
-    /* This selector targets the button (and its children) within the Streamlit button container */
+    /* This targets the button (and its internal content div) */
     .sidebar-nav-item + div[data-testid="stVerticalBlock"] > div[data-testid="stButton"] > button {
         /* Make the actual button element completely transparent and cover the custom div */
         background-color: transparent !important;
         border: none !important;
-        /* To hide its default label, make its children invisible */
-        /* Streamlit wraps the button label in a div with data-testid="baseButton-children" */
-        /* We use opacity:0 to preserve clickability while making it invisible */
-        color: transparent !important; /* Hide text color */
+        color: transparent !important; /* Hide text color of the button */
         opacity: 0; /* Make the button itself transparent */
         position: absolute !important; /* Position it over the custom div */
         top: 0 !important;
@@ -204,20 +201,24 @@ st.markdown("""
         height: 100% !important;
         z-index: 10; /* Ensure it's on top for clicks */
         cursor: pointer; /* Keep cursor pointer to indicate interactivity */
+        pointer-events: all !important; /* Ensure clicks pass through */
     }
 
-    /* This rule specifically targets the content *inside* the Streamlit button */
-    /* and ensures its default label text is not visible. */
+    /* Explicitly hide the content div inside the Streamlit button */
     .sidebar-nav-item + div[data-testid="stVerticalBlock"] > div[data-testid="stButton"] > button > div[data-testid="baseButton-children"] {
         opacity: 0 !important; /* Hide the default button label text */
         visibility: hidden !important; /* Ensure it's fully hidden */
-    }
-    /* You might also want to prevent Streamlit's default hover on this hidden button */
-    .sidebar-nav-item + div[data-testid="stVerticalBlock"] > div[data-testid="stButton"] > button:hover {
-        background-color: transparent !important;
-        border: none !important;
+        /* Also make sure it doesn't take up any space */
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
     }
 
+    /* Make sure hover on the invisible button doesn't reveal anything */
+    .sidebar-nav-item + div[data-testid="stVerticalBlock"] > div[data-testid="stButton"] > button:hover {
+        background-color: transparent !important; /* Keep background transparent on hover */
+        border: none !important; /* No border on hover */
+    }
 
     /* Logout button specific styling (push to bottom) */
     .logout-container {
@@ -243,6 +244,7 @@ st.markdown("""
         position: static !important; /* Remove absolute positioning */
         height: auto !important;
         z-index: auto !important;
+        pointer-events: all !important; /* Ensure clicks pass through */
     }
     .logout-container .stButton > button:hover {
         background-color: #c0392b; /* Darker red on hover */
@@ -281,7 +283,7 @@ st.markdown("""
     }
     /* General Streamlit button styling for content area buttons */
     /* This overrides the invisible button style for regular page buttons */
-    .stButton > button:not([data-testid^="stSidebar"]) { /* Target buttons NOT in sidebar */
+    .stButton > button:not(.logout-container .stButton > button):not([data-testid^="stSidebar"]) { /* Target buttons NOT in sidebar and not logout */
         border-radius: 8px;
         font-weight: 600; /* Bolder button text */
         padding: 0.8rem 1.5rem; /* More padding for buttons */
@@ -378,8 +380,6 @@ st.markdown("""
     }
 
     /* Streamlit labels */
-    /* This targets the common p tag Streamlit uses for labels, but be careful of specificity */
-    /* It's often better to target the label element directly if possible */
     div[data-testid="stWidgetLabel"] > p {
         font-weight: 500;
         color: #555555;
@@ -397,7 +397,6 @@ st.markdown("""
     }
     
 </style>
-
 
 """, unsafe_allow_html=True)
 
