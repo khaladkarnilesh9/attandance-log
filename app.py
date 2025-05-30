@@ -28,206 +28,189 @@ st.markdown("""
 
 st.markdown("""
 <style>
-    /* Apply Roboto to the whole app, and Material Symbols Outlined for icons */
-    body, .stButton button, .stTextInput input, .stTextArea textarea, .stSelectbox select, .stRadio div label {
-        font-family: 'Roboto', sans-serif;
-    }
-    .material-symbols-outlined {
-        font-family: 'Material Symbols Outlined';
-        font-weight: normal;
-        font-style: normal;
-        font-size: 22px;  /* Base size for icons */
-        line-height: 1;
-        letter-spacing: normal;
-        text-transform: none;
-        display: inline-block;
-        white-space: nowrap;
-        word-wrap: normal;
-        direction: ltr;
-        -webkit-font-smoothing: antialiased;
-        text-rendering: optimizeLegibility;
-        -moz-osx-font-smoothing: grayscale;
-        font-feature-settings: 'liga';
-        vertical-align: middle;  /* Align icons nicely with text */
+    /* ========== FONT IMPORTS & BASE STYLES ========== */
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+    
+    :root {
+        --primary-color: #0d6efd;
+        --primary-hover: #0b5ed7;
+        --danger-color: #dc3545;
+        --danger-hover: #c82333;
+        --text-color: #212529;
+        --muted-text: #6c757d;
+        --light-bg: #f8f9fa;
+        --border-radius: 0.375rem;
+        --transition: all 0.15s ease-in-out;
     }
 
-    /* Streamlit's default sidebar container */
+    body, 
+    .stButton > button, 
+    .stTextInput > input, 
+    .stTextArea > textarea, 
+    .stSelectbox > select, 
+    .stRadio > div > label,
+    .stMarkdown {
+        font-family: 'Roboto', sans-serif !important;
+    }
+
+    /* ========== MATERIAL ICONS ========== */
+    .material-symbols-outlined {
+        font-family: 'Material Symbols Outlined' !important;
+        font-weight: normal;
+        font-style: normal;
+        font-size: 22px;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        vertical-align: middle;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    /* ========== SIDEBAR STRUCTURE ========== */
     section[data-testid="stSidebar"] > div:first-child {
-        padding: 0 !important; /* Remove Streamlit's default padding */
+        padding: 0 !important;
+        background-color: var(--light-bg) !important;
     }
 
     .sidebar-content-wrapper {
-        background-color: #f8f9fa !important; /* Bootstrap 'bg-light' equivalent */
-        height: 100%;
         display: flex;
         flex-direction: column;
-        padding: 1rem; /* Overall padding for sidebar content */
+        height: 100vh;
+        padding: 1rem;
+        gap: 0.5rem;
     }
 
-    /* Styling for each navigation item's container div */
+    /* ========== NAVIGATION ITEMS ========== */
     .sidebar-nav-item {
         display: flex !important;
         align-items: center !important;
+        gap: 0.75rem !important;
         width: 100% !important;
-        padding: 0.5rem 0.75rem !important;
-        margin-bottom: 0.125rem !important;
-        border-radius: 0.375rem !important;
+        padding: 0.625rem 0.875rem !important;
+        margin: 0.125rem 0 !important;
+        border-radius: var(--border-radius) !important;
+        color: var(--text-color) !important;
         text-decoration: none !important;
-        color: #212529 !important;
-        transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
-    }
-    .sidebar-nav-item:hover {
-        background-color: #e9ecef !important;
-        color: #000 !important;
-    }
-    
-    /* Icon container within the nav item (first column) */
-    .sidebar-nav-item .icon-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        /* margin-right: 8px; */ /* Handled by column gap now */
-    }
-    .sidebar-nav-item .icon-container .material-symbols-outlined {
-        font-size: 20px !important;
-        color: inherit;
+        transition: var(--transition) !important;
+        cursor: pointer;
     }
 
-    /* Styling for st.button (text part) to be transparent and fit in */
-    .sidebar-nav-item .stButton button {
-        display: block !important;
-        width: 100% !important;
+    .sidebar-nav-item:hover {
+        background-color: #e9ecef !important;
+    }
+
+    .sidebar-nav-item.active-nav-item {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+    }
+
+    .sidebar-nav-item.active-nav-item:hover {
+        background-color: var(--primary-hover) !important;
+    }
+
+    /* Button text styling */
+    .sidebar-nav-item .stButton > button {
+        flex: 1;
         text-align: left !important;
+        background: transparent !important;
         border: none !important;
         padding: 0 !important;
         margin: 0 !important;
-        font-weight: 400 !important;
         font-size: 0.95rem !important;
-        line-height: 1.5 !important;
-        background-color: transparent !important;
+        font-weight: inherit !important;
         color: inherit !important;
         box-shadow: none !important;
-        outline: none !important;
         cursor: pointer;
     }
-    /* Hover/focus for the button itself - should be minimal as .sidebar-nav-item handles visual hover */
-    .sidebar-nav-item .stButton button:hover,
-    .sidebar-nav-item .stButton button:focus,
-    .sidebar-nav-item .stButton button:active {
-        background-color: transparent !important;
-        box-shadow: none !important;
-        outline: none !important;
+
+    /* ========== USER PROFILE SECTION ========== */
+    .user-profile-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem 0;
+        margin-bottom: 1rem;
     }
 
-    /* Active navigation item styling (applied to the container div .sidebar-nav-item) */
-    .sidebar-nav-item.active-nav-item {
-        color: #fff !important; /* This will be inherited by icon and button text */
-        background-color: #0d6efd !important; /* Bootstrap primary color */
-    }
-    .sidebar-nav-item.active-nav-item:hover {
-        color: #fff !important;
-        background-color: #0b5ed7 !important; /* Darker primary on hover for active item */
-    }
-    /* Icon and button text color for active item */
-    .sidebar-nav-item.active-nav-item .icon-container .material-symbols-outlined {
-        color: #fff !important;
-    }
-    .sidebar-nav-item.active-nav-item .stButton button {
-        color: #fff !important;
-        font-weight: 500 !important; /* Bolder text for active button */
-    }
-
-    /* Welcome text and user info */
-    .welcome-text-sidebar {
-        font-size: 1.1rem;
-        font-weight: 500;
-        color: #212529;
-        margin-bottom: 0.5rem;
-        padding-left: 0.5rem;
-    }
-    .user-profile-img-container {
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
-    .user-profile-img-container img {
-        border-radius: 50%;
+    .user-profile-img {
         width: 80px;
         height: 80px;
+        border-radius: 50%;
         object-fit: cover;
         border: 2px solid #dee2e6;
     }
-    .user-position-text {
-        text-align: center;
-        font-size: 0.875em;
-        color: #6c757d;
-        margin-bottom: 1rem;
-    }
-    .sidebar-content-wrapper hr {
-        margin: 1rem 0;
-        opacity: 0.25;
+
+    .welcome-text {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin: 0.5rem 0 0.25rem;
     }
 
-    /* Logout Button Styling */
-    .logout-button-container {
-        margin-top: auto; /* Pushes logout to the bottom */
-        padding-top: 1rem; /* Space above logout */
+    .user-position {
+        font-size: 0.875rem;
+        color: var(--muted-text);
     }
-    .logout-button-container .stButton button {
-        background-color: #dc3545 !important; /* Bootstrap danger color for logout */
-        color: white !important;
-        border: none !important;
-        width: 100% !important;
-        font-weight: 500 !important;
+
+    /* ========== LOGOUT BUTTON ========== */
+    .logout-container {
+        margin-top: auto;
+        padding-top: 1rem;
+    }
+
+    .logout-container .stButton > button {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        padding: 0.5rem 1rem !important;
-        border-radius: 0.375rem;
-    }
-    .logout-button-container .stButton button:hover {
-        background-color: #c82333 !important; /* Darker danger on hover */
+        gap: 0.5rem;
+        width: 100% !important;
+        padding: 0.625rem !important;
+        background-color: var(--danger-color) !important;
         color: white !important;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
     }
-    .logout-button-container .stButton button .material-symbols-outlined {
-        margin-right: 8px;
-        font-size: 20px;
-        color: white; /* Ensure icon is white */
+
+    .logout-container .stButton > button:hover {
+        background-color: var(--danger-hover) !important;
     }
-    
-    /* General Card Styling for Main Content */
+
+    /* ========== MAIN CONTENT STYLING ========== */
     .card {
-        background-color: #fff;
+        background: white;
         border-radius: 0.5rem;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
         padding: 1.5rem;
         margin-bottom: 1.5rem;
     }
-    .card h3, .card h4, .card h5 {
-        color: #343a40;
+
+    /* ========== NOTIFICATION STYLES ========== */
+    .notification {
+        padding: 0.75rem 1rem;
+        border-radius: var(--border-radius);
         margin-bottom: 1rem;
+        border: 1px solid transparent;
     }
-    .stAlert {
-        border-radius: 0.375rem;
+
+    .notification.success {
+        color: #0f5132;
+        background-color: #d1e7dd;
+        border-color: #badbcc;
     }
-    .stRadio > label { /* Target the actual label of st.radio for font family */
-        font-family: 'Roboto', sans-serif;
+
+    .notification.error {
+        color: #842029;
+        background-color: #f8d7da;
+        border-color: #f5c2c7;
     }
-    
-    /* Global message notification styling (kept as is) */
-    .custom-notification {
-        padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid transparent;
-    }
-    .custom-notification.success {
-        color: #0f5132; background-color: #d1e7dd; border-color: #badbcc;
-    }
-    .custom-notification.error {
-        color: #842029; background-color: #f8d7da; border-color: #f5c2c7;
-    }
-    .custom-notification.info {
-        color: #055160; background-color: #cff4fc; border-color: #b6effb;
-    }
-    .custom-notification.warning {
-        color: #664d03; background-color: #fff3cd; border-color: #ffecb5;
+
+    /* ========== UTILITY CLASSES ========== */
+    .divider {
+        height: 1px;
+        background-color: rgba(0,0,0,0.1);
+        margin: 1rem 0;
     }
 </style>
 """, unsafe_allow_html=True)
