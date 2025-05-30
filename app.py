@@ -389,6 +389,7 @@ if "user_message" in st.session_state and st.session_state.user_message:
 
 
 # <<<< CORRECTED SIDEBAR SECTION >>>>
+# <<<< CORRECTED SIDEBAR SECTION >>>>
 nav_options_with_icons = [
     {"label": "Attendance", "icon": "schedule"},
     {"label": "Upload Activity Photo", "icon": "add_a_photo"},
@@ -429,13 +430,18 @@ with st.sidebar:
 
         active_class = "active-nav-item" if is_active else ""
         
+        # ===================================================================== #
+        # VVVVVV THIS IS EXACTLY WHERE YOUR SNIPPET GOES VVVVVV                #
+        # (Replace any previous button creation logic inside this loop here)    #
+        # ===================================================================== #
+        
         # Use a markdown container for each item to apply overall styling and hover
         st.markdown(f'<div class="sidebar-nav-item {active_class}">', unsafe_allow_html=True)
         
         # Use st.columns to separate icon and button.
         # Adjust column widths: 1 for icon, 5 for text (relative widths)
         # The gap between columns can be controlled by Streamlit or with CSS if needed.
-        icon_col, text_col = st.columns([1, 5]) 
+        icon_col, text_col = st.columns([1, 5]) # Adjust ratio as needed (e.g. 0.2, 0.8 or fixed width)
 
         with icon_col:
             # icon-container helps vertically align the icon if needed, though st.columns usually does well.
@@ -451,13 +457,15 @@ with st.sidebar:
                 use_container_width=True 
             )
         st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-nav-item div
+        
+        # ===================================================================== #
+        # ^^^^^^ THIS IS EXACTLY WHERE YOUR SNIPPET ENDS ^^^^^^                 #
+        # ===================================================================== #
 
     st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-nav
 
     # Logout Button
     st.markdown('<div class="logout-button-container">', unsafe_allow_html=True)
-    # For logout button, if you want an icon, you can use an emoji or a similar st.columns approach.
-    # Using emoji for simplicity here.
     if st.button("➡️ Logout", key="logout_button_sidebar", use_container_width=True): 
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.session_state.user_message = "Logged out successfully."
@@ -466,6 +474,8 @@ with st.sidebar:
     st.markdown('</div>', unsafe_allow_html=True) # Close logout-button-container
     
     st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-content-wrapper
+# <<<< END OF CORRECTED SIDEBAR SECTION >>>>
+
 # <<<< END OF CORRECTED SIDEBAR SECTION >>>>
 
 
