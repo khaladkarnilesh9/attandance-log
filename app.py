@@ -1062,86 +1062,111 @@ def logout():
 
 # --- Corrected sidebar_navigation function ---
 def sidebar_navigation():
-    st.sidebar.markdown('<div class="sidebar-content-wrapper">', unsafe_allow_html=True)
-
-    # User Profile Section
-    username = st.session_state.auth.get("username", "Guest")
-    role = st.session_state.auth.get("role", "")
-    position = USERS.get(username, {}).get("position", "")
-    profile_photo = USERS.get(username, {}).get("profile_photo", "images/default_user.png")
-
-    st.sidebar.markdown(f"""
-        <div class="user-profile-section">
-            <img src="{profile_photo}" alt="Profile" class="user-profile-img">
-            <p class="welcome-text">Welcome, {username}!</p>
-            <p class="user-position">{position}</p>
-        </div>
-        <div class="divider"></div>
+    # Add Material Icons CSS if not already added
+    st.markdown("""
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <style>
+        .logout-btn-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.75rem;
+        }
+        .logout-btn-wrapper .material-symbols-outlined {
+            font-size: 20px;
+        }
+    </style>
     """, unsafe_allow_html=True)
 
-    # Dictionary to map page names to Material Symbols icons
-    icon_map = {
-        "Attendance": "check_circle",
-        "Upload Activity Photo": "camera_alt",
-        "Claim Allowance": "work",
-        "Sales Goals": "target",
-        "Payment Goals": "payments",
-        "Activity Log": "assignment",
-        "Create Order": "add_shopping_cart" # Assuming you'd have this
-    }
+    with st.sidebar:
+        st.markdown('<div class="sidebar-content-wrapper">', unsafe_allow_html=True)
 
-    # Navigation Links
-    nav_items = [
-        "Attendance",
-        "Upload Activity Photo",
-        "Claim Allowance",
-        "Sales Goals",
-        "Payment Goals",
-        "Activity Log",
-        # "Create Order", # Uncomment if you implement this page
-    ]
+        # User Profile Section
+        username = st.session_state.get("auth", {}).get("username", "Guest")
+        role = st.session_state.get("auth", {}).get("role", "")
+        position = USERS.get(username, {}).get("position", "")
+        profile_photo = USERS.get(username, {}).get("profile_photo", "images/default_user.png")
 
-    for page_name in nav_items:
-        display_name = page_name
-        # Check roles for specific pages and adjust display name/visibility
-        is_visible = True
-        if page_name in ["Sales Goals", "Payment Goals", "Activity Log"]:
-            if role == "employee":
-                display_name = f"My {page_name.replace('Sales ', '').replace('Payment ', '')}"
-            elif role != "admin": # Hide for any other roles (e.g., if not logged in)
-                is_visible = False
-        # Add similar logic for "Create Order" if it's role-specific
-        # if page_name == "Create Order" and role != "admin":
-        #    is_visible = False # Example: only admin can create orders
+        st.markdown(f"""
+            <div class="user-profile-section">
+                <img src="{profile_photo}" alt="Profile" class="user-profile-img">
+                <p class="welcome-text">Welcome, {username}!</p>
+                <p class="user-position">{position}</p>
+            </div>
+            <div class="divider"></div>
+        """, unsafe_allow_html=True)
 
-        if is_visible:
-            # Determine if the current page is active
-            is_active = "active-nav-item" if st.session_state.active_page == page_name else ""
+        # Navigation Items
+        icon_map = {
+            "Attendance": "check_circle",
+            "Upload Activity Photo": "camera_alt",
+            "Claim Allowance": "work",
+            "Sales Goals": "target",
+            "Payment Goals": "payments",
+            "Activity Log": "assignment",
+            "Create Order": "add_shopping_cart"
+        }
+
+        nav_items = [
+            "Attendance",
+            "Upload Activity Photo",
+            "Claim Allowance",
+            "Sales Goals",
+            "Payment Goals",
+            "Activity Log",
+            # "Create Order",  # Uncomment if implemented
+        ]
+
+        for page_name in nav_items:
+            display_name = page_name
+            is_visible = True
             
-            # Get the Material Symbol icon name from the map
-            icon_name = icon_map.get(page_name, "info") # Default to 'info' if not found
+            # Role-based visibility
+            if page_name in ["Sales Goals", "Payment Goals", "Activity Log"]:
+                if role == "employee":
+                    display_name = f"My {page_name.replace('Sales ', '').replace('Payment ', '')}"
+                elif role != "admin":
+                    is_visible = False
 
-            # Display the visual representation of the navigation item
-            st.sidebar.markdown(f"""
-                <div class="sidebar-nav-item {is_active}">
-                    <span class="material-symbols-outlined">{icon_name}</span>
-                    <span style="flex: 1;">{display_name}</span>
-                </div>
-            """, unsafe_allow_html=True)
+            if is_visible:
+                is_active = "active-nav-item" if st.session_state.active_page == page_name else ""
+                icon_name = icon_map.get(page_name, "info")
+                
+                # Navigation item container
+                st.markdown(f"""
+                    <div class="sidebar-nav-item {is_active}">
+                        <span class="material-symbols-outlined">{icon_name}</span>
+                        <span style="flex: 1;">{display_name}</span>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                # Invisible button for navigation
+                if st.button(" ", key=f"nav_btn_{page_name}", use_container_width=True):
+                    if st.session_state.active_page != page_name:
+                        st.session_state.active_page = page_name
+                        st.rerun()
 
-            # Place an invisible button *immediately after* the markdown for the same item.
-            # This button will handle the click event.
-            # The CSS above targets the button that is a direct sibling of .sidebar-nav-item
-            if st.sidebar.button(" ", key=f"nav_button_{page_name}_sidebar", use_container_width=True):
-                if st.session_state.active_page != page_name: # Only reruns if page changes
-                    st.session_state.active_page = page_name
-                    st.rerun()
+        # Proper Logout Button Implementation
+        st.markdown('<div class="logout-container">', unsafe_allow_html=True)
+        
+        # Create columns for icon + text
+        col1, col2 = st.columns([0.2, 0.8])
+        with col1:
+            st.markdown("<span class='material-symbols-outlined'>logout</span>", unsafe_allow_html=True)
+        with col2:
+            if st.button("Logout", key="logout_btn_final", use_container_width=True):
+                logout()
+                
+        st.markdown('</div>', unsafe_allow_html=True)  # Close logout-container
+        st.markdown('</div>', unsafe_allow_html=True)  # Close sidebar-content-wrapper
 
-    # Logout Button (at the bottom, pushed by margin-top: auto in CSS)
-    st.sidebar.markdown('<div class="logout-container">', unsafe_allow_html=True)
-    if st.sidebar.button(label="<span class='material-symbols-outlined'>logout</span> Logout", key="sidebar_logout_btn_final", use_container_width=True, unsafe_allow_html=True):
-        logout()
-    st.sidebar.markdown('</div>', unsafe_allow_html=True)
+
+def logout():
+    """Handle logout logic"""
+    if "auth" in st.session_state:
+        del st.session_state.auth
+    st.session_state.active_page = "Login"
+    st.rerun()
     st.sidebar.markdown('</div>', unsafe_allow_html=True) # Close sidebar-content-wrapper
 
 
