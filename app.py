@@ -297,39 +297,73 @@ if selected == "Attendance":
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
     st.info("📍 Location services are currently disabled. Photos for specific activities can be uploaded from 'Upload Activity Photo'.", icon="ℹ️")
     st.markdown("---")
-    
-    common_data_att = {"Username": current_user["username"], "Latitude": pd.NA, "Longitude": pd.NA}
-    
+
+    # Define common data for attendance records
+    common_data_att = {
+        "Username": current_user["username"], 
+        "Latitude": pd.NA, 
+        "Longitude": pd.NA
+    }
+
+    # Define the processing function inside the Attendance page block
     def process_general_attendance(attendance_type):
-        temp_attendance_df = attendance_df.copy()
+        """Process attendance check-in/check-out records"""
+        # Get current time in target timezone
         now_str_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
-        new_entry_data = {"Type": attendance_type, "Timestamp": now_str_display, **common_data_att}
+        
+        # Create new entry data
+        new_entry_data = {
+            "Type": attendance_type,
+            "Timestamp": now_str_display,
+            **common_data_att
+        }
+        
+        # Ensure all required columns are present
         for col_name in ATTENDANCE_COLUMNS:
-            if col_name not in new_entry_data: 
+            if col_name not in new_entry_data:
                 new_entry_data[col_name] = pd.NA
+        
+        # Create DataFrame with the new entry
         new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
-        temp_attendance_df = pd.concat([temp_attendance_df, new_entry], ignore_index=True)
+        
+        # Update the attendance DataFrame
+        temp_attendance_df = pd.concat([attendance_df, new_entry], ignore_index=True)
+        
         try:
+            # Save to CSV
             temp_attendance_df.to_csv(ATTENDANCE_FILE, index=False)
+            
+            # Update the global DataFrame
             globals()['attendance_df'] = temp_attendance_df
+            
+            # Set success message
             st.session_state.user_message = f"{attendance_type} recorded at {now_str_display}."
             st.session_state.message_type = "success"
             st.rerun()
+            
         except Exception as e:
             st.session_state.user_message = f"Error saving attendance: {e}"
             st.session_state.message_type = "error"
             st.rerun()
-    
+
+    # Create check-in/check-out buttons
     col1_att, col2_att = st.columns(2)
     with col1_att:
-        if st.button("✅ Check In", key="check_in_btn_att_page_final_v4", use_container_width=True, type="primary"): 
+        if st.button("✅ Check In", 
+                    key="check_in_btn_att_page_final_v4", 
+                    use_container_width=True, 
+                    type="primary"):
             process_general_attendance("Check-In")
+            
     with col2_att:
-        if st.button("🚪 Check Out", key="check_out_btn_att_page_final_v4", use_container_width=True, type="primary"): 
+        if st.button("🚪 Check Out", 
+                    key="check_out_btn_att_page_final_v4", 
+                    use_container_width=True, 
+                    type="primary"):
             process_general_attendance("Check-Out")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
 
+    st.markdown('</div>', unsafe_allow_html=True)
+#------------------------------------------------------------
 # Page: Upload Activity Photo
 elif selected == "Upload Activity Photo":
     st.markdown('<div class="card">', unsafe_allow_html=True)
