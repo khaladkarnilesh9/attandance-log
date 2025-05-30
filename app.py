@@ -10,6 +10,16 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
+def get_current_time_in_tz():
+    """Get current datetime in the configured timezone"""
+    try:
+        tz = pytz.timezone(TARGET_TIMEZONE)
+        return datetime.now(timezone.utc).astimezone(tz)
+    except pytz.exceptions.UnknownTimeZoneError:
+        st.error(f"Invalid timezone: {TARGET_TIMEZONE}")
+        st.stop()
+
+
 try:
     from PIL import Image, ImageDraw, ImageFont
     PILLOW_INSTALLED = True
