@@ -1489,73 +1489,32 @@ st.markdown("""
     [data-testid="stSidebar"] div[data-testid^="stButton"] {
         margin-top: 0.25rem !important;
         margin-bottom: 0.25rem !important;
-        /* Also apply horizontal margin to this wrapper for consistent spacing */
         margin-left: 0.75rem !important;
         margin-right: 0.75rem !important;
-        width: calc(100% - 1.5rem) !important; /* Re-calculate width to include margins */
-        overflow: hidden; /* Important for border-radius to apply correctly */
-        border-radius: 8px; /* Apply border-radius here as well */
+        width: calc(100% - 1.5rem) !important; 
+        overflow: hidden;
+        border-radius: 8px; 
     }
-    /* ... more CSS ... */
+        [data-testid="stSidebar"] 
+        div[data-testid^="stButton"] > button {
+        display: flex;
+        align-items: center; 
+        justify-content: flex-start; 
+        padding: 0.85rem 1.2rem !important;        
+        transition: background-color 0.2s, color 0.2s, transform 0.1s, box-shadow 0.2s;
+        width: 100% !important; 
+        height: 100%;
+        
+        background-color: transparent !important;
+        border: none !important;
+        color: var(--text-color) !important;
+        cursor: pointer;
+        box-shadow: none !important; 
+        outline: none !important;
+        font-size: 1.05rem;
+        font-weight: 500;
+        border-radius: 8px; 
+    }
 </style>
 
-""", unsafe_allow_html=True) # <--- The closing triple quotes `"""` are essential here
-    /* Navigation Items (Sidebar Buttons) - Targeting Streamlit's internal button structure */
-    /* Target the button element inside the wrapper */
-    [data-testid="stSidebar"] div[data-testid^="stButton"] > button {
-        display: flex; /* Use flexbox to align icon and text */
-        align-items: center; /* Vertically align items */
-        justify-content: flex-start; /* Align icon and text to start */
-        padding: 0.85rem 1.2rem !important; /* More padding for a bolder look */
-        
-        transition: background-color 0.2s, color 0.2s, transform 0.1s, box-shadow 0.2s;
-        width: 100% !important; /* Button takes full width of its parent div */
-        height: 100%; /* Take full height of parent div */
-        
-        background-color: transparent !important; /* Start transparent, override Streamlit defaults */
-        border: none !important; /* No border, override Streamlit defaults */
-        color: var(--text-color) !important; /* Light text color for inactive items, override */
-        cursor: pointer; /* Indicate clickable */
-        box-shadow: none !important; /* Remove default button shadow */
-        outline: none !important; /* Remove focus outline */
-        font-size: 1.05rem; /* Slightly larger font */
-        font-weight: 500;
-        border-radius: 8px; /* Ensure border-radius for the button itself too */
-    }
-
-    /* Active state for sidebar nav items (buttons) - use a specific class added by Streamlit's key logic */
-    /* We'll use Streamlit's internal CSS structure to identify the active button if possible */
-    /* If the active button is not explicitly styled by Streamlit with a class, we need a workaround. */
-    /* One hack is to target the button whose label's text matches the active page. This is fragile. */
-
-    /* The most common and robust way to simulate an active button in Streamlit
-    is to apply the desired background/text color when the page is active.
-    Since direct class injection to st.button is tricky, let's use a very specific CSS selector
-    that becomes true only for the active page. */
-
-    /* This targets the actual button element for the active page.
-       This relies on the `key` being consistent and matching the `st.session_state.active_page`.
-       This is not perfect as CSS cannot read Python session state directly.
-       However, if we are setting `st.session_state.active_page` and rerunning,
-       the CSS will be re-applied.
-
-       Let's use a dynamic `data-active-page` attribute on the button element itself for better targeting.
-       This will require a little JavaScript injection.
-       Given that the user is avoiding "full error details have been recorded in the logs (if you're on Streamlit Cloud, click on 'Manage app' in the lower right of your app)",
-       it might be better to stick to pure CSS if possible, even if it's less dynamic.
-
-       Let's stick to the conditional HTML in the label for the 'active' visual state and refine general button styles.
-       The current CSS already handles `stButton > button` which is the core.
-       The "overlap" implies default `stButton` container styling.
-    */
-
-    /* Ensure a consistent background for the button when it's active based on the state.
-       This part is the most challenging without direct Python-to-CSS class injection on the button.
-       Let's make the background change on hover and also if the page is active, by making the text
-       and icon change color in Python and relying on the general button styles.
-    */
-    
-    /* Revisit active state: Streamlit buttons DO have a primary/secondary state.
-       We can switch `type` based on `active_page`!
-       This is the simplest way to get Streamlit to apply its native active look.
-    */
+""", unsafe_allow_html=True) #
