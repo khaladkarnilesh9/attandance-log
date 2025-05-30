@@ -158,7 +158,7 @@ st.markdown("""
         font-size: 1.05rem; /* Slightly larger font */
         font-weight: 500;
         transition: background-color 0.2s, color 0.2s, transform 0.1s;
-        position: relative;
+        position: relative; /* Crucial for positioning the invisible button */
         overflow: hidden;
     }
     .sidebar-nav-item:hover {
@@ -185,20 +185,37 @@ st.markdown("""
         color: white; /* Icon color for active */
     }
 
-    /* Invisible button overlay for navigation (more robust selector) */
-    .sidebar-nav-item + [data-testid="stVerticalBlock"] > [data-testid="stButton"] > button {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0; /* Make it invisible */
-        z-index: 10; /* Ensure it's on top */
-        cursor: pointer;
+    /* !!! CRUCIAL FIX FOR DUPLICATE LABELS !!! */
+    /* Target the Streamlit button that appears directly after .sidebar-nav-item */
+    /* This selector targets the button (and its children) within the Streamlit button container */
+    .sidebar-nav-item + div[data-testid="stVerticalBlock"] > div[data-testid="stButton"] > button {
+        /* Make the actual button element completely transparent and cover the custom div */
+        background-color: transparent !important;
+        border: none !important;
+        /* To hide its default label, make its children invisible */
+        /* Streamlit wraps the button label in a div with data-testid="baseButton-children" */
+        /* We use opacity:0 to preserve clickability while making it invisible */
+        color: transparent !important; /* Hide text color */
+        opacity: 0; /* Make the button itself transparent */
+        position: absolute !important; /* Position it over the custom div */
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        z-index: 10; /* Ensure it's on top for clicks */
+        cursor: pointer; /* Keep cursor pointer to indicate interactivity */
     }
-    /* Specific override for the Streamlit button's internal structure that might be rendered */
-    .sidebar-nav-item + [data-testid="stVerticalBlock"] > [data-testid="stButton"] > button > div[data-testid="baseButton-children"] {
-        opacity: 0; /* Hide the default button text/icon */
+
+    /* This rule specifically targets the content *inside* the Streamlit button */
+    /* and ensures its default label text is not visible. */
+    .sidebar-nav-item + div[data-testid="stVerticalBlock"] > div[data-testid="stButton"] > button > div[data-testid="baseButton-children"] {
+        opacity: 0 !important; /* Hide the default button label text */
+        visibility: hidden !important; /* Ensure it's fully hidden */
+    }
+    /* You might also want to prevent Streamlit's default hover on this hidden button */
+    .sidebar-nav-item + div[data-testid="stVerticalBlock"] > div[data-testid="stButton"] > button:hover {
+        background-color: transparent !important;
+        border: none !important;
     }
 
 
@@ -221,6 +238,11 @@ st.markdown("""
         font-weight: 600;
         transition: background-color 0.2s, transform 0.1s;
         width: 100%; /* Make button full width */
+        /* Override the general invisible button styles for logout */
+        opacity: 1 !important; /* Make logout button visible */
+        position: static !important; /* Remove absolute positioning */
+        height: auto !important;
+        z-index: auto !important;
     }
     .logout-container .stButton > button:hover {
         background-color: #c0392b; /* Darker red on hover */
@@ -257,13 +279,25 @@ st.markdown("""
         margin-bottom: 1.5rem;
         font-weight: 700; /* Bolder headings */
     }
-    .stButton > button {
+    /* General Streamlit button styling for content area buttons */
+    /* This overrides the invisible button style for regular page buttons */
+    .stButton > button:not([data-testid^="stSidebar"]) { /* Target buttons NOT in sidebar */
         border-radius: 8px;
         font-weight: 600; /* Bolder button text */
         padding: 0.8rem 1.5rem; /* More padding for buttons */
         min-height: 45px; /* Ensure minimum height */
         transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+        opacity: 1 !important; /* Ensure visibility for content area buttons */
+        position: static !important; /* Reset positioning */
+        top: auto !important;
+        left: auto !important;
+        width: auto !important;
+        height: auto !important;
+        z-index: auto !important;
+        color: inherit !important; /* Reset text color */
+        background-color: inherit !important; /* Reset background color */
     }
+
     .stButton > button.primary {
         background-color: #007bff;
         color: white;
@@ -344,7 +378,9 @@ st.markdown("""
     }
 
     /* Streamlit labels */
-    .st-emotion-cache-nahz7x p { /* This targets the common p tag Streamlit uses for labels */
+    /* This targets the common p tag Streamlit uses for labels, but be careful of specificity */
+    /* It's often better to target the label element directly if possible */
+    div[data-testid="stWidgetLabel"] > p {
         font-weight: 500;
         color: #555555;
         margin-bottom: 0.5rem;
@@ -361,6 +397,8 @@ st.markdown("""
     }
     
 </style>
+
+
 """, unsafe_allow_html=True)
 
 
@@ -1198,25 +1236,24 @@ else:
         nav_items = nav_items_admin if current_role == "admin" else nav_items_employee
 
         for page_name, icon_name in nav_items:
+            # Construct the button label with Material Symbols icon and text
+            # We use markdown within the button label for styling
+            button_label = f'<span class="material-symbols-outlined">{icon_name}</span> {page_name}'
+
             # Check if this is the active page for styling
+            # We'll use the button's key to identify it and apply styling via CSS
             is_active = "active-nav-item" if st.session_state.active_page == page_name else ""
-            
-            # Use a div to create the visual button, and an actual Streamlit button for functionality
-            st.markdown(f"""
-                <div class="sidebar-nav-item {is_active}">
-                    <span class="material-symbols-outlined">{icon_name}</span> {page_name}
-                </div>
-            """, unsafe_allow_html=True)
-            
-            # Place the Streamlit button directly after the markdown.
-            # This button will be invisible but clickable, and its click will update active_page
-            if st.button(page_name, key=f"nav_btn_{page_name}", use_container_width=True):
+
+            # Create the Streamlit button directly, with the styled label
+            if st.button(button_label, key=f"nav_btn_{page_name}", use_container_width=True, unsafe_allow_html=True):
                 st.session_state.active_page = page_name
                 st.rerun() # Rerun to switch content and apply active style
 
         # Logout Button (pushed to the bottom of the sidebar)
         st.markdown('<div class="logout-container">', unsafe_allow_html=True)
-        if st.button("Logout", key="logout_btn", use_container_width=True):
+        # Using a Material Symbol for logout
+        logout_label = '<span class="material-symbols-outlined">logout</span> Logout'
+        if st.button(logout_label, key="logout_btn", use_container_width=True, unsafe_allow_html=True):
             logout()
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -1240,6 +1277,6 @@ else:
     
     # You can add an admin dashboard page here if you created one.
     # elif st.session_state.active_page == "Admin Dashboard":
-    #     admin_dashboard_page()
+    #       admin_dashboard_page()
 
     st.markdown('</div>', unsafe_allow_html=True)
