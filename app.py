@@ -35,8 +35,9 @@ st.markdown("""
 .stTextInput input::placeholder,
 .stTextArea textarea::placeholder,
 .stNumberInput input::placeholder {
-    color: white !important; /* Make placeholder text white */
+    color: black !important; /* Make placeholder text white */
     opacity: 1; /* Ensure full visibility if it was faded */
+    bg-color:red;
 }
 
 /* You might also want to change the text color of the input itself for contrast */
@@ -60,7 +61,7 @@ st.markdown("""
 .stTextInput div[data-baseweb="input"],
 .stTextArea div[data-baseweb="textarea"],
 .stNumberInput div[data-baseweb="input"] {
-    border: 1px solid #ced4da; /* A slightly darker border color */
+    border: 10px solid #ced4da; /* A slightly darker border color */
     border-radius: var(--border-radius);
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
