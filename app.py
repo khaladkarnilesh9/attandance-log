@@ -1,14 +1,15 @@
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta, date
 from streamlit_option_menu import option_menu
 import os
-import pytz
+import pytz # Make sure pytz is imported
 import plotly.express as px
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import numpy as np
+import numpy as np # This import is fine here
 
 try:
     from PIL import Image, ImageDraw, ImageFont
@@ -17,9 +18,11 @@ except ImportError:
     PILLOW_INSTALLED = False
 
 # --- Global Configuration & Constants ---
-TARGET_TIMEZONE = "Asia/Kolkata"
+TARGET_TIMEZONE = "Asia/Kolkata" # DEFINED FIRST
+# tz_info = None # Optional: initialize to None
 try:
-    tz = pytz.timezone(TARGET_TIMEZONE)
+    tz = pytz.timezone(TARGET_TIMEZONE) # tz DEFINED USING TARGET_TIMEZONE
+    # tz_info = tz # If you prefer using tz_info
 except pytz.exceptions.UnknownTimeZoneError:
     st.error(f"Invalid TARGET_TIMEZONE: '{TARGET_TIMEZONE}'. Please correct it.")
     st.stop()
@@ -28,30 +31,27 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # ... (other file paths using BASE_DIR) ...
 ATTENDANCE_FILE = os.path.join(BASE_DIR, "attendance.csv")
 ALLOWANCE_FILE = os.path.join(BASE_DIR, "allowances.csv")
-GOALS_FILE = os.path.join(BASE_DIR, "goals.csv")
-PAYMENT_GOALS_FILE = os.path.join(BASE_DIR, "payment_goals.csv")
-ACTIVITY_LOG_FILE = os.path.join(BASE_DIR, "activity_log.csv")
-ACTIVITY_PHOTOS_DIR = os.path.join(BASE_DIR, "activity_photos")
-ORDERS_FILE = os.path.join(BASE_DIR, "orders.csv")
-ORDER_SUMMARY_FILE = os.path.join(BASE_DIR, "order_summary.csv")
-STORES_FILE = os.path.join(BASE_DIR, "agri_stores.csv")
+# ... (all your file path definitions) ...
 PRODUCTS_FILE = os.path.join(BASE_DIR, "symplanta_products_with_images.csv")
-
 
 if not os.path.exists(ACTIVITY_PHOTOS_DIR): os.makedirs(ACTIVITY_PHOTOS_DIR, exist_ok=True)
 
-# --- UTILITY FUNCTIONS ---
-def get_quarter_str_for_year(year):
-    current_time = get_current_time_in_tz() # Get current time once
-    month = current_time.month             # Get month once
+# --- UTILITY FUNCTIONS (Define these AFTER global constants like tz) ---
+def get_current_time_in_tz():
+    """Get current datetime in the configured global timezone 'tz'."""
+    # tz is now guaranteed to be defined from the global scope above
+    return datetime.now(timezone.utc).astimezone(tz)
 
+def get_quarter_str_for_year(year):
+    current_time = get_current_time_in_tz() # Calls the function defined above
+    month = current_time.month
     if 1 <= month <= 3:
         return f"{year}-Q1"
     elif 4 <= month <= 6:
         return f"{year}-Q2"
     elif 7 <= month <= 9:
         return f"{year}-Q3"
-    else: # This covers months 10, 11, 12
+    else: # Months 10, 11, 12
         return f"{year}-Q4"
 def load_data(path, columns):
     if os.path.exists(path) and os.path.getsize(path) > 0:
