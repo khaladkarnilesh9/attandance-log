@@ -1484,7 +1484,9 @@ else:
 
             # I will add this to the CSS:
 
-```css
+st.markdown("""
+<style>
+    /* ... your CSS code ... */
     /* Ensure the Streamlit button wrapper div doesn't add extra margin */
     [data-testid="stSidebar"] div[data-testid^="stButton"] {
         margin-top: 0.25rem !important;
@@ -1496,7 +1498,10 @@ else:
         overflow: hidden; /* Important for border-radius to apply correctly */
         border-radius: 8px; /* Apply border-radius here as well */
     }
+    /* ... more CSS ... */
+</style>
 
+""", unsafe_allow_html=True) # <--- The closing triple quotes `"""` are essential here
     /* Navigation Items (Sidebar Buttons) - Targeting Streamlit's internal button structure */
     /* Target the button element inside the wrapper */
     [data-testid="stSidebar"] div[data-testid^="stButton"] > button {
