@@ -47,7 +47,7 @@ st.markdown("""
     }
 
     [data-testid="stAppViewContainer"] {
-        background-color: #ffffff; /* Light gray background for the entire app */
+        background-color: #f0f2f6; /* Light gray background for the entire app */
     }
 
     /* Hide Streamlit's default header, footer, and toolbar */
