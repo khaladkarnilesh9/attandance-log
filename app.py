@@ -199,7 +199,7 @@ st.markdown("""
         color: var(--accent-blue); /* Icon color for active */
     }
 
-    /* !!! CRUCIAL FIX FOR DUPLICATE LABELS !!! */
+    /* !!! CRUCIAL FIX FOR DUPLICATE LABELS AND SPACING !!! */
     /* Target the Streamlit button that appears directly after .sidebar-nav-item */
     /* This targets the button (and its internal content div) */
     .sidebar-nav-item + div[data-testid="stVerticalBlock"] > div[data-testid="stButton"] > button {
@@ -207,7 +207,7 @@ st.markdown("""
         background-color: transparent !important;
         border: none !important;
         color: transparent !important; /* Hide text color of the button */
-        opacity: 0; /* Make the button itself transparent */
+        opacity: 0 !important; /* Make the button itself transparent */
         position: absolute !important; /* Position it over the custom div */
         top: 0 !important;
         left: 0 !important;
@@ -216,6 +216,8 @@ st.markdown("""
         z-index: 10; /* Ensure it's on top for clicks */
         cursor: pointer; /* Keep cursor pointer to indicate interactivity */
         pointer-events: all !important; /* Ensure clicks pass through */
+        padding: 0 !important; /* Remove any padding that might cause extra space */
+        margin: 0 !important; /* Remove any margin that might cause extra space */
     }
 
     /* Explicitly hide the content div inside the Streamlit button */
@@ -244,14 +246,14 @@ st.markdown("""
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: var(--error-color); /* Red for logout */
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: background-color 0.2s, transform 0.1s;
-        width: 100%; /* Make button full width */
+        background-color: var(--error-color) !important; /* Red for logout, use !important to override */
+        color: white !important; /* White text */
+        border: none !important;
+        padding: 0.75rem 1.5rem !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        transition: background-color 0.2s, transform 0.1s !important;
+        width: 100% !important; /* Make button full width */
         /* Override the general invisible button styles for logout */
         opacity: 1 !important; /* Make logout button visible */
         position: static !important; /* Remove absolute positioning */
@@ -260,12 +262,12 @@ st.markdown("""
         pointer-events: all !important; /* Ensure clicks pass through */
     }
     .logout-container .stButton > button:hover {
-        background-color: #c0392b; /* Darker red on hover */
-        transform: translateY(-2px);
+        background-color: #c0392b !important; /* Darker red on hover */
+        transform: translateY(-2px) !important;
     }
     .logout-container .stButton > button:active {
-        background-color: #a53026;
-        transform: translateY(0);
+        background-color: #a53026 !important;
+        transform: translateY(0) !important;
     }
     .logout-container .stButton > button .material-symbols-outlined {
         margin-right: 0.5rem;
@@ -435,7 +437,16 @@ st.markdown("""
     
     /* Small adjustments for layout */
     div[data-testid="stVerticalBlock"] > div:not(:last-child) {
-        margin-bottom: 1.5rem; /* Add space between vertical blocks for better readability */
+        /* This rule was adding too much space between the sidebar navigation items.
+           We want the internal margin of .sidebar-nav-item to control spacing.
+           Disabling or overriding this for sidebar to control spacing directly.
+        */
+        /* margin-bottom: 1.5rem; */
+    }
+    /* Specifically target and remove margin from Streamlit's internal block that wraps sidebar items */
+    [data-testid="stSidebarContent"] > div > div > div[data-testid="stVerticalBlock"] {
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
     }
 
     /* Ensure text in main content is readable */
@@ -1271,14 +1282,16 @@ else:
             
             # The functional (invisible) button for navigation
             # Pass an empty string as the label to prevent duplicate text
-            if st.button(" ", key=f"nav_btn_{page_name}", use_container_width=True):
+            # Ensure the key is unique and does not conflict
+            if st.button(" ", key=f"nav_btn_{page_name}_sidebar", use_container_width=True):
                 st.session_state.active_page = page_name
                 st.rerun()
 
         # Logout Button
         st.markdown('<div class="logout-container">', unsafe_allow_html=True)
-        logout_label = '<span class="material-symbols-outlined">logout</span> Logout'
-        if st.button(logout_label, key="logout_btn", use_container_width=True, unsafe_allow_html=True):
+        # Simplified logout button label to avoid TypeError with unsafe_allow_html on the button itself.
+        # The CSS will add the icon.
+        if st.button("Logout", key="logout_btn_sidebar", use_container_width=True):
             logout() # Call the global logout function
         st.markdown('</div>', unsafe_allow_html=True)
 
