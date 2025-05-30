@@ -18,7 +18,16 @@ try:
 except ImportError:
     PILLOW_INSTALLED = False
 
+# --- Page Configuration (MUST be the first Streamlit command) ---
+st.set_page_config(
+    page_title="Employee Portal",
+    page_icon="🏢",
+    layout="wide",
+    initial_sidebar_state="expanded" # Keep sidebar expanded by default
+)
+
 # --- Bootstrap and Material Icons CDN & Custom CSS ---
+# These CDN links are loaded before your custom CSS for correct layering
 st.markdown("""
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -28,148 +37,155 @@ st.markdown("""
 
 st.markdown("""
 <style>
-
-    /* Add this to your existing <style> block */
-
-/* Target placeholder text for common input types */
-.stTextInput input::placeholder,
-.stTextArea textarea::placeholder,
-.stNumberInput input::placeholder {
-    color: black !important; /* Make placeholder text white */
-    opacity: 1; /* Ensure full visibility if it was faded */
-    bg-color:red;
-}
-
-/* You might also want to change the text color of the input itself for contrast */
-.stTextInput input,
-.stTextArea textarea,
-.stNumberInput input,
-.stSelectbox div[data-baseweb="select"] input { /* Target selectbox input too */
-    color: #333333; /* Darker text for input values */
-}
-
-/* If you want to change the border color of focused inputs to be consistent */
-.stTextInput input:focus,
-.stTextArea textarea:focus,
-.stNumberInput input:focus,
-.stSelectbox div[data-baseweb="select"]:focus-within { /* For selectbox, focus on its container */
-    border-color: #007bff; /* Primary blue on focus */
-    box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.25); /* Subtle glow */
-}
-
-/* Example: Change the border color of the inputs directly to make them more visible */
-.stTextInput div[data-baseweb="input"],
-.stTextArea div[data-baseweb="textarea"],
-.stNumberInput div[data-baseweb="input"] {
-    border: 10px solid #ced4da; /* A slightly darker border color */
-    border-radius: var(--border-radius);
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-
-    /* Your existing CSS here */
-    html, body, [data-testid="stAppViewContainer"], [data-testid="stVerticalBlock"] {
+    /* Global Styles & Resets */
+    html, body {
         height: 100%;
         margin: 0;
         padding: 0;
-    }
-    .stApp {
-        background-color: #f0f2f6; /* Light gray background for the app */
+        font-family: 'Roboto', sans-serif; /* Apply Roboto font globally */
+        color: #333333; /* Default text color */
     }
 
-    /* Sidebar Styling */
-    [data-testid="stSidebar"] {
-        background-color: #ffffff; /* White background for sidebar */
-        padding-top: 1rem;
-        box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    [data-testid="stAppViewContainer"] {
+        background-color: #f0f2f6; /* Light gray background for the entire app */
     }
-    .sidebar-content-wrapper {
+
+    /* Hide Streamlit's default header, footer, and toolbar */
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+    header { visibility: hidden; }
+    div[data-testid="stToolbar"] {
+        visibility: hidden;
+        height: 0%;
+        position: fixed; /* Completely hide it */
+    }
+
+    /* Input Fields (Text, Number, Text Area, Selectbox) - Enhanced Styling */
+    .stTextInput input,
+    .stTextArea textarea,
+    .stNumberInput input,
+    div[data-baseweb="select"] input { /* Target selectbox input */
+        background-color: white;
+        color: #335677; /* Darker text for input values */
+        border: 1px solid #ced4da; /* A slightly darker border color */
+        border-radius: 8px; /* Slightly more rounded corners */
+        padding: 10px 15px; /* More padding */
+        font-size: 1rem; /* Standard font size */
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        box-shadow: none; /* Remove any default shadow */
+    }
+
+    /* Placeholder color */
+    .stTextInput input::placeholder,
+    .stTextArea textarea::placeholder,
+    .stNumberInput input::placeholder {
+        color: #6c757d !important; /* Slightly darker grey for placeholder */
+        opacity: 1; /* Ensure full visibility */
+    }
+
+    /* Focus styles for inputs */
+    .stTextInput input:focus,
+    .stTextArea textarea:focus,
+    .stNumberInput input:focus {
+        border-color: #007bff; /* Primary blue on focus */
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Subtle glow */
+        outline: none; /* Remove default outline */
+    }
+    /* Selectbox focus (it's a bit different because of BaseWeb) */
+    div[data-baseweb="select"] div[role="button"]:focus-within {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+
+    /* Sidebar Styling (Navigation Bar Look & Feel) */
+    [data-testid="stSidebar"] {
+        background-color: #2c3e50; /* Darker blue-grey for sidebar background */
+        padding-top: 1rem;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.2); /* More prominent shadow */
+    }
+    [data-testid="stSidebarContent"] {
         display: flex;
         flex-direction: column;
         height: 100%; /* Make sidebar content fill height */
+        padding: 0; /* Remove default sidebar padding */
     }
+
+    /* User Profile Section in Sidebar */
     .user-profile-section {
         display: flex;
         flex-direction: column;
         align-items: center;
         padding: 1.5rem 1rem;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
         text-align: center;
+        background-color: #34495e; /* Slightly lighter than sidebar background */
+        border-radius: 10px; /* Rounded corners for the profile box */
+        margin: 1rem;
     }
     .user-profile-img {
-        width: 80px;
-        height: 80px;
+        width: 90px; /* Slightly larger image */
+        height: 90px;
         border-radius: 50%;
         object-fit: cover;
         margin-bottom: 0.75rem;
-        border: 2px solid #e0e0e0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 3px solid #f39c12; /* Accent border color */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     .welcome-text {
         font-weight: 600;
-        color: #333;
+        color: white; /* White text for welcome */
         margin-bottom: 0.25rem;
-        font-size: 1.1rem;
+        font-size: 1.2rem;
     }
     .user-position {
-        font-size: 0.85rem;
-        color: #666;
+        font-size: 0.9rem;
+        color: #bdc3c7; /* Lighter grey for position */
     }
     .divider {
-        border-top: 1px solid #f0f0f0;
+        border-top: 1px solid #4a627a; /* Lighter divider for contrast */
         margin: 0.5rem 0 1.5rem 0;
     }
 
-    /* Navigation Items */
+    /* Navigation Items (Sidebar Buttons) - Enhanced Styles */
     .sidebar-nav-item {
         display: flex;
         align-items: center;
-        padding: 0.75rem 1rem;
-        margin: 0.25rem 0.5rem;
+        padding: 0.85rem 1.2rem; /* More padding for a bolder look */
+        margin: 0.25rem 0.75rem; /* Space between items */
         border-radius: 8px;
-        color: #4a4a4a;
-        font-size: 1rem;
+        color: #ecf0f1; /* Light text color for inactive items */
+        font-size: 1.05rem; /* Slightly larger font */
         font-weight: 500;
-        transition: background-color 0.2s, color 0.2s;
-        /* cursor: pointer; */ /* Remove to let button handle cursor */
-        position: relative; /* For button overlay */
-        overflow: hidden; /* Hide the internal button */
+        transition: background-color 0.2s, color 0.2s, transform 0.1s;
+        position: relative;
+        overflow: hidden;
     }
     .sidebar-nav-item:hover {
-        background-color: #e0e0e0; /* Lighter gray on hover */
-        color: #000;
+        background-color: #3498db; /* Primary blue on hover */
+        color: white;
+        transform: translateX(5px); /* Slight slide effect on hover */
     }
     .sidebar-nav-item.active-nav-item {
         background-color: #007bff; /* Primary blue for active */
         color: white;
-        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3); /* More pronounced shadow */
+        transform: translateX(0); /* Ensure no slide for active */
     }
     .sidebar-nav-item .material-symbols-outlined {
-        margin-right: 0.75rem;
-        font-size: 1.5rem;
-        width: 24px; /* Fix icon width for alignment */
-        height: 24px; /* Fix icon height for alignment */
+        margin-right: 0.8rem; /* More space for icon */
+        font-size: 1.6rem; /* Slightly larger icon */
+        width: 28px; height: 28px; /* Fixed size for icons */
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        color: #ecf0f1; /* Icon color for inactive */
     }
     .sidebar-nav-item.active-nav-item .material-symbols-outlined {
-        color: white;
+        color: white; /* Icon color for active */
     }
 
-    /* Invisible button overlay for navigation */
-    /* This targets buttons directly inside .sidebar-nav-item which will be generated by Streamlit*/
-    .sidebar-nav-item + div > button { /* Targets the button div that immediately follows the markdown div */
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0; /* Make it invisible */
-        z-index: 10; /* Ensure it's on top */
-        cursor: pointer;
-    }
-    /* Streamlit also wraps buttons in a div with data-testid="stButton". Let's refine the selector */
+    /* Invisible button overlay for navigation (more robust selector) */
     .sidebar-nav-item + [data-testid="stVerticalBlock"] > [data-testid="stButton"] > button {
         position: absolute;
         top: 0;
@@ -180,31 +196,38 @@ st.markdown("""
         z-index: 10; /* Ensure it's on top */
         cursor: pointer;
     }
-    
-    /* Logout button specific styling */
+    /* Specific override for the Streamlit button's internal structure that might be rendered */
+    .sidebar-nav-item + [data-testid="stVerticalBlock"] > [data-testid="stButton"] > button > div[data-testid="baseButton-children"] {
+        opacity: 0; /* Hide the default button text/icon */
+    }
+
+
+    /* Logout button specific styling (push to bottom) */
     .logout-container {
-        margin-top: auto; /* Pushes logout button to the bottom */
+        margin-top: auto; /* Pushes logout button to the very bottom of the sidebar */
         padding: 1rem;
-        border-top: 1px solid #f0f0f0;
+        border-top: 1px solid #4a627a; /* Divider line */
+        background-color: #2c3e50; /* Match sidebar background */
     }
     .logout-container .stButton > button {
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: #dc3545; /* Red for logout */
+        background-color: #e74c3c; /* Red for logout */
         color: white;
         border: none;
         padding: 0.75rem 1.5rem;
         border-radius: 8px;
         font-weight: 600;
         transition: background-color 0.2s, transform 0.1s;
+        width: 100%; /* Make button full width */
     }
     .logout-container .stButton > button:hover {
-        background-color: #c82333; /* Darker red on hover */
-        transform: translateY(-1px);
+        background-color: #c0392b; /* Darker red on hover */
+        transform: translateY(-2px);
     }
     .logout-container .stButton > button:active {
-        background-color: #bd2130;
+        background-color: #a53026;
         transform: translateY(0);
     }
     .logout-container .stButton > button .material-symbols-outlined {
@@ -213,27 +236,33 @@ st.markdown("""
     }
 
     /* Main Content Area Styling */
-    [data-testid="stVerticalBlock"] {
+    .main-content-area {
         padding: 1.5rem 2rem;
         gap: 1.5rem; /* Space between content blocks */
     }
+    /* Ensure Streamlit's main block takes up correct padding */
+    [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"] {
+        padding: 0; /* Remove default padding from inner vertical blocks */
+    }
+
     .card {
         background-color: white;
         border-radius: 12px;
-        padding: 2rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        padding: 2.5rem; /* More padding inside cards */
+        box-shadow: 0 6px 20px rgba(0,0,0,0.1); /* Stronger, softer shadow */
         margin-bottom: 1.5rem;
     }
     .card h3, .card h4, .card h5 {
-        color: #333;
+        color: #2c3e50; /* Darker color for headings */
         margin-bottom: 1.5rem;
-        font-weight: 600;
+        font-weight: 700; /* Bolder headings */
     }
     .stButton > button {
         border-radius: 8px;
-        font-weight: 500;
-        padding: 0.6rem 1.2rem;
-        min-height: 40px;
+        font-weight: 600; /* Bolder button text */
+        padding: 0.8rem 1.5rem; /* More padding for buttons */
+        min-height: 45px; /* Ensure minimum height */
+        transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
     }
     .stButton > button.primary {
         background-color: #007bff;
@@ -242,42 +271,37 @@ st.markdown("""
     }
     .stButton > button.primary:hover {
         background-color: #0056b3;
+        transform: translateY(-2px);
     }
     .stButton > button[data-testid="baseButton-secondary"] {
-        background-color: #f0f2f6;
+        background-color: #e9ecef; /* Lighter background for secondary */
         color: #4a4a4a;
-        border: 1px solid #ccc;
+        border: 1px solid #ced4da;
     }
     .stButton > button[data-testid="baseButton-secondary"]:hover {
-        background-color: #e0e0e0;
+        background-color: #d8dee2;
+        transform: translateY(-2px);
     }
 
     .custom-notification {
-        padding: 0.75rem 1rem;
-        border-radius: var(--border-radius);
-        margin-bottom: 1rem;
+        padding: 1rem 1.25rem; /* More padding */
+        border-radius: 8px; /* Consistent border radius */
+        margin-bottom: 1.5rem; /* More space below notification */
         border: 1px solid transparent;
-        font-size: 0.95rem;
+        font-size: 1rem; /* Clearer font size */
+        font-weight: 500;
     }
     .custom-notification.success {
-        color: #0f5132;
-        background-color: #d1e7dd;
-        border-color: #badbcc;
+        color: #0f5132; background-color: #d1e7dd; border-color: #badbcc;
     }
     .custom-notification.error {
-        color: #842029;
-        background-color: #f8d7da;
-        border-color: #f5c2c7;
+        color: #842029; background-color: #f8d7da; border-color: #f5c2c7;
     }
     .custom-notification.warning {
-        color: #664d03;
-        background-color: #fff3cd;
-        border-color: #ffecb5;
+        color: #664d03; background-color: #fff3cd; border-color: #ffecb5;
     }
     .custom-notification.info {
-        color: #055160;
-        background-color: #cff4fc;
-        border-color: #b6effb;
+        color: #055160; background-color: #cff4fc; border-color: #b6effb;
     }
 
     .button-column-container {
@@ -286,36 +310,56 @@ st.markdown("""
         margin-top: 1.5rem;
         margin-bottom: 1rem;
     }
-    /* Ensure the columns in main content area align buttons correctly */
     .stColumn {
         display: flex;
         flex-direction: column;
+        flex-grow: 1; /* Make columns grow evenly */
     }
     .stColumn > .stButton {
         flex-grow: 1; /* Make buttons fill available column width */
+        width: 100%; /* Ensure button takes full width within its column */
     }
-    .stDateInput, .stNumberInput, .stTextInput, .stTextArea, .stSelectbox {
-        margin-bottom: 1rem; /* Consistent spacing for form elements */
+    .stDateInput, .stNumberInput, .stTextInput, .stTextArea, .stSelectbox, .stRadio {
+        margin-bottom: 1.25rem; /* Consistent spacing for form elements */
     }
     .stForm > div > div {
-        gap: 1rem; /* Adjust gap for form elements */
+        gap: 1.25rem; /* Adjust gap for form elements */
     }
 
-    /* Adjust progress bar colors if desired */
+    /* Adjust progress bar colors */
     .stProgress > div > div {
         background-color: #e9ecef; /* Lighter background for empty progress bar */
+        border-radius: 5px;
     }
     .stProgress > div > div > div {
         background-color: #28a745; /* Green for progress fill */
+        border-radius: 5px;
     }
 
     /* Style for Plotly charts */
     .stPlotlyChart {
         border-radius: 12px;
         overflow: hidden; /* Ensure chart elements respect border-radius */
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08); /* Consistent shadow */
     }
 
+    /* Streamlit labels */
+    .st-emotion-cache-nahz7x p { /* This targets the common p tag Streamlit uses for labels */
+        font-weight: 500;
+        color: #555555;
+        margin-bottom: 0.5rem;
+    }
+    /* Specific targeting for radio/checkbox labels if needed */
+    .stRadio > label, .stCheckbox > label {
+        font-weight: 500;
+        color: #555555;
+    }
+    
+    /* Small adjustments for layout */
+    div[data-testid="stVerticalBlock"] > div:not(:last-child) {
+        margin-bottom: 1.5rem; /* Add space between vertical blocks for better readability */
+    }
+    
 </style>
 """, unsafe_allow_html=True)
 
@@ -496,12 +540,7 @@ def display_message():
         st.session_state.user_message = None
         st.session_state.message_type = None
 
-# --- Page Functions (same as before, no changes needed here for the error) ---
-# ... (attendance_page, upload_activity_photo_page, allowance_page, goal_tracker_page, payment_goals_page, activity_log_page) ...
-
-# Placeholder for attendance_page, upload_activity_photo_page, allowance_page, goal_tracker_page, payment_goals_page, activity_log_page
-# Include these functions here, as they were in the previous complete code.
-# I'm omitting them in this response for brevity, assuming you copy them over.
+# --- Page Functions ---
 
 def attendance_page():
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -557,6 +596,7 @@ def attendance_page():
         if st.button("🚪 Check Out", key="check_out_btn_main_no_photo", use_container_width=True, type="primary"):
             process_general_attendance("Check-Out")
     st.markdown('</div></div>', unsafe_allow_html=True)
+
 
 def upload_activity_photo_page():
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -694,150 +734,171 @@ def goal_tracker_page():
                     col1, col2 = st.columns([0.6, 0.4])
                     with col1:
                         st.markdown(f"**{row['Username']}**")
-                        st.progress(min(row['Progress'] / 100, 1.0), text=f"Target: ₹{row['Target']:,.0f} | Achieved: ₹{row['Achieved']:,.0f}")
+                        st.progress(min(row['Progress'] / 100, 1.0))
+                        st.write(f"Target: ₹{row['Target']:,.0f} | Achieved: ₹{row['Achieved']:,.0f}")
                     with col2:
-                        fig = create_donut_chart(row['Progress'], chart_title="", center_text_color="#0d6efd")
+                        # Donut chart for individual progress
+                        fig = create_donut_chart(row['Progress'], chart_title=f"{row['Username']} Progress")
                         st.pyplot(fig)
                 
+                # Team-wide progress chart
                 st.markdown("---")
-                st.markdown("<h6>Team Performance Summary (Bar Chart):</h6>", unsafe_allow_html=True)
-                bar_fig = create_team_progress_bar_chart(team_summary, title=f"Team Goals for {current_quarter_for_display}")
-                if bar_fig:
-                    st.pyplot(bar_fig)
-            else:
-                st.info(f"No goals set for the team for {current_quarter_for_display} yet.")
-        
-        elif admin_action == f"Set/Edit Goal for {TARGET_GOAL_YEAR}":
-            st.markdown(f"<h5>Set/Edit Goals for Employees ({TARGET_GOAL_YEAR})</h5>", unsafe_allow_html=True)
-            
-            # Filter users to only include employees, excluding admin
-            employee_users = [user for user, data in USERS.items() if data.get('role') == 'employee']
-            
-            selected_employee = st.selectbox("Select Employee", employee_users, key="goal_employee_select")
-            selected_quarter = st.selectbox("Select Quarter", [f"{TARGET_GOAL_YEAR}-Q1", f"{TARGET_GOAL_YEAR}-Q2", f"{TARGET_GOAL_YEAR}-Q3", f"{TARGET_GOAL_YEAR}-Q4"], key="goal_quarter_select")
-
-            current_goal_for_employee_quarter = st.session_state.goals_df[
-                (st.session_state.goals_df["Username"] == selected_employee) &
-                (st.session_state.goals_df["MonthYear"] == selected_quarter)
-            ]
-            
-            # Pre-fill form if a goal exists
-            default_description = ""
-            default_target = 0.0
-            default_achieved = 0.0
-            default_status = "Not Started"
-
-            if not current_goal_for_employee_quarter.empty:
-                first_goal = current_goal_for_employee_quarter.iloc[0]
-                default_description = first_goal["GoalDescription"] if pd.notna(first_goal["GoalDescription"]) else ""
-                default_target = first_goal["TargetAmount"] if pd.notna(first_goal["TargetAmount"]) else 0.0
-                default_achieved = first_goal["AchievedAmount"] if pd.notna(first_goal["AchievedAmount"]) else 0.0
-                default_status = first_goal["Status"] if pd.notna(first_goal["Status"]) else "Not Started"
-
-            with st.form(key="set_goal_form", clear_on_submit=False):
-                goal_description = st.text_area("Goal Description:", value=default_description, key="admin_goal_desc")
-                target_amount = st.number_input("Target Amount (INR):", min_value=0.0, value=float(default_target), step=1000.0, format="%.2f", key="admin_target_amount")
-                achieved_amount = st.number_input("Achieved Amount (INR):", min_value=0.0, value=float(default_achieved), step=100.0, format="%.2f", key="admin_achieved_amount")
-                goal_status = st.selectbox("Status:", status_options, index=status_options.index(default_status) if default_status in status_options else 0, key="admin_goal_status")
-                
-                submit_goal = st.form_submit_button("Save Goal")
-            
-            if submit_goal:
-                if not goal_description.strip() or target_amount <= 0:
-                    st.session_state.user_message = "Please provide a description and a positive target amount."
-                    st.session_state.message_type = "warning"
+                st.markdown("<h5>Overall Team Performance Chart:</h5>", unsafe_allow_html=True)
+                team_bar_chart_df = team_summary[["Username", "Target", "Achieved"]]
+                fig_bar = create_team_progress_bar_chart(team_bar_chart_df, title=f"Team Sales Performance {current_quarter_for_display}", user_col="Username")
+                if fig_bar:
+                    st.pyplot(fig_bar)
                 else:
-                    new_goal_data = {
-                        "Username": selected_employee,
-                        "MonthYear": selected_quarter,
-                        "GoalDescription": goal_description,
-                        "TargetAmount": target_amount,
-                        "AchievedAmount": achieved_amount,
-                        "Status": goal_status
-                    }
-                    
-                    if not current_goal_for_employee_quarter.empty:
-                        # Update existing entry
-                        idx = current_goal_for_employee_quarter.index[0]
-                        for col, val in new_goal_data.items():
-                            st.session_state.goals_df.loc[idx, col] = val
-                        st.session_state.user_message = f"Goal for {selected_employee} in {selected_quarter} updated."
-                    else:
-                        # Add new entry
-                        new_goal_df = pd.DataFrame([new_goal_data], columns=GOALS_COLUMNS)
-                        st.session_state.goals_df = pd.concat([st.session_state.goals_df, new_goal_df], ignore_index=True)
-                        st.session_state.user_message = f"New goal set for {selected_employee} in {selected_quarter}."
-                    
-                    try:
-                        st.session_state.goals_df.to_csv(GOALS_FILE, index=False)
-                        st.session_state.message_type = "success"
-                    except Exception as e:
-                        st.session_state.user_message = f"Error saving goal: {e}"
-                        st.session_state.message_type = "error"
-                st.rerun()
+                    st.info("No team data to display bar chart.")
 
-    else: # Employee View
-        if current_username is None:
-            st.error("User not logged in. Please log in to view your goals.")
-            st.markdown('</div>', unsafe_allow_html=True)
-            return
-
-        st.markdown("<h4>My Sales Goals</h4>", unsafe_allow_html=True)
-        user_goals = st.session_state.goals_df[st.session_state.goals_df["Username"] == current_username].copy()
-        
-        if not user_goals.empty:
-            # Display current quarter's goals first
-            st.markdown(f"<h5>Your Goals for {current_quarter_for_display}</h5>", unsafe_allow_html=True)
-            current_quarter_goals = user_goals[user_goals["MonthYear"] == current_quarter_for_display]
-            
-            if not current_quarter_goals.empty:
-                total_target = current_quarter_goals["TargetAmount"].sum()
-                total_achieved = current_quarter_goals["AchievedAmount"].sum()
-                overall_progress = (total_achieved / total_target * 100) if total_target > 0 else 0
-
-                col_donut, col_summary = st.columns([0.3, 0.7])
-                with col_donut:
-                    fig = create_donut_chart(overall_progress, chart_title="", center_text_color="#0d6efd")
-                    st.pyplot(fig)
-                with col_summary:
-                    st.markdown(f"""
-                        <p style='font-size:1.1rem; font-weight:bold;'>Overall Progress:</p>
-                        <p style='margin-bottom:0;'>Target: <span style='font-weight:bold;'>₹{total_target:,.0f}</span></p>
-                        <p>Achieved: <span style='font-weight:bold;'>₹{total_achieved:,.0f}</span></p>
-                    """, unsafe_allow_html=True)
-                
                 st.markdown("---")
-                st.markdown("<h6>Individual Goals for the Quarter:</h6>", unsafe_allow_html=True)
-                for index, row in current_quarter_goals.iterrows():
-                    progress_val = (row['AchievedAmount'] / row['TargetAmount'] * 100) if row['TargetAmount'] > 0 else 0
-                    st.markdown(f"**Goal:** {row['GoalDescription']}")
-                    st.progress(min(progress_val / 100, 1.0), text=f"Target: ₹{row['TargetAmount']:,.0f} | Achieved: ₹{row['AchievedAmount']:,.0f} | Status: {row['Status']}")
-                    st.write("") # Add a little space
+                st.markdown("<h5>Detailed Quarterly Goals:</h5>", unsafe_allow_html=True)
+                # Display all goals for the current quarter for admin
+                display_df = quarterly_goals_df.copy()
+                display_df['TargetAmount'] = display_df['TargetAmount'].apply(lambda x: f"₹{x:,.0f}" if pd.notna(x) else "N/A")
+                display_df['AchievedAmount'] = display_df['AchievedAmount'].apply(lambda x: f"₹{x:,.0f}" if pd.notna(x) else "N/A")
+                st.dataframe(display_df.style.set_properties(**{'font-size': '14px', 'text-align': 'left'}), use_container_width=True, hide_index=True)
+
             else:
-                st.info(f"No goals set for you for {current_quarter_for_display} yet.")
+                st.info(f"No sales goals set for {current_quarter_for_display} yet.")
+
+        elif admin_action == f"Set/Edit Goal for {TARGET_GOAL_YEAR}":
+            st.markdown(f"<h5>Set or Update Quarterly Sales Goals for {current_quarter_for_display}</h5>", unsafe_allow_html=True)
             
-            # Display history
+            with st.form(key="set_goal_form"):
+                target_user = st.selectbox("Select Employee:", [u for u in USERS.keys() if USERS[u]["role"] == "employee"], key="target_user_goal")
+                goal_description = st.text_area("Goal Description:", placeholder="e.g., Achieve X sales, Y client meetings", key="goal_desc")
+                target_amount = st.number_input("Target Amount (INR):", min_value=0.0, step=1000.0, format="%.2f", key="target_amt")
+                achieved_amount = st.number_input("Achieved Amount (INR):", min_value=0.0, step=100.0, format="%.2f", key="achieved_amt")
+                status = st.selectbox("Status:", status_options, key="goal_status")
+
+                submit_goal = st.form_submit_button("💾 Save Sales Goal")
+
+                if submit_goal:
+                    if target_user and goal_description and target_amount >= 0 and achieved_amount >= 0 and status:
+                        current_quarter = current_quarter_for_display # Already in correct format
+                        
+                        # Check if a similar goal exists for the user in this quarter
+                        existing_goal_index = st.session_state.goals_df[
+                            (st.session_state.goals_df["Username"] == target_user) &
+                            (st.session_state.goals_df["MonthYear"] == current_quarter) &
+                            (st.session_state.goals_df["GoalDescription"] == goal_description)
+                        ].index
+                        
+                        new_goal_data = {
+                            "Username": target_user,
+                            "MonthYear": current_quarter,
+                            "GoalDescription": goal_description,
+                            "TargetAmount": target_amount,
+                            "AchievedAmount": achieved_amount,
+                            "Status": status
+                        }
+                        
+                        if not existing_goal_index.empty:
+                            # Update existing goal
+                            st.session_state.goals_df.loc[existing_goal_index, new_goal_data.keys()] = list(new_goal_data.values())
+                            st.session_state.user_message = f"Sales goal for {target_user} updated for {current_quarter}."
+                            st.session_state.message_type = "info"
+                        else:
+                            # Add new goal
+                            st.session_state.goals_df = pd.concat([st.session_state.goals_df, pd.DataFrame([new_goal_data])], ignore_index=True)
+                            st.session_state.user_message = f"New sales goal added for {target_user} for {current_quarter}."
+                            st.session_state.message_type = "success"
+                        
+                        try:
+                            st.session_state.goals_df.to_csv(GOALS_FILE, index=False)
+                        except Exception as e:
+                            st.session_state.user_message = f"Error saving goals: {e}"
+                            st.session_state.message_type = "error"
+                        st.rerun()
+                    else:
+                        st.session_state.user_message = "Please fill all goal fields."
+                        st.session_state.message_type = "warning"
+                        st.rerun()
+
+    else: # Employee view
+        st.markdown(f"<h4>My Sales Goals for {TARGET_GOAL_YEAR}</h4>", unsafe_allow_html=True)
+        my_goals_df = st.session_state.goals_df[st.session_state.goals_df["Username"] == current_username]
+        
+        if not my_goals_df.empty:
+            # Display overall progress
+            total_target = my_goals_df["TargetAmount"].sum()
+            total_achieved = my_goals_df["AchievedAmount"].sum()
+            overall_progress = (total_achieved / total_target * 100) if total_target > 0 else 0
+            
+            st.markdown(f"<h5>Overall Progress:</h5>", unsafe_allow_html=True)
+            col_prog_val, col_prog_chart = st.columns([0.7, 0.3])
+            with col_prog_val:
+                st.progress(min(overall_progress / 100, 1.0))
+                st.metric(label="Total Sales Goal Progress", value=f"{overall_progress:.1f}%")
+                st.markdown(f"**Target:** ₹{total_target:,.0f} | **Achieved:** ₹{total_achieved:,.0f}", unsafe_allow_html=True)
+            with col_prog_chart:
+                fig = create_donut_chart(overall_progress, chart_title="My Sales Progress")
+                st.pyplot(fig)
+            
             st.markdown("---")
-            st.markdown("<h5>Your Historical Goals</h5>", unsafe_allow_html=True)
-            historical_goals = user_goals[user_goals["MonthYear"] != current_quarter_for_display].sort_values(by="MonthYear", ascending=False)
-            if not historical_goals.empty:
-                render_goal_chart(historical_goals, "Your Sales Goal History")
-                st.dataframe(historical_goals.style.format({
-                    "TargetAmount": "₹{:,.0f}",
-                    "AchievedAmount": "₹{:,.0f}"
-                }), use_container_width=True, hide_index=True)
+            st.markdown(f"<h5>My Quarterly Goals for {current_quarter_for_display}:</h5>", unsafe_allow_html=True)
+            quarterly_my_goals_df = my_goals_df[my_goals_df["MonthYear"] == current_quarter_for_display]
+            
+            if not quarterly_my_goals_df.empty:
+                # Display table of goals
+                display_df = quarterly_my_goals_df.copy()
+                display_df['TargetAmount'] = display_df['TargetAmount'].apply(lambda x: f"₹{x:,.0f}" if pd.notna(x) else "N/A")
+                display_df['AchievedAmount'] = display_df['AchievedAmount'].apply(lambda x: f"₹{x:,.0f}" if pd.notna(x) else "N/A")
+                
+                st.dataframe(display_df[['GoalDescription', 'TargetAmount', 'AchievedAmount', 'Status']].style.set_properties(**{'font-size': '14px', 'text-align': 'left'}), use_container_width=True, hide_index=True)
+
+                st.markdown("---")
+                st.markdown("<h5>Update Goal Progress:</h5>", unsafe_allow_html=True)
+                with st.form(key="update_my_goal_form"):
+                    goals_list = quarterly_my_goals_df["GoalDescription"].tolist()
+                    selected_goal_desc = st.selectbox("Select Goal to Update:", goals_list, key="selected_goal_to_update")
+                    
+                    if selected_goal_desc:
+                        current_goal_data = quarterly_my_goals_df[quarterly_my_goals_df["GoalDescription"] == selected_goal_desc].iloc[0]
+                        updated_achieved_amount = st.number_input("New Achieved Amount (INR):", min_value=0.0, step=100.0, format="%.2f", 
+                                                                  value=float(current_goal_data["AchievedAmount"]) if pd.notna(current_goal_data["AchievedAmount"]) else 0.0,
+                                                                  key="updated_achieved_amt")
+                        updated_status = st.selectbox("New Status:", status_options, index=status_options.index(current_goal_data["Status"]), key="updated_goal_status")
+                        
+                        update_goal_btn = st.form_submit_button("🔄 Update My Sales Goal")
+
+                        if update_goal_btn:
+                            goal_index = st.session_state.goals_df[
+                                (st.session_state.goals_df["Username"] == current_username) &
+                                (st.session_state.goals_df["MonthYear"] == current_quarter_for_display) &
+                                (st.session_state.goals_df["GoalDescription"] == selected_goal_desc)
+                            ].index
+                            
+                            if not goal_index.empty:
+                                st.session_state.goals_df.loc[goal_index, "AchievedAmount"] = updated_achieved_amount
+                                st.session_state.goals_df.loc[goal_index, "Status"] = updated_status
+                                try:
+                                    st.session_state.goals_df.to_csv(GOALS_FILE, index=False)
+                                    st.session_state.user_message = f"Goal '{selected_goal_desc}' updated successfully."
+                                    st.session_state.message_type = "success"
+                                except Exception as e:
+                                    st.session_state.user_message = f"Error saving goal update: {e}"
+                                    st.session_state.message_type = "error"
+                                st.rerun()
+                            else:
+                                st.session_state.user_message = "Selected goal not found for update."
+                                st.session_state.message_type = "error"
+                                st.rerun()
+                    else:
+                         st.info("Select a goal to update its progress.")
             else:
-                st.info("No historical goals to display yet.")
+                st.info(f"No sales goals assigned to you for {current_quarter_for_display} yet.")
         else:
-            st.info("No sales goals have been set for you yet. Please contact your administrator.")
+            st.info("You currently have no sales goals assigned.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Placeholder for payment goals page - similar structure to sales goals
+
 def payment_goals_page():
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💰 Payment Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
-    TARGET_GOAL_YEAR = 2025
-    current_quarter_for_display = get_quarter_str_for_year(TARGET_GOAL_YEAR)
+    TARGET_PAYMENT_YEAR = 2025
+    current_quarter_for_display = get_quarter_str_for_year(TARGET_PAYMENT_YEAR)
     status_options = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
     
     current_role = st.session_state.auth.get("role")
@@ -845,10 +906,10 @@ def payment_goals_page():
 
     if current_role == "admin":
         st.markdown("<h4>Admin: Manage & Track Employee Payment Goals</h4>", unsafe_allow_html=True)
-        admin_action = st.radio("Action:", ["View Team Progress", f"Set/Edit Payment Goal for {TARGET_GOAL_YEAR}"],
-                                 key="admin_payment_goal_action_radio_2025_q", horizontal=True)
+        admin_action = st.radio("Action:", ["View Team Payment Progress", f"Set/Edit Payment Goal for {TARGET_PAYMENT_YEAR}"],
+                                 key="admin_payment_action_radio_2025_q", horizontal=True)
         
-        if admin_action == "View Team Progress":
+        if admin_action == "View Team Payment Progress":
             st.markdown(f"<h5>Team Payment Goal Progress for {current_quarter_for_display}</h5>", unsafe_allow_html=True)
             quarterly_payment_goals_df = st.session_state.payment_goals_df[st.session_state.payment_goals_df["MonthYear"] == current_quarter_for_display]
             
@@ -862,384 +923,323 @@ def payment_goals_page():
                     lambda row: (row['Achieved'] / row['Target'] * 100) if row['Target'] > 0 else 0, axis=1
                 )
                 
-                st.markdown("<h6>Individual Quarterly Progress:</h6>", unsafe_allow_html=True)
+                st.markdown("<h6>Individual Quarterly Payment Progress:</h6>", unsafe_allow_html=True)
                 for index, row in team_summary.iterrows():
                     col1, col2 = st.columns([0.6, 0.4])
                     with col1:
                         st.markdown(f"**{row['Username']}**")
-                        st.progress(min(row['Progress'] / 100, 1.0), text=f"Target: ₹{row['Target']:,.0f} | Achieved: ₹{row['Achieved']:,.0f}")
+                        st.progress(min(row['Progress'] / 100, 1.0))
+                        st.write(f"Target: ₹{row['Target']:,.0f} | Achieved: ₹{row['Achieved']:,.0f}")
                     with col2:
-                        fig = create_donut_chart(row['Progress'], chart_title="", center_text_color="#0d6efd")
+                        fig = create_donut_chart(row['Progress'], chart_title=f"{row['Username']} Progress")
                         st.pyplot(fig)
                 
                 st.markdown("---")
-                st.markdown("<h6>Team Performance Summary (Bar Chart):</h6>", unsafe_allow_html=True)
-                bar_fig = create_team_progress_bar_chart(team_summary, title=f"Team Payment Goals for {current_quarter_for_display}")
-                if bar_fig:
-                    st.pyplot(bar_fig)
-            else:
-                st.info(f"No payment goals set for the team for {current_quarter_for_display} yet.")
-        
-        elif admin_action == f"Set/Edit Payment Goal for {TARGET_GOAL_YEAR}":
-            st.markdown(f"<h5>Set/Edit Payment Goals for Employees ({TARGET_GOAL_YEAR})</h5>", unsafe_allow_html=True)
-            
-            employee_users = [user for user, data in USERS.items() if data.get('role') == 'employee']
-            
-            selected_employee = st.selectbox("Select Employee", employee_users, key="payment_goal_employee_select")
-            selected_quarter = st.selectbox("Select Quarter", [f"{TARGET_GOAL_YEAR}-Q1", f"{TARGET_GOAL_YEAR}-Q2", f"{TARGET_GOAL_YEAR}-Q3", f"{TARGET_GOAL_YEAR}-Q4"], key="payment_goal_quarter_select")
-
-            current_goal_for_employee_quarter = st.session_state.payment_goals_df[
-                (st.session_state.payment_goals_df["Username"] == selected_employee) &
-                (st.session_state.payment_goals_df["MonthYear"] == selected_quarter)
-            ]
-            
-            default_description = ""
-            default_target = 0.0
-            default_achieved = 0.0
-            default_status = "Not Started"
-
-            if not current_goal_for_employee_quarter.empty:
-                first_goal = current_goal_for_employee_quarter.iloc[0]
-                default_description = first_goal["GoalDescription"] if pd.notna(first_goal["GoalDescription"]) else ""
-                default_target = first_goal["TargetAmount"] if pd.notna(first_goal["TargetAmount"]) else 0.0
-                default_achieved = first_goal["AchievedAmount"] if pd.notna(first_goal["AchievedAmount"]) else 0.0
-                default_status = first_goal["Status"] if pd.notna(first_goal["Status"]) else "Not Started"
-
-            with st.form(key="set_payment_goal_form", clear_on_submit=False):
-                goal_description = st.text_area("Payment Goal Description:", value=default_description, key="admin_payment_goal_desc")
-                target_amount = st.number_input("Target Amount (INR):", min_value=0.0, value=float(default_target), step=1000.0, format="%.2f", key="admin_payment_target_amount")
-                achieved_amount = st.number_input("Achieved Amount (INR):", min_value=0.0, value=float(default_achieved), step=100.0, format="%.2f", key="admin_payment_achieved_amount")
-                goal_status = st.selectbox("Status:", status_options, index=status_options.index(default_status) if default_status in status_options else 0, key="admin_payment_goal_status")
-                
-                submit_goal = st.form_submit_button("Save Payment Goal")
-            
-            if submit_goal:
-                if not goal_description.strip() or target_amount <= 0:
-                    st.session_state.user_message = "Please provide a description and a positive target amount."
-                    st.session_state.message_type = "warning"
+                st.markdown("<h5>Overall Team Payment Performance Chart:</h5>", unsafe_allow_html=True)
+                team_bar_chart_df = team_summary[["Username", "Target", "Achieved"]]
+                fig_bar = create_team_progress_bar_chart(team_bar_chart_df, title=f"Team Payment Performance {current_quarter_for_display}", user_col="Username")
+                if fig_bar:
+                    st.pyplot(fig_bar)
                 else:
-                    new_goal_data = {
-                        "Username": selected_employee,
-                        "MonthYear": selected_quarter,
-                        "GoalDescription": goal_description,
-                        "TargetAmount": target_amount,
-                        "AchievedAmount": achieved_amount,
-                        "Status": goal_status
-                    }
-                    
-                    if not current_goal_for_employee_quarter.empty:
-                        idx = current_goal_for_employee_quarter.index[0]
-                        for col, val in new_goal_data.items():
-                            st.session_state.payment_goals_df.loc[idx, col] = val
-                        st.session_state.user_message = f"Payment goal for {selected_employee} in {selected_quarter} updated."
-                    else:
-                        new_goal_df = pd.DataFrame([new_goal_data], columns=PAYMENT_GOALS_COLUMNS)
-                        st.session_state.payment_goals_df = pd.concat([st.session_state.payment_goals_df, new_goal_df], ignore_index=True)
-                        st.session_state.user_message = f"New payment goal set for {selected_employee} in {selected_quarter}."
-                    
-                    try:
-                        st.session_state.payment_goals_df.to_csv(PAYMENT_GOALS_FILE, index=False)
-                        st.session_state.message_type = "success"
-                    except Exception as e:
-                        st.session_state.user_message = f"Error saving payment goal: {e}"
-                        st.session_state.message_type = "error"
-                st.rerun()
+                    st.info("No team payment data to display bar chart.")
 
-    else: # Employee View
-        if current_username is None:
-            st.error("User not logged in. Please log in to view your payment goals.")
-            st.markdown('</div>', unsafe_allow_html=True)
-            return
-
-        st.markdown("<h4>My Payment Goals</h4>", unsafe_allow_html=True)
-        user_goals = st.session_state.payment_goals_df[st.session_state.payment_goals_df["Username"] == current_username].copy()
-        
-        if not user_goals.empty:
-            st.markdown(f"<h5>Your Payment Goals for {current_quarter_for_display}</h5>", unsafe_allow_html=True)
-            current_quarter_goals = user_goals[user_goals["MonthYear"] == current_quarter_for_display]
-            
-            if not current_quarter_goals.empty:
-                total_target = current_quarter_goals["TargetAmount"].sum()
-                total_achieved = current_quarter_goals["AchievedAmount"].sum()
-                overall_progress = (total_achieved / total_target * 100) if total_target > 0 else 0
-
-                col_donut, col_summary = st.columns([0.3, 0.7])
-                with col_donut:
-                    fig = create_donut_chart(overall_progress, chart_title="", center_text_color="#0d6efd")
-                    st.pyplot(fig)
-                with col_summary:
-                    st.markdown(f"""
-                        <p style='font-size:1.1rem; font-weight:bold;'>Overall Progress:</p>
-                        <p style='margin-bottom:0;'>Target: <span style='font-weight:bold;'>₹{total_target:,.0f}</span></p>
-                        <p>Achieved: <span style='font-weight:bold;'>₹{total_achieved:,.0f}</span></p>
-                    """, unsafe_allow_html=True)
-                
                 st.markdown("---")
-                st.markdown("<h6>Individual Goals for the Quarter:</h6>", unsafe_allow_html=True)
-                for index, row in current_quarter_goals.iterrows():
-                    progress_val = (row['AchievedAmount'] / row['TargetAmount'] * 100) if row['TargetAmount'] > 0 else 0
-                    st.markdown(f"**Goal:** {row['GoalDescription']}")
-                    st.progress(min(progress_val / 100, 1.0), text=f"Target: ₹{row['TargetAmount']:,.0f} | Achieved: ₹{row['AchievedAmount']:,.0f} | Status: {row['Status']}")
-                    st.write("") # Add a little space
+                st.markdown("<h5>Detailed Quarterly Payment Goals:</h5>", unsafe_allow_html=True)
+                display_df = quarterly_payment_goals_df.copy()
+                display_df['TargetAmount'] = display_df['TargetAmount'].apply(lambda x: f"₹{x:,.0f}" if pd.notna(x) else "N/A")
+                display_df['AchievedAmount'] = display_df['AchievedAmount'].apply(lambda x: f"₹{x:,.0f}" if pd.notna(x) else "N/A")
+                st.dataframe(display_df.style.set_properties(**{'font-size': '14px', 'text-align': 'left'}), use_container_width=True, hide_index=True)
             else:
-                st.info(f"No payment goals set for you for {current_quarter_for_display} yet.")
+                st.info(f"No payment goals set for {current_quarter_for_display} yet.")
+
+        elif admin_action == f"Set/Edit Payment Goal for {TARGET_PAYMENT_YEAR}":
+            st.markdown(f"<h5>Set or Update Quarterly Payment Goals for {current_quarter_for_display}</h5>", unsafe_allow_html=True)
+            
+            with st.form(key="set_payment_goal_form"):
+                target_user = st.selectbox("Select Employee:", [u for u in USERS.keys() if USERS[u]["role"] == "employee"], key="target_user_payment_goal")
+                goal_description = st.text_area("Goal Description:", placeholder="e.g., Collect X payments, Reduce Y outstanding", key="payment_goal_desc")
+                target_amount = st.number_input("Target Amount (INR):", min_value=0.0, step=1000.0, format="%.2f", key="payment_target_amt")
+                achieved_amount = st.number_input("Achieved Amount (INR):", min_value=0.0, step=100.0, format="%.2f", key="payment_achieved_amt")
+                status = st.selectbox("Status:", status_options, key="payment_goal_status")
+
+                submit_goal = st.form_submit_button("💾 Save Payment Goal")
+
+                if submit_goal:
+                    if target_user and goal_description and target_amount >= 0 and achieved_amount >= 0 and status:
+                        current_quarter = current_quarter_for_display # Already in correct format
+                        
+                        existing_goal_index = st.session_state.payment_goals_df[
+                            (st.session_state.payment_goals_df["Username"] == target_user) &
+                            (st.session_state.payment_goals_df["MonthYear"] == current_quarter) &
+                            (st.session_state.payment_goals_df["GoalDescription"] == goal_description)
+                        ].index
+                        
+                        new_goal_data = {
+                            "Username": target_user,
+                            "MonthYear": current_quarter,
+                            "GoalDescription": goal_description,
+                            "TargetAmount": target_amount,
+                            "AchievedAmount": achieved_amount,
+                            "Status": status
+                        }
+                        
+                        if not existing_goal_index.empty:
+                            st.session_state.payment_goals_df.loc[existing_goal_index, new_goal_data.keys()] = list(new_goal_data.values())
+                            st.session_state.user_message = f"Payment goal for {target_user} updated for {current_quarter}."
+                            st.session_state.message_type = "info"
+                        else:
+                            st.session_state.payment_goals_df = pd.concat([st.session_state.payment_goals_df, pd.DataFrame([new_goal_data])], ignore_index=True)
+                            st.session_state.user_message = f"New payment goal added for {target_user} for {current_quarter}."
+                            st.session_state.message_type = "success"
+                        
+                        try:
+                            st.session_state.payment_goals_df.to_csv(PAYMENT_GOALS_FILE, index=False)
+                        except Exception as e:
+                            st.session_state.user_message = f"Error saving payment goals: {e}"
+                            st.session_state.message_type = "error"
+                        st.rerun()
+                    else:
+                        st.session_state.user_message = "Please fill all payment goal fields."
+                        st.session_state.message_type = "warning"
+                        st.rerun()
+    else: # Employee view
+        st.markdown(f"<h4>My Payment Goals for {TARGET_PAYMENT_YEAR}</h4>", unsafe_allow_html=True)
+        my_payment_goals_df = st.session_state.payment_goals_df[st.session_state.payment_goals_df["Username"] == current_username]
+        
+        if not my_payment_goals_df.empty:
+            total_target = my_payment_goals_df["TargetAmount"].sum()
+            total_achieved = my_payment_goals_df["AchievedAmount"].sum()
+            overall_progress = (total_achieved / total_target * 100) if total_target > 0 else 0
+            
+            st.markdown(f"<h5>Overall Progress:</h5>", unsafe_allow_html=True)
+            col_prog_val, col_prog_chart = st.columns([0.7, 0.3])
+            with col_prog_val:
+                st.progress(min(overall_progress / 100, 1.0))
+                st.metric(label="Total Payment Goal Progress", value=f"{overall_progress:.1f}%")
+                st.markdown(f"**Target:** ₹{total_target:,.0f} | **Achieved:** ₹{total_achieved:,.0f}", unsafe_allow_html=True)
+            with col_prog_chart:
+                fig = create_donut_chart(overall_progress, chart_title="My Payment Progress")
+                st.pyplot(fig)
             
             st.markdown("---")
-            st.markdown("<h5>Your Historical Payment Goals</h5>", unsafe_allow_html=True)
-            historical_goals = user_goals[user_goals["MonthYear"] != current_quarter_for_display].sort_values(by="MonthYear", ascending=False)
-            if not historical_goals.empty:
-                render_goal_chart(historical_goals, "Your Payment Goal History")
-                st.dataframe(historical_goals.style.format({
-                    "TargetAmount": "₹{:,.0f}",
-                    "AchievedAmount": "₹{:,.0f}"
-                }), use_container_width=True, hide_index=True)
-            else:
-                st.info("No historical payment goals to display yet.")
-        else:
-            st.info("No payment goals have been set for you yet. Please contact your administrator.")
-    st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown(f"<h5>My Quarterly Payment Goals for {current_quarter_for_display}:</h5>", unsafe_allow_html=True)
+            quarterly_my_payment_goals_df = my_payment_goals_df[my_payment_goals_df["MonthYear"] == current_quarter_for_display]
+            
+            if not quarterly_my_payment_goals_df.empty:
+                display_df = quarterly_my_payment_goals_df.copy()
+                display_df['TargetAmount'] = display_df['TargetAmount'].apply(lambda x: f"₹{x:,.0f}" if pd.notna(x) else "N/A")
+                display_df['AchievedAmount'] = display_df['AchievedAmount'].apply(lambda x: f"₹{x:,.0f}" if pd.notna(x) else "N/A")
+                st.dataframe(display_df[['GoalDescription', 'TargetAmount', 'AchievedAmount', 'Status']].style.set_properties(**{'font-size': '14px', 'text-align': 'left'}), use_container_width=True, hide_index=True)
 
+                st.markdown("---")
+                st.markdown("<h5>Update Payment Goal Progress:</h5>", unsafe_allow_html=True)
+                with st.form(key="update_my_payment_goal_form"):
+                    goals_list = quarterly_my_payment_goals_df["GoalDescription"].tolist()
+                    selected_goal_desc = st.selectbox("Select Goal to Update:", goals_list, key="selected_payment_goal_to_update")
+                    
+                    if selected_goal_desc:
+                        current_goal_data = quarterly_my_payment_goals_df[quarterly_my_payment_goals_df["GoalDescription"] == selected_goal_desc].iloc[0]
+                        updated_achieved_amount = st.number_input("New Achieved Amount (INR):", min_value=0.0, step=100.0, format="%.2f", 
+                                                                  value=float(current_goal_data["AchievedAmount"]) if pd.notna(current_goal_data["AchievedAmount"]) else 0.0,
+                                                                  key="updated_payment_achieved_amt")
+                        updated_status = st.selectbox("New Status:", status_options, index=status_options.index(current_goal_data["Status"]), key="updated_payment_goal_status")
+                        
+                        update_goal_btn = st.form_submit_button("🔄 Update My Payment Goal")
+
+                        if update_goal_btn:
+                            goal_index = st.session_state.payment_goals_df[
+                                (st.session_state.payment_goals_df["Username"] == current_username) &
+                                (st.session_state.payment_goals_df["MonthYear"] == current_quarter_for_display) &
+                                (st.session_state.payment_goals_df["GoalDescription"] == selected_goal_desc)
+                            ].index
+                            
+                            if not goal_index.empty:
+                                st.session_state.payment_goals_df.loc[goal_index, "AchievedAmount"] = updated_achieved_amount
+                                st.session_state.payment_goals_df.loc[goal_index, "Status"] = updated_status
+                                try:
+                                    st.session_state.payment_goals_df.to_csv(PAYMENT_GOALS_FILE, index=False)
+                                    st.session_state.user_message = f"Payment goal '{selected_goal_desc}' updated successfully."
+                                    st.session_state.message_type = "success"
+                                except Exception as e:
+                                    st.session_state.user_message = f"Error saving payment goal update: {e}"
+                                    st.session_state.message_type = "error"
+                                st.rerun()
+                            else:
+                                st.session_state.user_message = "Selected payment goal not found for update."
+                                st.session_state.message_type = "error"
+                                st.rerun()
+                    else:
+                        st.info("Select a payment goal to update its progress.")
+            else:
+                st.info(f"No payment goals assigned to you for {current_quarter_for_display} yet.")
+        else:
+            st.info("You currently have no payment goals assigned.")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 def activity_log_page():
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📋 Activity Log</h3>", unsafe_allow_html=True)
     
-    current_username = st.session_state.auth.get("username")
     current_role = st.session_state.auth.get("role")
+    current_username = st.session_state.auth.get("username")
 
+    df_display = st.session_state.activity_log_df.copy()
+    
     if current_role == "admin":
-        st.markdown("<h4>Admin: View All Activity Logs</h4>", unsafe_allow_html=True)
-        # Admin can filter by employee
-        all_employees = [user for user, data in USERS.items() if data.get('role') == 'employee']
-        selected_employee_filter = st.selectbox("Filter by Employee (Admin View):", ["All"] + all_employees, key="activity_log_employee_filter_admin")
+        st.markdown("<h4>Admin: View All Employee Activities</h4>", unsafe_allow_html=True)
+        # Filters for admin
+        all_users = ["All"] + list(USERS.keys())
+        selected_user = st.selectbox("Filter by Employee:", all_users, key="activity_log_user_filter")
         
-        if selected_employee_filter == "All":
-            logs_to_display = st.session_state.activity_log_df.copy()
-        else:
-            logs_to_display = st.session_state.activity_log_df[st.session_state.activity_log_df["Username"] == selected_employee_filter].copy()
+        start_date = st.date_input("Start Date:", value=None, key="activity_log_start_date")
+        end_date = st.date_input("End Date:", value=None, key="activity_log_end_date")
+
+        if selected_user != "All":
+            df_display = df_display[df_display["Username"] == selected_user]
         
+        if start_date:
+            df_display = df_display[pd.to_datetime(df_display["Timestamp"]).dt.date >= start_date]
+        if end_date:
+            df_display = df_display[pd.to_datetime(df_display["Timestamp"]).dt.date <= end_date]
+
     else: # Employee view
-        if current_username is None:
-            st.error("User not logged in. Please log in to view your activity logs.")
-            st.markdown('</div>', unsafe_allow_html=True)
-            return
-        st.markdown("<h4>My Activity Logs</h4>", unsafe_allow_html=True)
-        logs_to_display = st.session_state.activity_log_df[st.session_state.activity_log_df["Username"] == current_username].copy()
+        st.markdown(f"<h4>My Recent Activities</h4>", unsafe_allow_html=True)
+        df_display = df_display[df_display["Username"] == current_username]
 
-    if logs_to_display.empty:
-        st.info("No activity logs to display.")
+        # Employee specific filter for recent activities (e.g., last 7 days)
+        # You can add date filters here if desired, similar to admin.
+        
+    if df_display.empty:
+        st.info("No activities to display for the selected filters.")
     else:
-        # Convert timestamp to datetime objects for sorting and filtering
-        logs_to_display["Timestamp"] = pd.to_datetime(logs_to_display["Timestamp"], errors='coerce')
-        logs_to_display.dropna(subset=["Timestamp"], inplace=True) # Drop rows with invalid timestamps
-        logs_to_display.sort_values(by="Timestamp", ascending=False, inplace=True)
+        # Convert Timestamp to datetime for sorting
+        df_display["Timestamp"] = pd.to_datetime(df_display["Timestamp"])
+        df_display = df_display.sort_values(by="Timestamp", ascending=False)
         
-        # Date filter
-        min_date = logs_to_display["Timestamp"].min().date() if not logs_to_display.empty else datetime.now().date()
-        max_date = logs_to_display["Timestamp"].max().date() if not logs_to_display.empty else datetime.now().date()
-
-        col_date_start, col_date_end = st.columns(2)
-        with col_date_start:
-            start_date = st.date_input("Start Date", value=min_date, key="log_start_date")
-        with col_date_end:
-            end_date = st.date_input("End Date", value=max_date, key="log_end_date")
-
-        logs_to_display = logs_to_display[
-            (logs_to_display["Timestamp"].dt.date >= start_date) &
-            (logs_to_display["Timestamp"].dt.date <= end_date)
-        ]
-        
-        # Display logs
-        for index, row in logs_to_display.iterrows():
-            st.markdown(f"**Date/Time:** {row['Timestamp'].strftime('%Y-%m-%d %H:%M:%S')}", unsafe_allow_html=True)
+        for index, row in df_display.iterrows():
+            st.markdown(f"<div class='card' style='padding:1rem; margin-bottom:1rem;'>", unsafe_allow_html=True)
+            st.markdown(f"**Employee:** {row['Username']} | **Timestamp:** {row['Timestamp'].strftime('%Y-%m-%d %H:%M:%S')}", unsafe_allow_html=True)
             st.markdown(f"**Description:** {row['Description']}", unsafe_allow_html=True)
             
-            if pd.notna(row['ImageFile']) and row['ImageFile']:
-                image_path = os.path.join(ACTIVITY_PHOTOS_DIR, row['ImageFile'])
-                if os.path.exists(image_path):
-                    try:
-                        st.image(image_path, caption=f"Photo for {row['Description']}", use_column_width="auto", width=200)
-                    except Exception as e:
-                        st.warning(f"Could not load image {row['ImageFile']}: {e}")
-                else:
-                    st.warning(f"Image not found: {row['ImageFile']}")
+            image_file = row['ImageFile']
+            image_path = os.path.join(ACTIVITY_PHOTOS_DIR, image_file)
+            if image_file and os.path.exists(image_path):
+                st.image(image_path, caption=f"Activity Photo ({row['Username']})", width=300)
             else:
-                st.info("No photo attached for this activity.")
-            st.markdown("---") # Separator between entries
+                st.warning("Image not found.")
+            st.markdown("</div>", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 # --- Authentication Functions ---
 def login_page():
-    st.markdown('<div class="card" style="max-width: 400px; margin: 5rem auto; padding: 2rem;">', unsafe_allow_html=True)
-    st.markdown("<h3 style='text-align: center; color: #007bff; margin-bottom: 1.5rem;'>Login</h3>", unsafe_allow_html=True)
+    st.image("path/to/your/company_logo.png", width=200) # Optional: Add your company logo
+    st.markdown("<h2 style='text-align: center; color: #2c3e50;'>Employee Login</h2>", unsafe_allow_html=True)
     
-    with st.form(key="login_form"):
-        username = st.text_input("Username:", key="login_username_input")
-        password = st.text_input("Password:", type="password", key="login_password_input")
-        login_button = st.form_submit_button("Login", use_container_width=True, type="primary")
+    with st.form("login_form"):
+        username = st.text_input("Username", key="login_username_input", placeholder="Enter your username").strip()
+        password = st.text_input("Password", type="password", key="login_password_input", placeholder="Enter your password").strip()
+        login_button = st.form_submit_button("Login", type="primary", use_container_width=True)
 
-    if login_button:
-        if username in USERS and USERS[username]["password"] == password:
-            st.session_state.auth["logged_in"] = True
-            st.session_state.auth["username"] = username
-            st.session_state.auth["role"] = USERS[username]["role"]
-            st.session_state.user_message = f"Welcome, {username}!"
-            st.session_state.message_type = "success"
-            st.rerun()
-        else:
-            st.session_state.user_message = "Invalid username or password."
-            st.session_state.message_type = "error"
-            st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+        if login_button:
+            if username in USERS and USERS[username]["password"] == password:
+                st.session_state.auth["logged_in"] = True
+                st.session_state.auth["username"] = username
+                st.session_state.auth["role"] = USERS[username]["role"]
+                st.session_state.user_message = "Login successful!"
+                st.session_state.message_type = "success"
+                st.rerun()
+            else:
+                st.session_state.user_message = "Invalid username or password."
+                st.session_state.message_type = "error"
+                st.rerun()
 
 def logout():
     st.session_state.auth = {"logged_in": False, "username": None, "role": None}
     st.session_state.user_message = "You have been logged out."
     st.session_state.message_type = "info"
-    st.session_state.active_page = "Attendance" # Reset to default page on logout
+    st.session_state.active_page = "Attendance" # Reset active page on logout
     st.rerun()
 
-
-# --- Corrected sidebar_navigation function ---
-def sidebar_navigation():
-    # Add Material Icons CSS if not already added
-    st.markdown("""
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-    <style>
-        .logout-btn-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0.75rem;
-        }
-        .logout-btn-wrapper .material-symbols-outlined {
-            font-size: 20px;
-        }
-    </style>
-    """, unsafe_allow_html=True)
-
+# --- Main Application Flow ---
+if not st.session_state.auth["logged_in"]:
+    login_page()
+else:
     with st.sidebar:
-        st.markdown('<div class="sidebar-content-wrapper">', unsafe_allow_html=True)
-
-        # User Profile Section
-        username = st.session_state.get("auth", {}).get("username", "Guest")
-        role = st.session_state.get("auth", {}).get("role", "")
-        position = USERS.get(username, {}).get("position", "")
-        profile_photo = USERS.get(username, {}).get("profile_photo", "images/default_user.png")
+        # Profile Section
+        current_username = st.session_state.auth["username"]
+        current_role = st.session_state.auth["role"]
+        current_position = USERS[current_username]["position"]
+        profile_photo_path = USERS[current_username]["profile_photo"]
 
         st.markdown(f"""
             <div class="user-profile-section">
-                <img src="{profile_photo}" alt="Profile" class="user-profile-img">
-                <p class="welcome-text">Welcome, {username}!</p>
-                <p class="user-position">{position}</p>
+                <img src="{profile_photo_path}" class="user-profile-img">
+                <div class="welcome-text">Welcome, {current_username}!</div>
+                <div class="user-position">{current_position}</div>
             </div>
             <div class="divider"></div>
         """, unsafe_allow_html=True)
 
-        # Navigation Items
-        icon_map = {
-            "Attendance": "check_circle",
-            "Upload Activity Photo": "camera_alt",
-            "Claim Allowance": "work",
-            "Sales Goals": "target",
-            "Payment Goals": "payments",
-            "Activity Log": "assignment",
-            "Create Order": "add_shopping_cart"
-        }
-
-        nav_items = [
-            "Attendance",
-            "Upload Activity Photo",
-            "Claim Allowance",
-            "Sales Goals",
-            "Payment Goals",
-            "Activity Log",
-            # "Create Order",  # Uncomment if implemented
+        # Navigation Menu
+        # Define navigation items
+        nav_items_employee = [
+            ("Attendance", "event_available"),
+            ("Upload Activity Photo", "upload_file"),
+            ("Claim Allowance", "payments"),
+            ("Sales Goal Tracker", "track_changes"),
+            ("Payment Goal Tracker", "paid"),
+            ("Activity Log", "list_alt"),
         ]
+        nav_items_admin = nav_items_employee # Admins can access all employee pages
+        # You might want separate admin-only pages or add admin-specific tools here
+        # Example: nav_items_admin.append(("Admin Dashboard", "admin_panel_settings"))
 
-        for page_name in nav_items:
-            display_name = page_name
-            is_visible = True
+        nav_items = nav_items_admin if current_role == "admin" else nav_items_employee
+
+        for page_name, icon_name in nav_items:
+            # Check if this is the active page for styling
+            is_active = "active-nav-item" if st.session_state.active_page == page_name else ""
             
-            # Role-based visibility
-            if page_name in ["Sales Goals", "Payment Goals", "Activity Log"]:
-                if role == "employee":
-                    display_name = f"My {page_name.replace('Sales ', '').replace('Payment ', '')}"
-                elif role != "admin":
-                    is_visible = False
+            # Use a div to create the visual button, and an actual Streamlit button for functionality
+            st.markdown(f"""
+                <div class="sidebar-nav-item {is_active}">
+                    <span class="material-symbols-outlined">{icon_name}</span> {page_name}
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # Place the Streamlit button directly after the markdown.
+            # This button will be invisible but clickable, and its click will update active_page
+            if st.button(page_name, key=f"nav_btn_{page_name}", use_container_width=True):
+                st.session_state.active_page = page_name
+                st.rerun() # Rerun to switch content and apply active style
 
-            if is_visible:
-                is_active = "active-nav-item" if st.session_state.active_page == page_name else ""
-                icon_name = icon_map.get(page_name, "info")
-                
-                # Navigation item container
-                st.markdown(f"""
-                    <div class="sidebar-nav-item {is_active}">
-                        <span class="material-symbols-outlined">{icon_name}</span>
-                        <span style="flex: 1;">{display_name}</span>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                # Invisible button for navigation
-                if st.button(" ", key=f"nav_btn_{page_name}", use_container_width=True):
-                    if st.session_state.active_page != page_name:
-                        st.session_state.active_page = page_name
-                        st.rerun()
-
-        # Proper Logout Button Implementation
+        # Logout Button (pushed to the bottom of the sidebar)
         st.markdown('<div class="logout-container">', unsafe_allow_html=True)
-        
-        # Create columns for icon + text
-        col1, col2 = st.columns([0.2, 0.8])
-        with col1:
-            st.markdown("<span class='material-symbols-outlined'>logout</span>", unsafe_allow_html=True)
-        with col2:
-            if st.button("Logout", key="logout_btn_final", use_container_width=True):
-                logout()
-                
-        st.markdown('</div>', unsafe_allow_html=True)  # Close logout-container
-        st.markdown('</div>', unsafe_allow_html=True)  # Close sidebar-content-wrapper
+        if st.button("Logout", key="logout_btn", use_container_width=True):
+            logout()
+        st.markdown('</div>', unsafe_allow_html=True)
 
+    # Main Content Area
+    st.markdown('<div class="main-content-area">', unsafe_allow_html=True)
+    display_message() # Display messages at the top of the content area
 
-def logout():
-    """Handle logout logic"""
-    if "auth" in st.session_state:
-        del st.session_state.auth
-    st.session_state.active_page = "Login"
-    st.rerun()
-    st.sidebar.markdown('</div>', unsafe_allow_html=True) # Close sidebar-content-wrapper
+    # Render content based on active page
+    if st.session_state.active_page == "Attendance":
+        attendance_page()
+    elif st.session_state.active_page == "Upload Activity Photo":
+        upload_activity_photo_page()
+    elif st.session_state.active_page == "Claim Allowance":
+        allowance_page()
+    elif st.session_state.active_page == "Sales Goal Tracker":
+        goal_tracker_page()
+    elif st.session_state.active_page == "Payment Goal Tracker":
+        payment_goals_page()
+    elif st.session_state.active_page == "Activity Log":
+        activity_log_page()
+    
+    # You can add an admin dashboard page here if you created one.
+    # elif st.session_state.active_page == "Admin Dashboard":
+    #     admin_dashboard_page()
 
-
-# Main App Logic
-def main():
-    # This should be called at the very beginning of main, before any other content is rendered.
-    display_message()
-
-    if not st.session_state.auth["logged_in"]:
-        login_page()
-    else:
-        sidebar_navigation()
-        # Main content title can be dynamically set based on the active page or user
-        st.markdown(f"<h2 style='color:#333; margin-bottom:1.5rem;'>Hello, {st.session_state.auth['username']}!</h2>", unsafe_allow_html=True)
-
-        # Render the active page
-        if st.session_state.active_page == "Attendance":
-            attendance_page()
-        elif st.session_state.active_page == "Upload Activity Photo":
-            upload_activity_photo_page()
-        elif st.session_state.active_page == "Claim Allowance":
-            allowance_page()
-        elif st.session_state.active_page == "Sales Goals":
-            goal_tracker_page()
-        elif st.session_state.active_page == "Payment Goals":
-            payment_goals_page()
-        elif st.session_state.active_page == "Activity Log":
-            activity_log_page()
-        # Add 'Create Order' page if implemented
-        # elif st.session_state.active_page == "Create Order":
-        #    create_order_page() # Assuming you'd have such a function
-        else:
-            st.error("Invalid page selected or page not yet implemented.")
-
-if __name__ == "__main__":
-    main()
+    st.markdown('</div>', unsafe_allow_html=True)
