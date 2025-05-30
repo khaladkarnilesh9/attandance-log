@@ -386,10 +386,10 @@ if "user_message" in st.session_state and st.session_state.user_message:
     )
     st.session_state.user_message = None
     st.session_state.message_type = None
+# <<<< Make sure your CSS is exactly as in the previous correct answer >>>>
+# ... (previous code: imports, CSS, USERS, file setup, functions, login logic) ...
 
-
-# <<<< CORRECTED SIDEBAR SECTION >>>>
-# <<<< CORRECTED SIDEBAR SECTION >>>>
+# <<<< REVISED SIDEBAR SECTION - Check this loop carefully >>>>
 nav_options_with_icons = [
     {"label": "Attendance", "icon": "schedule"},
     {"label": "Upload Activity Photo", "icon": "add_a_photo"},
@@ -421,65 +421,61 @@ with st.sidebar:
     )
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    st.markdown('<div class="sidebar-nav">', unsafe_allow_html=True)
+    # This div is for the whole block of navigation items
+    st.markdown('<div class="sidebar-nav">', unsafe_allow_html=True) 
+    
     for item in nav_options_with_icons:
         option_label = item["label"]
         option_icon = item["icon"]
-        button_key = f"nav_btn_{option_label.lower().replace(' ', '_')}" # Simpler key
+        # Ensure button_key is unique and valid for Streamlit keys
+        button_key = f"nav_btn_{option_label.lower().replace(' ', '_').replace('-', '_').replace('(', '').replace(')', '')}"
         is_active = (st.session_state.active_page == option_label)
-
         active_class = "active-nav-item" if is_active else ""
-        
-        # ===================================================================== #
-        # VVVVVV THIS IS EXACTLY WHERE YOUR SNIPPET GOES VVVVVV                #
-        # (Replace any previous button creation logic inside this loop here)    #
-        # ===================================================================== #
-        
-        # Use a markdown container for each item to apply overall styling and hover
+
+        # --- Start of one navigation item ---
+        # The outer div with class 'sidebar-nav-item' gets hover and active styling
         st.markdown(f'<div class="sidebar-nav-item {active_class}">', unsafe_allow_html=True)
         
-        # Use st.columns to separate icon and button.
-        # Adjust column widths: 1 for icon, 5 for text (relative widths)
-        # The gap between columns can be controlled by Streamlit or with CSS if needed.
-        icon_col, text_col = st.columns([1, 5]) # Adjust ratio as needed (e.g. 0.2, 0.8 or fixed width)
+        # Use st.columns for icon and button
+        # The 'gap="small"' or "medium" can adjust spacing between columns.
+        # Or control spacing with margin/padding in CSS on .icon-container or the button's column.
+        icon_col, text_col = st.columns([1, 4], gap="small") # Adjusted ratio slightly, added gap
 
         with icon_col:
-            # icon-container helps vertically align the icon if needed, though st.columns usually does well.
+            # CSS class 'icon-container' can be used for fine-tuning icon alignment if needed
             st.markdown(f'<div class="icon-container"><span class="material-symbols-outlined">{option_icon}</span></div>', unsafe_allow_html=True)
         
         with text_col:
-            # The button only contains text now. No unsafe_allow_html here.
             st.button(
-                option_label, 
-                key=button_key, 
-                on_click=set_active_page_callback, 
+                option_label,
+                key=button_key,
+                on_click=set_active_page_callback,
                 args=(option_label,),
-                use_container_width=True 
+                use_container_width=True
             )
-        st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-nav-item div
         
-        # ===================================================================== #
-        # ^^^^^^ THIS IS EXACTLY WHERE YOUR SNIPPET ENDS ^^^^^^                 #
-        # ===================================================================== #
+        st.markdown('</div>', unsafe_allow_html=True) # Close the 'sidebar-nav-item' div
+        # --- End of one navigation item ---
 
-    st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-nav
+    st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-nav div
 
     # Logout Button
     st.markdown('<div class="logout-button-container">', unsafe_allow_html=True)
-    if st.button("➡️ Logout", key="logout_button_sidebar", use_container_width=True): 
+    # For the logout button, using an emoji is the simplest if a Material Icon isn't easily integrated
+    # without `unsafe_allow_html` on the button itself.
+    # If you have a newer Streamlit version that has `st.button(icon="...")` with Material Icon support, use that.
+    # Otherwise, emoji or simple text.
+    if st.button("➡️ Logout", key="logout_button_sidebar", use_container_width=True):
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.session_state.user_message = "Logged out successfully."
         st.session_state.message_type = "info"
         st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True) # Close logout-button-container
+    st.markdown('</div>', unsafe_allow_html=True)
     
     st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-content-wrapper
-# <<<< END OF CORRECTED SIDEBAR SECTION >>>>
+# <<<< END OF REVISED SIDEBAR SECTION >>>>
 
-# <<<< END OF CORRECTED SIDEBAR SECTION >>>>
-
-
-# --- Main Content (Remaining code for pages) ---
+# ... (Rest of your application code for pages) ...
 # Ensure all page logic uses `if st.session_state.active_page == "PageName":`
 
 if st.session_state.active_page == "Attendance":
