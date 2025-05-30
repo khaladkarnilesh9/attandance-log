@@ -5,7 +5,6 @@ from datetime import datetime
 import pytz # For time zone awareness
 
 # --- Configuration (Adjust as needed) ---
-# Assuming these are defined globally in your app.py
 ACTIVITY_PHOTOS_DIR = "activity_photos"
 ACTIVITY_LOG_FILE = "activity_log.csv"
 ACTIVITY_LOG_COLUMNS = ["Username", "Timestamp", "Description", "ImageFile", "Latitude", "Longitude"]
@@ -13,20 +12,41 @@ ACTIVITY_LOG_COLUMNS = ["Username", "Timestamp", "Description", "ImageFile", "La
 # Ensure the directory exists
 os.makedirs(ACTIVITY_PHOTOS_DIR, exist_ok=True)
 
-# Initialize activity_log_df if it doesn't exist (e.g., on first run)
+# Initialize session_state variables
 if "activity_log_df" not in st.session_state:
     if os.path.exists(ACTIVITY_LOG_FILE):
         st.session_state.activity_log_df = pd.read_csv(ACTIVITY_LOG_FILE)
     else:
         st.session_state.activity_log_df = pd.DataFrame(columns=ACTIVITY_LOG_COLUMNS)
 
+# Initialize authentication state (moved here for clarity)
+if "auth" not in st.session_state:
+    st.session_state.auth = {"logged_in": False, "username": None, "role": None}
+    # Set default values for messages
+    st.session_state.user_message = ""
+    st.session_state.message_type = ""
+
+# --- IMPORTANT: Initialize active_page here ---
+if "active_page" not in st.session_state:
+    st.session_state.active_page = "login" # Or whatever your default landing page is
+
+# --- Mock USERS and authentication state for testing (consider removing in production) ---
+USERS = {
+    "testuser": {
+        "position": "Sales Executive",
+        "profile_photo": "https://via.placeholder.com/150/007bff/FFFFFF?text=TU" # Placeholder image
+    },
+    "admin": {
+        "position": "System Administrator",
+        "profile_photo": "https://via.placeholder.com/150/f39c12/FFFFFF?text=AD" # Placeholder image
+    }
+}
+
 # --- Utility Functions (Place these outside of page functions) ---
 def get_current_time_in_tz():
-    # Define the timezone for India (IST)
     india_tz = pytz.timezone('Asia/Kolkata')
     return datetime.now(india_tz)
 
-# This function should be defined globally
 def display_message():
     if "user_message" in st.session_state and st.session_state.user_message:
         if st.session_state.message_type == "success":
@@ -41,22 +61,89 @@ def display_message():
         st.session_state.user_message = ""
         st.session_state.message_type = ""
 
-# Mock USERS and authentication state for testing
-# In a real app, this would come from a secure source
-if "auth" not in st.session_state:
-    st.session_state.auth = {"logged_in": True, "username": "testuser", "role": "employee"}
+def login_page():
+    st.title("Login")
+    with st.form("login_form"):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        login_button = st.form_submit_button("Login")
 
-USERS = {
-    "testuser": {
-        "position": "Sales Executive",
-        "profile_photo": "https://via.placeholder.com/150/007bff/FFFFFF?text=TU" # Placeholder image
-    },
-    "admin": {
-        "position": "System Administrator",
-        "profile_photo": "https://via.placeholder.com/150/f39c12/FFFFFF?text=AD" # Placeholder image
-    }
-}
+        if login_button:
+            # Simple mock authentication
+            if username in USERS and password == "password": # Use a real password check in production
+                st.session_state.auth["logged_in"] = True
+                st.session_state.auth["username"] = username
+                st.session_state.auth["role"] = "admin" if username == "admin" else "employee"
+                st.session_state.active_page = "Attendance" # Set default page after login
+                st.rerun()
+            else:
+                st.session_state.user_message = "Invalid username or password"
+                st.session_state.message_type = "error"
+                st.rerun()
 
+def logout():
+    st.session_state.auth["logged_in"] = False
+    st.session_state.auth["username"] = None
+    st.session_state.auth["role"] = None
+    st.session_state.active_page = "login" # Redirect to login page
+    st.rerun()
+
+# --- Page Functions ---
+def upload_activity_photo_page():
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
+    current_lat, current_lon = pd.NA, pd.NA # Placeholder, actual location capture not implemented
+    
+    current_username = st.session_state.auth.get("username")
+    if current_username is None:
+        st.error("User not logged in. Please log in to upload activity photos.")
+        st.markdown('</div>', unsafe_allow_html=True)
+        return
+        
+    with st.form(key="activity_photo_form", clear_on_submit=True):
+        st.markdown("<h6>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True)
+        activity_description = st.text_area("Brief description of activity/visit:", key="activity_desc_input")
+        img_file_buffer_activity = st.camera_input("Take a picture of your activity/visit", key="activity_camera_input")
+        submit_activity_photo = st.form_submit_button("⬆️ Upload Photo and Log Activity")
+    
+    if submit_activity_photo:
+        if img_file_buffer_activity is None:
+            st.session_state.user_message = "Please take a picture before submitting."
+            st.session_state.message_type = "warning"
+        elif not activity_description.strip():
+            st.session_state.user_message = "Please provide a description for the activity."
+            st.session_state.message_type = "warning"
+        else:
+            now_for_filename = get_current_time_in_tz().strftime("%Y%m%d_%H%M%S")
+            now_for_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
+            image_filename_activity = f"{current_username}_activity_{now_for_filename}.jpg"
+            image_path_activity = os.path.join(ACTIVITY_PHOTOS_DIR, image_filename_activity)
+            try:
+                with open(image_path_activity, "wb") as f:
+                    f.write(img_file_buffer_activity.getbuffer())
+                
+                # Create a dictionary for the new entry, ensuring all ACTIVITY_LOG_COLUMNS are present
+                new_activity_data = {col: pd.NA for col in ACTIVITY_LOG_COLUMNS}
+                new_activity_data.update({
+                    "Username": current_username,
+                    "Timestamp": now_for_display,
+                    "Description": activity_description,
+                    "ImageFile": image_filename_activity,
+                    "Latitude": current_lat,
+                    "Longitude": current_lon
+                })
+                new_activity_entry_df = pd.DataFrame([new_activity_data])
+                
+                st.session_state.activity_log_df = pd.concat([st.session_state.activity_log_df, new_activity_entry_df], ignore_index=True)
+                st.session_state.activity_log_df.to_csv(ACTIVITY_LOG_FILE, index=False)
+
+                st.session_state.user_message = "Activity photo and log uploaded!"
+                st.session_state.message_type = "success"
+            except Exception as e:
+                st.session_state.user_message = f"Error saving activity: {e}"
+                st.session_state.message_type = "error"
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # Place this at the very top of your app.py, before any other Streamlit calls
