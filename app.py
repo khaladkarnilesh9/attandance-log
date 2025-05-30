@@ -1,38 +1,4 @@
-# Placeholder for the corrected Streamlit app.py code
-# Add your full working application logic here...
-# import streamlit as st # Commented out the initial one, as it's re-imported later.
-# st.title("Attendance Log System - Placeholder") # Removed this initial title
-
-
-import streamlit as st
-import pandas as pd
-from datetime import datetime, timezone, timedelta
-import os
-import pytz
-import plotly.express as px
-
-# --- Matplotlib Configuration ---
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import numpy as np
-
-# --- Pillow for placeholder image generation ---
-try:
-    from PIL import Image, ImageDraw, ImageFont
-    PILLOW_INSTALLED = True
-except ImportError:
-    PILLOW_INSTALLED = False
-
-
-# <<<< ADD BOOTSTRAP, MATERIAL ICONS AND NEW CUSTOM CSS HERE >>>>
-st.markdown("""
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Material Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-""", unsafe_allow_html=True)
-
+# <<<< Ensure this is your current CSS block, the st.columns approach relies on this kind of styling >>>>
 st.markdown("""
 <style>
     /* Apply Roboto to the whole app, and Material Symbols Outlined for icons */
@@ -43,7 +9,7 @@ st.markdown("""
         font-family: 'Material Symbols Outlined';
         font-weight: normal;
         font-style: normal;
-        font-size: 20px; /* Preferred icon size */
+        font-size: 22px; /* Slightly larger for better visibility */
         line-height: 1;
         letter-spacing: normal;
         text-transform: none;
@@ -55,8 +21,8 @@ st.markdown("""
         text-rendering: optimizeLegibility;
         -moz-osx-font-smoothing: grayscale;
         font-feature-settings: 'liga';
-        vertical-align: middle; /* Align icon with text */
-        margin-right: 8px; /* Space between icon and text */
+        vertical-align: middle; /* Ensure this is effective */
+        /* display: flex; align-items: center; justify-content: center; */ /* For the container of icon */
     }
 
     /* Streamlit's default sidebar container */
@@ -72,53 +38,85 @@ st.markdown("""
         padding: 1rem;
     }
 
-    /* Styling for st.button to look like Bootstrap nav-links */
-    .sidebar-nav .stButton button {
-        display: flex !important; /* Changed to flex for icon alignment */
-        align-items: center !important; /* Vertically align icon and text */
+    /* Styling for each navigation item row (icon + button) */
+    .sidebar-nav-item {
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+        padding: 0.5rem 0.75rem !important; /* Padding for the whole item */
+        margin-bottom: 0.125rem !important;
+        border-radius: 0.375rem !important;
+        text-decoration: none !important;
+        color: #212529 !important;
+        transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+        /* cursor: pointer;  Let the button handle cursor for its part */
+    }
+    .sidebar-nav-item:hover { /* Hover for the whole item container */
+        /* color: #000 !important; */ /* Let text color be handled by button hover */
+        background-color: #e9ecef !important;
+    }
+    
+    /* Icon container in the nav item */
+    .sidebar-nav-item .icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* padding-right: 10px; /* Space between icon and button text (handled by column gap or icon margin) */
+    }
+    .sidebar-nav-item .icon-container .material-symbols-outlined {
+        font-size: 20px !important;
+        color: inherit; /* Inherit color from .sidebar-nav-item parent */
+         margin-right: 0px; /* Reset margin if using columns for spacing */
+    }
+
+
+    /* Styling for st.button (text part) to be transparent and fit in */
+    .sidebar-nav-item .stButton button {
+        display: block !important;
         width: 100% !important;
         text-align: left !important;
         border: none !important;
-        padding: 0.6rem 1rem !important; /* Slightly more padding for icon */
-        margin-bottom: 0.125rem !important;
-        border-radius: 0.375rem !important;
+        padding: 0 !important; 
+        margin: 0 !important; 
         font-weight: 400 !important;
-        font-size: 0.95rem !important; /* Ensure button text size is consistent */
+        font-size: 0.95rem !important;
         line-height: 1.5 !important;
         background-color: transparent !important;
-        color: #212529 !important;
-        transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+        color: #212529 !important; /* Default button text color */
+        box-shadow: none !important;
+        outline: none !important;
+        cursor: pointer; /* Ensure button part is clickable */
     }
-    .sidebar-nav .stButton button:hover {
-        color: #000 !important;
-        background-color: #e9ecef !important;
-    }
-    .sidebar-nav .stButton button:focus,
-    .sidebar-nav .stButton button:active {
+     .sidebar-nav-item .stButton button:hover {
+        background-color: transparent !important;
+        color: #000 !important; /* Darken text on button hover if item hover is light */
+     }
+     .sidebar-nav-item .stButton button:focus,
+     .sidebar-nav-item .stButton button:active {
+        background-color: transparent !important;
+        color: inherit !important; /* Can be #000 or inherit from active item */
         box-shadow: none !important;
         outline: none !important;
     }
 
-    /* Ensure icon color matches button text color */
-    .sidebar-nav .stButton button .material-symbols-outlined {
-        color: inherit !important; /* Icon inherits color from button text */
-        font-size: 20px !important; /* Consistent icon size */
-    }
-    
 
-    /* Active navigation button styling */
-    .sidebar-nav div.active-button-wrapper .stButton button {
-        font-weight: 500 !important;
-        color: #fff !important;
+    /* Active navigation item styling (applied to the container div) */
+    .sidebar-nav-item.active-nav-item {
+        /* font-weight: 500 !important; */ /* Weight on button text itself */
+        color: #fff !important; /* This will be inherited by icon and button text */
         background-color: #0d6efd !important;
     }
-    .sidebar-nav div.active-button-wrapper .stButton button:hover {
+    .sidebar-nav-item.active-nav-item:hover { 
         color: #fff !important;
-        background-color: #0b5ed7 !important;
+        background-color: #0b5ed7 !important; /* Darker active on hover */
     }
-    /* Icon color for active button */
-    .sidebar-nav div.active-button-wrapper .stButton button .material-symbols-outlined {
-        color: #fff !important; /* White icon for active state */
+    /* Icon and button text color for active item */
+    .sidebar-nav-item.active-nav-item .icon-container .material-symbols-outlined {
+        color: #fff !important; 
+    }
+    .sidebar-nav-item.active-nav-item .stButton button {
+         color: #fff !important; 
+         font-weight: 500 !important; /* Bolder text for active button */
     }
 
 
@@ -127,7 +125,7 @@ st.markdown("""
         font-weight: 500;
         color: #212529;
         margin-bottom: 0.5rem;
-        padding-left: 0.5rem; /* Align with nav items if they have padding */
+        padding-left: 0.5rem;
     }
 
     .user-profile-img-container {
@@ -164,15 +162,21 @@ st.markdown("""
         border: none !important;
         width: 100% !important;
         font-weight: 500 !important;
-        /* Ensure logout button also aligns icon if one were added */
-        display: flex !important;
+        display: flex !important; 
         align-items: center !important;
-        justify-content: center; /* Center if only text or icon+text */
+        justify-content: center !important; 
+        padding: 0.5rem 1rem !important;
     }
     .logout-button-container .stButton button:hover {
         background-color: #5a6268 !important;
         color: white !important;
     }
+    /* If you add an icon to logout button via HTML & unsafe_allow_html (IF IT WORKED) */
+    /* .logout-button-container .stButton button .material-symbols-outlined {
+        margin-right: 8px; 
+        font-size: 20px;
+    } */
+
     /* Global message styling */
     .custom-notification {
         padding: 10px;
@@ -192,13 +196,13 @@ st.markdown("""
     .custom-notification.warning {
         color: #664d03; background-color: #fff3cd; border-color: #ffecb5;
     }
-
+    
 </style>
 """, unsafe_allow_html=True)
-# <<<< END OF BOOTSTRAP AND NEW CUSTOM CSS >>>>
 
 
-# --- Credentials & User Info ---
+# ... (Keep other imports and initial setup code: USERS, PILLOW, file paths, load_data, etc.)
+# --- Credentials & User Info (Keep as is) ...
 USERS = {
     "Geetali": {"password": "Geetali123", "role": "employee", "position": "Software Engineer", "profile_photo": "images/geetali.png"},
     "Nilesh": {"password": "Nilesh123", "role": "employee", "position": "Sales Executive", "profile_photo": "images/nilesh.png"},
@@ -209,7 +213,7 @@ USERS = {
     "admin": {"password": "admin123", "role": "admin", "position": "System Administrator", "profile_photo": "images/admin.png"}
 }
 
-# --- Create dummy images folder and placeholder images ---
+# --- Create dummy images folder and placeholder images (Keep as is) ...
 if not os.path.exists("images"):
     try: os.makedirs("images")
     except OSError: pass
@@ -232,7 +236,7 @@ if PILLOW_INSTALLED:
                 draw.text((text_x, text_y), text, fill=(28,78,128), font=font); img.save(img_path)
             except Exception: pass 
 
-# --- File Paths & Timezone & Directories ---
+# --- File Paths & Timezone & Directories (Keep as is) ...
 ATTENDANCE_FILE = "attendance.csv"; ALLOWANCE_FILE = "allowances.csv"; GOALS_FILE = "goals.csv"; PAYMENT_GOALS_FILE = "payment_goals.csv"
 ACTIVITY_LOG_FILE = "activity_log.csv"
 ACTIVITY_PHOTOS_DIR = "activity_photos"
@@ -256,7 +260,7 @@ def get_quarter_str_for_year(year, for_current_display=False):
     elif 7 <= now_month <= 9: return f"{year}-Q3"
     else: return f"{year}-Q4"
 
-# --- Load or create data ---
+# --- Load or create data (Keep as is) ...
 def load_data(path, columns):
     if os.path.exists(path):
         try:
@@ -290,11 +294,12 @@ payment_goals_df = load_data(PAYMENT_GOALS_FILE, PAYMENT_GOALS_COLUMNS)
 activity_log_df = load_data(ACTIVITY_LOG_FILE, ACTIVITY_LOG_COLUMNS)
 
 
-# --- Session State & Login ---
+# --- Session State & Login (Keep as is) ...
 if "user_message" not in st.session_state: st.session_state.user_message = None
 if "message_type" not in st.session_state: st.session_state.message_type = None
 if "auth" not in st.session_state: st.session_state.auth = {"logged_in": False, "username": None, "role": None}
-# --- Function to render Plotly Express grouped bar chart ---
+
+# Charting functions (Keep as is) ...
 def render_goal_chart(df: pd.DataFrame, chart_title: str): # Defined earlier, keep as is
     if df.empty:
         st.warning("No data available to plot.")
@@ -316,7 +321,6 @@ def render_goal_chart(df: pd.DataFrame, chart_title: str): # Defined earlier, ke
     fig.update_xaxes(type='category')
     st.plotly_chart(fig, use_container_width=True)
 
-# --- Function to create Matplotlib Donut Chart ---
 def create_donut_chart(progress_percentage, chart_title="Progress", achieved_color='#2ecc71', remaining_color='#f0f0f0', center_text_color=None): # Defined earlier
     fig, ax = plt.subplots(figsize=(2.5, 2.5), dpi=90)
     fig.patch.set_alpha(0); ax.patch.set_alpha(0)
@@ -332,7 +336,6 @@ def create_donut_chart(progress_percentage, chart_title="Progress", achieved_col
     ax.axis('equal'); plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
     return fig
 
-# --- Function to create Matplotlib Grouped Bar Chart for Team Progress ---
 def create_team_progress_bar_chart(summary_df, title="Team Progress", target_col="Target", achieved_col="Achieved", user_col="Employee"): # Defined earlier
     if summary_df.empty: return None
     labels = summary_df[user_col].tolist(); target_amounts = summary_df[target_col].fillna(0).tolist(); achieved_amounts = summary_df[achieved_col].fillna(0).tolist()
@@ -385,21 +388,19 @@ if "user_message" in st.session_state and st.session_state.user_message:
     st.session_state.message_type = None
 
 
-# <<<< MODIFIED SIDEBAR SECTION >>>>
-# Define navigation options with labels and Material Icon names
+# <<<< CORRECTED SIDEBAR SECTION >>>>
 nav_options_with_icons = [
     {"label": "Attendance", "icon": "schedule"},
     {"label": "Upload Activity Photo", "icon": "add_a_photo"},
     {"label": "Allowance", "icon": "payments"},
     {"label": "Goal Tracker", "icon": "emoji_events"},
     {"label": "Payment Collection Tracker", "icon": "receipt_long"},
-    {"label": "View Logs", "icon": "wysiwyg"}, # was summarize
+    {"label": "View Logs", "icon": "wysiwyg"},
     {"label": "Create Order", "icon": "add_shopping_cart"}
 ]
 
-# Initialize active_page in session state if not already set
 if "active_page" not in st.session_state:
-    st.session_state.active_page = nav_options_with_icons[0]["label"] # Default to first label
+    st.session_state.active_page = nav_options_with_icons[0]["label"]
 
 def set_active_page_callback(page_name):
     st.session_state.active_page = page_name
@@ -408,78 +409,68 @@ with st.sidebar:
     st.markdown('<div class="sidebar-content-wrapper">', unsafe_allow_html=True)
 
     st.markdown(f"<div class='welcome-text-sidebar'>Welcome, {current_user['username']}!</div>", unsafe_allow_html=True)
-
     user_sidebar_info = USERS.get(current_user["username"], {})
     if user_sidebar_info.get("profile_photo") and os.path.exists(user_sidebar_info["profile_photo"]):
         st.markdown("<div class='user-profile-img-container'>", unsafe_allow_html=True)
         st.image(user_sidebar_info["profile_photo"])
         st.markdown("</div>", unsafe_allow_html=True)
-
     st.markdown(
         f"<div class='user-position-text'>{user_sidebar_info.get('position', 'N/A')}</div>",
         unsafe_allow_html=True
     )
-
     st.markdown("<hr>", unsafe_allow_html=True)
 
     st.markdown('<div class="sidebar-nav">', unsafe_allow_html=True)
     for item in nav_options_with_icons:
         option_label = item["label"]
         option_icon = item["icon"]
-        
-        # Construct the HTML for the button label with icon
-        # Streamlit button label does not render HTML. We use markdown as a workaround.
-        # We will use st.button and rely on CSS to style the icon within if Streamlit's internal structure allows it.
-        # The st.button's 'icon' param is for specific emoji-like icons.
-        # For Material Icons, they need to be part of the text or styled with ::before.
-        
-        button_text_with_icon_html = f'<span class="material-symbols-outlined">{option_icon}</span> {option_label}'
-        
-        button_key = f"nav_btn_{option_label.lower().replace(' ', '_').replace('(', '').replace(')', '')}"
+        button_key = f"nav_btn_{option_label.lower().replace(' ', '_')}" # Simpler key
         is_active = (st.session_state.active_page == option_label)
-        
-        # This approach embeds HTML into the button label.
-        # The custom CSS for .stButton button and .material-symbols-outlined will handle styling.
-        if is_active:
-            st.markdown('<div class="active-button-wrapper">', unsafe_allow_html=True)
-            # The button_text_with_icon_html will be treated as a string by st.button
-            # We rely on the CSS to apply 'Material Symbols Outlined' font to the button.
-            st.button(
-                button_text_with_icon_html, 
-                key=button_key, 
-                on_click=set_active_page_callback, 
-                args=(option_label,), 
-                use_container_width=True,
-                unsafe_allow_html=True # THIS IS KEY for rendering HTML in button
-            )
-            st.markdown('</div>', unsafe_allow_html=True)
-        else:
-            st.button(
-                button_text_with_icon_html, 
-                key=button_key, 
-                on_click=set_active_page_callback, 
-                args=(option_label,), 
-                use_container_width=True,
-                unsafe_allow_html=True # THIS IS KEY
-            )
-    st.markdown('</div>', unsafe_allow_html=True)
 
+        active_class = "active-nav-item" if is_active else ""
+        
+        # Use a markdown container for each item to apply overall styling and hover
+        st.markdown(f'<div class="sidebar-nav-item {active_class}">', unsafe_allow_html=True)
+        
+        # Use st.columns to separate icon and button.
+        # Adjust column widths: 1 for icon, 5 for text (relative widths)
+        # The gap between columns can be controlled by Streamlit or with CSS if needed.
+        icon_col, text_col = st.columns([1, 5]) 
+
+        with icon_col:
+            # icon-container helps vertically align the icon if needed, though st.columns usually does well.
+            st.markdown(f'<div class="icon-container"><span class="material-symbols-outlined">{option_icon}</span></div>', unsafe_allow_html=True)
+        
+        with text_col:
+            # The button only contains text now. No unsafe_allow_html here.
+            st.button(
+                option_label, 
+                key=button_key, 
+                on_click=set_active_page_callback, 
+                args=(option_label,),
+                use_container_width=True 
+            )
+        st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-nav-item div
+
+    st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-nav
+
+    # Logout Button
     st.markdown('<div class="logout-button-container">', unsafe_allow_html=True)
-    # Adding logout icon
-    logout_button_html = '<span class="material-symbols-outlined">logout</span> Logout'
-    if st.button(logout_button_html, key="logout_button_sidebar", use_container_width=True, unsafe_allow_html=True):
+    # For logout button, if you want an icon, you can use an emoji or a similar st.columns approach.
+    # Using emoji for simplicity here.
+    if st.button("➡️ Logout", key="logout_button_sidebar", use_container_width=True): 
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.session_state.user_message = "Logged out successfully."
         st.session_state.message_type = "info"
         st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True) 
+    st.markdown('</div>', unsafe_allow_html=True) # Close logout-button-container
     
-    st.markdown('</div>', unsafe_allow_html=True) 
-# <<<< END OF MODIFIED SIDEBAR SECTION >>>>
+    st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-content-wrapper
+# <<<< END OF CORRECTED SIDEBAR SECTION >>>>
 
 
-# --- Main Content ---
-# IMPORTANT: All 'if st.session_state.active_page == "..."' must remain.
+# --- Main Content (Remaining code for pages) ---
+# Ensure all page logic uses `if st.session_state.active_page == "PageName":`
 
 if st.session_state.active_page == "Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True) 
