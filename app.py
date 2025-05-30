@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, timezone, timedelta, date
 from streamlit_option_menu import option_menu
 import os
-import pytz # Ensure this is imported
+import pytz
 import plotly.express as px
 import matplotlib
 matplotlib.use('Agg')
@@ -18,15 +18,14 @@ except ImportError:
 
 # --- Global Configuration & Constants ---
 TARGET_TIMEZONE = "Asia/Kolkata"
-TZ_INFO = None # Initialize tz_info globally
 try:
-    TZ_INFO = pytz.timezone(TARGET_TIMEZONE) # Assign to TZ_INFO
+    tz = pytz.timezone(TARGET_TIMEZONE)
 except pytz.exceptions.UnknownTimeZoneError:
-    st.error(f"FATAL ERROR: Invalid TARGET_TIMEZONE configured: '{TARGET_TIMEZONE}'. Application cannot start.")
-    st.stop() # Stop execution if timezone is critically wrong
+    st.error(f"Invalid TARGET_TIMEZONE: '{TARGET_TIMEZONE}'. Please correct it.")
+    st.stop()
 
-# --- File Paths (ensure these are correct) ---
-BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # Get script's directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# ... (other file paths using BASE_DIR) ...
 ATTENDANCE_FILE = os.path.join(BASE_DIR, "attendance.csv")
 ALLOWANCE_FILE = os.path.join(BASE_DIR, "allowances.csv")
 GOALS_FILE = os.path.join(BASE_DIR, "goals.csv")
@@ -38,28 +37,17 @@ ORDER_SUMMARY_FILE = os.path.join(BASE_DIR, "order_summary.csv")
 STORES_FILE = os.path.join(BASE_DIR, "agri_stores.csv")
 PRODUCTS_FILE = os.path.join(BASE_DIR, "symplanta_products_with_images.csv")
 
-if not os.path.exists(ACTIVITY_PHOTOS_DIR):
-    os.makedirs(ACTIVITY_PHOTOS_DIR, exist_ok=True)
 
-# --- UTILITY FUNCTIONS (Define these early) ---
-def get_current_time_in_tz():
-    """Get current datetime in the configured global timezone."""
-    if TZ_INFO is None: # Should not happen if initial setup is correct
-        st.error("Timezone information (TZ_INFO) is not initialized!")
-        # Fallback to UTC to prevent further errors, but this indicates a setup problem
-        return datetime.now(timezone.utc)
-    return datetime.now(timezone.utc).astimezone(TZ_INFO)
+if not os.path.exists(ACTIVITY_PHOTOS_DIR): os.makedirs(ACTIVITY_PHOTOS_DIR, exist_ok=True)
 
+# --- UTILITY FUNCTIONS ---
+def get_current_time_in_tz(): return datetime.now(timezone.utc).astimezone(tz)
 def get_quarter_str_for_year(year):
-    current_time = get_current_time_in_tz() # Calls the function defined above
-    month = current_time.month
-    if 1 <= month <= 3: return f"{year}-Q1"
-    elif 4 <= month <= 6: return f"{year}-Q2"
-    elif 7 <= month <= 9: return f"{year}-Q3"
-    else: return f"{year}-Q4"
-
+    m = get_current_time_in_tz().month
+    if 1<=m<=3: return f"{year}-Q1"; elif 4<=m<=6: return f"{year}-Q2";
+    elif 7<=m<=9: return f"{year}-Q3"; else: return f"{year}-Q4"
+# ... (load_data function) ...
 def load_data(path, columns):
-    # ... (load_data function - keep as is, it's generally fine)
     if os.path.exists(path) and os.path.getsize(path) > 0:
         try:
             df = pd.read_csv(path)
@@ -84,8 +72,8 @@ PAYMENT_GOALS_COLUMNS = ["Username", "MonthYear", "GoalDescription", "TargetAmou
 ACTIVITY_LOG_COLUMNS = ["Username", "Timestamp", "Description", "ImageFile", "Latitude", "Longitude"]
 ORDERS_COLUMNS = ["OrderID", "OrderDate", "Salesperson", "StoreID", "ProductVariantID", "SKU", "ProductName", "Quantity", "UnitOfMeasure", "UnitPrice", "LineTotal"]
 ORDER_SUMMARY_COLUMNS = ["OrderID", "OrderDate", "Salesperson", "StoreID", "StoreName", "Subtotal", "DiscountAmount", "TaxAmount", "GrandTotal", "Notes", "PaymentMode", "ExpectedDeliveryDate"]
-STORES_COLUMNS = ["StoreID", "StoreName"] # Add other relevant store columns
-PRODUCTS_COLUMNS = ["ProductVariantID", "ProductName", "SKU", "Category", "UnitOfMeasure", "Price", "ImageURL"] # Assuming 'Price' for unit price
+STORES_COLUMNS = ["StoreID", "StoreName"]
+PRODUCTS_COLUMNS = ["ProductVariantID", "ProductName", "SKU", "Category", "UnitOfMeasure", "Price", "ImageURL"]
 
 # --- Load Global DataFrames ---
 attendance_df = load_data(ATTENDANCE_FILE, ATTENDANCE_COLUMNS)
@@ -105,13 +93,13 @@ USERS = {
     "Vishal": {"password": "Vishal123", "role": "sales_person", "position": "Sales Executive", "profile_photo": "images/vishal.png"},
     "admin": {"password": "admin123", "role": "admin", "position": "System Administrator", "profile_photo": "images/admin.png"}
 }
-images_dir = os.path.join(BASE_DIR, "images") # Define images directory path
+images_dir = os.path.join(BASE_DIR, "images")
 if not os.path.exists(images_dir): os.makedirs(images_dir, exist_ok=True)
-if PILLOW_INSTALLED:
+if PILLOW_INSTALLED: # ... (Pillow image generation logic as before) ...
     for user_key, user_data in USERS.items():
-        img_file_name = user_data.get("profile_photo") # This is just the filename like "geetali.png"
+        img_file_name = user_data.get("profile_photo")
         if img_file_name:
-            img_path = os.path.join(images_dir, img_file_name) # Construct full path
+            img_path = os.path.join(images_dir, img_file_name)
             if not os.path.exists(img_path):
                 try:
                     img = Image.new('RGB', (120, 120), color=(220, 220, 220)); draw = ImageDraw.Draw(img)
@@ -129,6 +117,7 @@ if PILLOW_INSTALLED:
 if "user_message" not in st.session_state: st.session_state.user_message = None
 if "message_type" not in st.session_state: st.session_state.message_type = None
 if "auth" not in st.session_state: st.session_state.auth = {"logged_in": False, "username": None, "role": None}
+# Order creation specific session state items
 if "co_order_line_items" not in st.session_state: st.session_state.co_order_line_items = []
 if "co_current_product_id" not in st.session_state: st.session_state.co_current_product_id = None
 if "co_current_quantity" not in st.session_state: st.session_state.co_current_quantity = 1
@@ -138,8 +127,16 @@ if "co_order_discount" not in st.session_state: st.session_state.co_order_discou
 if "co_order_tax" not in st.session_state: st.session_state.co_order_tax = 0.0
 if "admin_order_view_selected_order_id" not in st.session_state: st.session_state.admin_order_view_selected_order_id = None
 
-APP_MENU_OPTIONS_BASE = ["Attendance", "Upload Activity Photo", "Allowance", "Goal Tracker", "Payment Collection Tracker"] # Removed "Home" as it's added dynamically
+
+# --- DEFINE BASE MENU OPTIONS GLOBALLY --- <<<< MOVED HERE
+APP_MENU_OPTIONS_BASE = ["Attendance", "Upload Activity Photo", "Allowance", "Goal Tracker", "Payment Collection Tracker"]
 APP_MENU_ICONS_BASE = ['calendar2-check', 'camera', 'wallet2', 'graph-up', 'cash-stack']
+
+# Initialize active_page; this might be refined after login based on role
+if "active_page" not in st.session_state:
+    # Default to a generic first page before role-specific menu is built
+    st.session_state.active_page = "Home" if "Home" in APP_MENU_OPTIONS_BASE else APP_MENU_OPTIONS_BASE[0]
+
 
 # --- CSS STYLING ---
 st.markdown("""
@@ -147,7 +144,8 @@ st.markdown("""
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
 <style>
-    :root { /* CSS Variables */
+    /* ... (Your full CSS block - KEEP AS IS) ... */
+    :root {
         --kaggle-blue: #20BEFF; --kaggle-dark-text: #333333; --kaggle-light-bg: #FFFFFF;
         --kaggle-content-bg: #F5F5F5; --kaggle-gray-border: #E0E0E0; --kaggle-hover-bg: #f0f8ff;
         --kaggle-selected-bg: #E6F7FF; --kaggle-selected-text: var(--kaggle-blue);
@@ -165,9 +163,8 @@ st.markdown("""
     .sidebar-app-header h2 { color: var(--kaggle-blue); font-size: 1.5rem; margin: 0; font-weight: 600; }
     .sidebar-app-header p { color: #666; font-size: 0.85rem; margin: 4px 0 0 0; }
     .sidebar-user-info-block { padding: 12px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--kaggle-gray-border); }
-    .sidebar-user-info-block img { /* Target img directly if st.image doesn't support class */
-        border-radius: 50% !important; width: 40px !important; height: 40px !important;
-        object-fit: cover !important; border: 1px solid var(--kaggle-gray-border) !important;
+    .sidebar-user-info-block img { 
+        border-radius: 50%; width: 40px; height: 40px; object-fit: cover; border: 1px solid var(--kaggle-gray-border);
     }
     .user-details-text-block div:nth-child(1) { color: var(--kaggle-dark-text) !important; font-size: 0.95rem; font-weight: 500; }
     .user-details-text-block div:nth-child(2) { color: #777 !important; font-size: 0.8rem; }
@@ -191,8 +188,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- PLOTTING FUNCTIONS (Keep as corrected previously) ---
-# ... (render_goal_chart, create_donut_chart, create_team_progress_bar_chart) ...
+# --- PLOTTING FUNCTIONS ---
+# ... (Keep your plotting functions as corrected previously) ...
 def render_goal_chart(df: pd.DataFrame, chart_title: str):
     if df.empty: st.warning("No data available to plot."); return
     df_chart = df.copy(); df_chart[["TargetAmount", "AchievedAmount"]] = df_chart[["TargetAmount", "AchievedAmount"]].apply(pd.to_numeric, errors="coerce").fillna(0)
@@ -244,39 +241,48 @@ if not st.session_state.auth["logged_in"]:
         st.session_state.user_message = None; st.session_state.message_type = None
     st.markdown("<div class='card' style='max-width: 400px; margin: 3rem auto; padding: 2rem;'>", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align: center; color: var(--kaggle-blue);'>🔐 Login to TrackSphere</h3>", unsafe_allow_html=True)
-    uname = st.text_input("Username", key="login_uname_final_v5")
-    pwd = st.text_input("Password", type="password", key="login_pwd_final_v5")
-    if st.button("Login", key="login_button_final_v5", type="primary", use_container_width=True):
+    uname = st.text_input("Username", key="login_uname_final_v6") # Unique key
+    pwd = st.text_input("Password", type="password", key="login_pwd_final_v6") # Unique key
+    if st.button("Login", key="login_button_final_v6", type="primary", use_container_width=True):
         user_creds = USERS.get(uname)
         if user_creds and user_creds["password"] == pwd:
             st.session_state.auth = {"logged_in": True, "username": uname, "role": user_creds["role"]}
             st.session_state.user_message = "Login successful!"; st.session_state.message_type = "success"
             
-            # Determine dynamic menu options AFTER role is set in session_state.auth
+            # Determine dynamic menu options AFTER role is set
             current_role_login = st.session_state.auth.get("role", "")
             dynamic_app_menu_options = APP_MENU_OPTIONS_BASE.copy()
             dynamic_app_menu_icons = APP_MENU_ICONS_BASE.copy()
+
+            # Ensure "Home" is always the first option after login
             if "Home" not in dynamic_app_menu_options:
                 dynamic_app_menu_options.insert(0, "Home")
-                dynamic_app_menu_icons.insert(0, 'house-door')
-            
-            # Role-specific menu items (ensure 'View Logs' maps to one of these)
+                dynamic_app_menu_icons.insert(0, 'house-door') # Icon for Home
+
             if current_role_login == 'admin':
                 if "Create Order" not in dynamic_app_menu_options: dynamic_app_menu_options.append("Create Order"); dynamic_app_menu_icons.append("cart-plus")
-                if "Manage Records" not in dynamic_app_menu_options: dynamic_app_menu_options.append("Manage Records"); dynamic_app_menu_icons.append("gear-fill") # Changed from View Logs
+                if "Manage Records" not in dynamic_app_menu_options: dynamic_app_menu_options.append("Manage Records"); dynamic_app_menu_icons.append("gear-fill")
             elif current_role_login == 'sales_person':
                 if "Create Order" not in dynamic_app_menu_options: dynamic_app_menu_options.append("Create Order"); dynamic_app_menu_icons.append("cart-plus")
-                if "My Records" not in dynamic_app_menu_options: dynamic_app_menu_options.append("My Records"); dynamic_app_menu_icons.append("person-lines-fill") # Changed from View Logs
-            else: # Default employee
                 if "My Records" not in dynamic_app_menu_options: dynamic_app_menu_options.append("My Records"); dynamic_app_menu_icons.append("person-lines-fill")
+            else: # Default employee (non-admin, non-sales_person)
+                if "My Records" not in dynamic_app_menu_options: dynamic_app_menu_options.append("My Records"); dynamic_app_menu_icons.append("person-lines-fill")
+                # Remove "Create Order" if it was in base and this role shouldn't see it
+                if "Create Order" in dynamic_app_menu_options:
+                    try:
+                        idx_co = dynamic_app_menu_options.index("Create Order")
+                        dynamic_app_menu_options.pop(idx_co)
+                        dynamic_app_menu_icons.pop(idx_co)
+                    except ValueError: pass # Should not happen if check is done
 
             st.session_state.APP_MENU_OPTIONS_FOR_USER = dynamic_app_menu_options
             st.session_state.APP_MENU_ICONS_FOR_USER = dynamic_app_menu_icons
-            st.session_state.active_page = dynamic_app_menu_options[0]
+            st.session_state.active_page = dynamic_app_menu_options[0] # Default to first available page
             st.rerun()
         else: st.error("Invalid username or password.")
     st.markdown("</div>", unsafe_allow_html=True); st.stop()
 
+# --- MAIN APPLICATION AFTER LOGIN ---
 current_user = st.session_state.auth
 message_placeholder_main = st.empty()
 if st.session_state.user_message:
@@ -288,35 +294,35 @@ with st.sidebar:
     st.markdown("""<div class="sidebar-app-header"><h2>TrackSphere</h2><p>Field Activity Tracker</p></div>""", unsafe_allow_html=True)
     current_username_sb = current_user.get('username', 'Guest')
     user_details_sb = USERS.get(current_username_sb, {})
-    profile_photo_sb = user_details_sb.get("profile_photo", "")
+    profile_photo_sb_filename = user_details_sb.get("profile_photo", "") # Filename from USERS dict
+
     st.markdown('<div class="sidebar-user-info-block">', unsafe_allow_html=True)
-    if profile_photo_sb and PILLOW_INSTALLED: # Check PILLOW_INSTALLED
-        # Construct full image path
-        full_profile_photo_path = os.path.join(BASE_DIR, "images", profile_photo_sb) # Use BASE_DIR
-        if os.path.exists(full_profile_photo_path):
-             st.image(full_profile_photo_path, width=40)
-        else: # Fallback if image file not found, even if path is in USERS
+    if profile_photo_sb_filename and PILLOW_INSTALLED:
+        full_profile_photo_path_sb = os.path.join(BASE_DIR, profile_photo_sb_filename) # Construct full path
+        if os.path.exists(full_profile_photo_path_sb):
+            st.image(full_profile_photo_path_sb, width=40)
+        else: # Fallback if image file not found
             st.markdown(f"""<i class="bi bi-person-circle" style="font-size: 36px; color: var(--kaggle-icon-color); vertical-align:middle;"></i>""", unsafe_allow_html=True)
-    else:
+    else: # Fallback if no photo path or Pillow not installed
         st.markdown(f"""<i class="bi bi-person-circle" style="font-size: 36px; color: var(--kaggle-icon-color); vertical-align:middle;"></i>""", unsafe_allow_html=True)
+    
     st.markdown(f"""<div class="user-details-text-block"><div>{current_username_sb}</div><div>{user_details_sb.get('position', 'N/A')}</div></div>""", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    active_menu_options = st.session_state.get("APP_MENU_OPTIONS_FOR_USER", APP_MENU_OPTIONS_BASE)
-    active_menu_icons = st.session_state.get("APP_MENU_ICONS_FOR_USER", APP_MENU_ICONS_BASE)
-    
-    # Fallback for active_page if not set or invalid after role change
+    # Use dynamically set menu options from session state, with a fallback to base if not set (e.g. first run after login)
+    active_menu_options = st.session_state.get("APP_MENU_OPTIONS_FOR_USER", APP_MENU_OPTIONS_BASE + ["Home"]) # Add Home as a general fallback
+    active_menu_icons = st.session_state.get("APP_MENU_ICONS_FOR_USER", APP_MENU_ICONS_BASE + ['house-door'])
+
     if st.session_state.get('active_page') not in active_menu_options:
-        st.session_state.active_page = active_menu_options[0] if active_menu_options else "Home" # Default if list empty
+        st.session_state.active_page = active_menu_options[0] if active_menu_options else "Home"
     
     try: default_idx = active_menu_options.index(st.session_state.active_page)
     except ValueError: default_idx = 0; st.session_state.active_page = active_menu_options[0] if active_menu_options else "Home"
 
-
     selected = option_menu(
         menu_title=None, options=active_menu_options, icons=active_menu_icons, default_index=default_idx,
         orientation="vertical", on_change=lambda key: st.session_state.update(active_page=key),
-        key='main_app_option_menu_final_v5',
+        key='main_app_option_menu_final_v6', # Incremented key
         styles={
             "container": {"padding": "5px 8px !important", "background-color": "var(--kaggle-light-bg)"},
             "icon": {"color": "var(--kaggle-icon-color)", "font-size": "18px", "margin-right":"10px"},
@@ -325,29 +331,27 @@ with st.sidebar:
             "nav-link-selected > i.icon": {"color": "var(--kaggle-icon-selected-color) !important"}
         })
     st.markdown('<div class="logout-button-container-main">', unsafe_allow_html=True)
-    if st.button("🚪 Logout", key="logout_app_button_key_final_v5", use_container_width=True):
+    if st.button("🚪 Logout", key="logout_app_button_key_final_v6", use_container_width=True): # Incremented key
         st.session_state.auth = {"logged_in": False, "username": None, "role": None}
         st.session_state.user_message = "Logged out successfully."; st.session_state.message_type = "info"
-        # Reset active page and menu options to a non-logged-in state or default
-        st.session_state.active_page = "Home" # A generic default
-        st.session_state.APP_MENU_OPTIONS_FOR_USER = ["Home"] # Minimal menu for logged-out state if needed by logic before login check
-        st.session_state.APP_MENU_ICONS_FOR_USER = ["house-door"]
+        st.session_state.active_page = "Home" # Default to home after logout
+        st.session_state.APP_MENU_OPTIONS_FOR_USER = ["Home"] + APP_MENU_OPTIONS_BASE # Reset to a basic menu
+        st.session_state.APP_MENU_ICONS_FOR_USER = ["house-door"] + APP_MENU_ICONS_BASE
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
 # --- MAIN CONTENT PAGE ROUTING ---
-# (Logic for Attendance, Upload Activity Photo, Allowance are assumed complete)
-# (Logic for Goal Tracker, Payment Tracker, View Logs, Create Order are now fully restored)
+# (Logic for all pages: Attendance, Upload Activity Photo, Allowance, Goal Tracker, Payment Tracker, View Logs, Create Order, Home)
+# This section should contain the full, corrected logic for each page as previously established.
 
-# Page: Home (Default landing page)
 if selected == "Home":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.header(f"🏠 Welcome Home, {current_user['username']}!")
     st.write("Select an option from the sidebar to manage your activities.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Page: Attendance
 elif selected == "Attendance":
+    # --- (Copied and adapted Attendance logic) ---
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
     st.info("📍 Location services are currently disabled. Photos for specific activities can be uploaded from 'Upload Activity Photo'.", icon="ℹ️")
@@ -368,20 +372,21 @@ elif selected == "Attendance":
             st.session_state.user_message = f"{attendance_type} recorded at {now_str_display}."; st.session_state.message_type = "success"; st.rerun()
         except Exception as e: st.session_state.user_message = f"Error saving attendance: {e}"; st.session_state.message_type = "error"; st.rerun()
     with col1_att:
-        if st.button("✅ Check In", key="check_in_btn_att_page_final_v5", use_container_width=True, type="primary"): process_general_attendance("Check-In")
+        if st.button("✅ Check In", key="check_in_btn_att_page_final_v6", use_container_width=True, type="primary"): process_general_attendance("Check-In")
     with col2_att:
-        if st.button("🚪 Check Out", key="check_out_btn_att_page_final_v5", use_container_width=True, type="primary"): process_general_attendance("Check-Out")
+        if st.button("🚪 Check Out", key="check_out_btn_att_page_final_v6", use_container_width=True, type="primary"): process_general_attendance("Check-Out")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Page: Upload Activity Photo
+
 elif selected == "Upload Activity Photo":
+    # --- (Copied and adapted Upload Activity Photo logic) ---
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📸 Upload Field Activity Photo</h3>", unsafe_allow_html=True)
     current_lat, current_lon = pd.NA, pd.NA
-    with st.form(key="activity_photo_form_upload_page_final_v5"):
+    with st.form(key="activity_photo_form_upload_page_final_v6"):
         st.markdown("<h6>Capture and Describe Your Activity:</h6>", unsafe_allow_html=True)
-        activity_description = st.text_area("Brief description:", key="activity_desc_upload_page_final_v5")
-        img_file_buffer_activity = st.camera_input("Take a picture:", key="activity_camera_upload_page_final_v5")
+        activity_description = st.text_area("Brief description:", key="activity_desc_upload_page_final_v6")
+        img_file_buffer_activity = st.camera_input("Take a picture:", key="activity_camera_upload_page_final_v6")
         submit_activity_photo = st.form_submit_button("⬆️ Upload Photo & Log")
     if submit_activity_photo:
         if img_file_buffer_activity is None: st.warning("Please take a picture.")
@@ -405,14 +410,14 @@ elif selected == "Upload Activity Photo":
             except Exception as e: st.session_state.user_message = f"Error saving activity: {e}"; st.session_state.message_type = "error"; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Page: Allowance
 elif selected == "Allowance":
+    # --- (Copied and adapted Allowance logic) ---
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>💼 Claim Allowance</h3>", unsafe_allow_html=True)
-    a_type = st.radio("Type:", ["Travel", "Dinner", "Medical", "Internet", "Other"], key="allowance_type_radio_main_page_final_v5", horizontal=True)
-    amount = st.number_input("Amount (INR):", min_value=0.01, step=10.0, format="%.2f", key="allowance_amount_main_page_final_v5")
-    reason = st.text_area("Reason:", key="allowance_reason_main_page_final_v5", placeholder="Please provide a clear justification...")
-    if st.button("Submit Allowance Request", key="submit_allowance_btn_main_page_final_v5", use_container_width=True, type="primary"):
+    a_type = st.radio("Type:", ["Travel", "Dinner", "Medical", "Internet", "Other"], key="allowance_type_radio_main_page_final_v6", horizontal=True)
+    amount = st.number_input("Amount (INR):", min_value=0.01, step=10.0, format="%.2f", key="allowance_amount_main_page_final_v6")
+    reason = st.text_area("Reason:", key="allowance_reason_main_page_final_v6", placeholder="Please provide a clear justification...")
+    if st.button("Submit Allowance Request", key="submit_allowance_btn_main_page_final_v6", use_container_width=True, type="primary"):
         if a_type and amount > 0 and reason.strip():
             temp_allowance_df = allowance_df.copy()
             date_str = get_current_time_in_tz().strftime("%Y-%m-%d")
@@ -429,17 +434,15 @@ elif selected == "Allowance":
         else: st.warning("Please complete all fields with valid values.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- (Full logic for Goal Tracker, Payment Tracker, View Logs, Create Order copied from your previous full code) ---
-# Page: Goal Tracker
 elif selected == "Goal Tracker":
-    # ... (Copied and adapted Goal Tracker logic from your previous provided code) ...
+    # --- (Copied and adapted Goal Tracker logic) ---
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🎯 Sales Goal Tracker (2025 - Quarterly)</h3>", unsafe_allow_html=True)
-    TARGET_GOAL_YEAR_GT = 2025; current_quarter_for_display_gt = get_quarter_str_for_year(TARGET_GOAL_YEAR_GT) # Unique var names
-    status_options_gt_page = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"] # Unique var names
+    TARGET_GOAL_YEAR_GT = 2025; current_quarter_for_display_gt = get_quarter_str_for_year(TARGET_GOAL_YEAR_GT)
+    status_options_gt_page = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: Manage & Track Employee Goals</h4>", unsafe_allow_html=True)
-        admin_action_gt_page = st.radio("Action:", ["View Team Progress", f"Set/Edit Goal for {TARGET_GOAL_YEAR_GT}"], key="admin_goal_action_radio_gt_page_final", horizontal=True)
+        admin_action_gt_page = st.radio("Action:", ["View Team Progress", f"Set/Edit Goal for {TARGET_GOAL_YEAR_GT}"], key="admin_goal_action_radio_gt_page_final_v2", horizontal=True) # Key update
         if admin_action_gt_page == "View Team Progress":
             st.markdown(f"<h5>Team Goal Progress for {current_quarter_for_display_gt}</h5>", unsafe_allow_html=True)
             employee_users_gt_page = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
@@ -478,19 +481,19 @@ elif selected == "Goal Tracker":
             employee_options_admin_form_gt_page = [u for u,d in USERS.items() if d["role"]=="employee"]
             if not employee_options_admin_form_gt_page: st.warning("No employees available.")
             else:
-                selected_emp_admin_form_gt_page = st.radio("Select Employee:", employee_options_admin_form_gt_page, key="goal_emp_radio_admin_gt_form_final_page", horizontal=True)
-                quarter_options_admin_form_gt_page = [f"{TARGET_GOAL_YEAR_GT}-Q{i}" for i in range(1,5)]; selected_period_admin_form_gt_page = st.radio("Goal Period:", quarter_options_admin_form_gt_page, key="goal_period_radio_admin_gt_form_final_page", horizontal=True)
+                selected_emp_admin_form_gt_page = st.radio("Select Employee:", employee_options_admin_form_gt_page, key="goal_emp_radio_admin_gt_form_final_page_v2", horizontal=True) # Key update
+                quarter_options_admin_form_gt_page = [f"{TARGET_GOAL_YEAR_GT}-Q{i}" for i in range(1,5)]; selected_period_admin_form_gt_page = st.radio("Goal Period:", quarter_options_admin_form_gt_page, key="goal_period_radio_admin_gt_form_final_page_v2", horizontal=True) # Key update
                 temp_goals_df_admin_form_page = goals_df.copy()
                 existing_g_admin_form_gt_page = temp_goals_df_admin_form_page[(temp_goals_df_admin_form_page["Username"] == selected_emp_admin_form_gt_page) & (temp_goals_df_admin_form_page["MonthYear"] == selected_period_admin_form_gt_page)]
                 g_desc_admin_form_page,g_target_admin_form_page,g_achieved_admin_form_page,g_status_admin_form_page = "",0.0,0.0,status_options_gt_page[0]
                 if not existing_g_admin_form_gt_page.empty:
                     g_data_admin_form_page=existing_g_admin_form_gt_page.iloc[0]; g_desc_admin_form_page=g_data_admin_form_page.get("GoalDescription",""); g_target_admin_form_page=g_data_admin_form_page.get("TargetAmount",0.0); g_achieved_admin_form_page=g_data_admin_form_page.get("AchievedAmount",0.0); g_status_admin_form_page=g_data_admin_form_page.get("Status",status_options_gt_page[0])
                     st.info(f"Editing goal for {selected_emp_admin_form_gt_page} - {selected_period_admin_form_gt_page}")
-                with st.form(key=f"set_goal_form_{selected_emp_admin_form_gt_page}_{selected_period_admin_form_gt_page}_admin_final_gt_form_page"):
-                    new_desc_admin_form_page=st.text_area("Goal Description",value=g_desc_admin_form_page,key=f"desc_gt_final_form_admin_page")
-                    new_target_admin_form_page=st.number_input("Target Sales (INR)",value=float(g_target_admin_form_page),min_value=0.0,step=1000.0,format="%.2f",key=f"target_gt_final_form_admin_page")
-                    new_achieved_admin_form_page=st.number_input("Achieved Sales (INR)",value=float(g_achieved_admin_form_page),min_value=0.0,step=100.0,format="%.2f",key=f"achieved_gt_final_form_admin_page")
-                    new_status_admin_form_page=st.radio("Status:",status_options_gt_page,index=status_options_gt_page.index(g_status_admin_form_page),horizontal=True,key=f"status_gt_final_form_admin_page")
+                with st.form(key=f"set_goal_form_{selected_emp_admin_form_gt_page}_{selected_period_admin_form_gt_page}_admin_final_gt_form_page_v2"): # Key update
+                    new_desc_admin_form_page=st.text_area("Goal Description",value=g_desc_admin_form_page,key=f"desc_gt_final_form_admin_page_v2") # Key update
+                    new_target_admin_form_page=st.number_input("Target Sales (INR)",value=float(g_target_admin_form_page),min_value=0.0,step=1000.0,format="%.2f",key=f"target_gt_final_form_admin_page_v2") # Key update
+                    new_achieved_admin_form_page=st.number_input("Achieved Sales (INR)",value=float(g_achieved_admin_form_page),min_value=0.0,step=100.0,format="%.2f",key=f"achieved_gt_final_form_admin_page_v2") # Key update
+                    new_status_admin_form_page=st.radio("Status:",status_options_gt_page,index=status_options_gt_page.index(g_status_admin_form_page),horizontal=True,key=f"status_gt_final_form_admin_page_v2") # Key update
                     submitted_admin_form_gt_page=st.form_submit_button("Save Goal")
                 if submitted_admin_form_gt_page:
                     if not new_desc_admin_form_page.strip(): st.warning("Description required.")
@@ -528,7 +531,7 @@ elif selected == "Goal Tracker":
                 st.markdown(f"<h6 style='text-align:center;margin-bottom:0px;margin-top:-15px;'>Sales Progress</h6>",unsafe_allow_html=True)
                 donut_fig_e_gt_page=create_donut_chart(progress_percent_e_gt_page,"Sales Progress",achieved_color='#28a745'); st.pyplot(donut_fig_e_gt_page,use_container_width=True)
             st.markdown("---")
-            with st.form(key=f"update_achievement_{current_user['username']}_{current_quarter_for_display}_final_gt_form_page"):
+            with st.form(key=f"update_achievement_{current_user['username']}_{current_quarter_for_display}_final_gt_form_page_v2"): # Key update
                 new_val_e_gt_page=st.number_input("Update Achieved Amount (INR):",value=achieved_amt_e_gt_page,min_value=0.0,step=100.0,format="%.2f")
                 submitted_ach_e_gt_page=st.form_submit_button("Update Achievement")
             if submitted_ach_e_gt_page:
@@ -560,7 +563,7 @@ elif selected == "Payment Collection Tracker":
     status_options_payment_pct = ["Not Started", "In Progress", "Achieved", "On Hold", "Cancelled"]
     if current_user["role"] == "admin":
         st.markdown("<h4>Admin: Set & Track Payment Collection Goals</h4>", unsafe_allow_html=True)
-        admin_action_payment_pct = st.radio("Action:", ["View Team Progress", f"Set/Edit Collection Target for {TARGET_YEAR_PAYMENT_PCT}"], key="admin_payment_action_admin_set_pct_final_v4", horizontal=True)
+        admin_action_payment_pct = st.radio("Action:", ["View Team Progress", f"Set/Edit Collection Target for {TARGET_YEAR_PAYMENT_PCT}"], key="admin_payment_action_admin_set_pct_final_v5", horizontal=True)
         if admin_action_payment_pct == "View Team Progress":
             # ... (Full Admin View Team Progress logic for Payment Collection) ...
             st.markdown(f"<h5>Team Payment Collection Progress for {current_quarter_display_payment_pct}</h5>", unsafe_allow_html=True)
@@ -603,8 +606,8 @@ elif selected == "Payment Collection Tracker":
             employees_for_payment_goal_pct = [u for u,d in USERS.items() if d["role"]=="employee"]
             if not employees_for_payment_goal_pct: st.warning("No employees available.")
             else:
-                selected_emp_payment_pct=st.radio("Select Employee:",employees_for_payment_goal_pct,key="payment_emp_radio_admin_set_pct_final_v4_form",horizontal=True)
-                quarters_payment_pct=[f"{TARGET_YEAR_PAYMENT_PCT}-Q{i}" for i in range(1,5)]; selected_period_payment_pct=st.radio("Quarter:",quarters_payment_pct,key="payment_period_radio_admin_set_pct_final_v4_form",horizontal=True)
+                selected_emp_payment_pct=st.radio("Select Employee:",employees_for_payment_goal_pct,key="payment_emp_radio_admin_set_pct_final_v5_form",horizontal=True) # Key update
+                quarters_payment_pct=[f"{TARGET_YEAR_PAYMENT_PCT}-Q{i}" for i in range(1,5)]; selected_period_payment_pct=st.radio("Quarter:",quarters_payment_pct,key="payment_period_radio_admin_set_pct_final_v5_form",horizontal=True) # Key update
                 temp_payment_goals_df_admin_form_pct = payment_goals_df.copy()
                 existing_payment_goal_pct=temp_payment_goals_df_admin_form_pct[(temp_payment_goals_df_admin_form_pct["Username"]==selected_emp_payment_pct)&(temp_payment_goals_df_admin_form_pct["MonthYear"]==selected_period_payment_pct)]
                 desc_payment_pct,tgt_payment_val_pct,ach_payment_val_pct,stat_payment_pct = "",0.0,0.0,status_options_payment_pct[0]
@@ -612,11 +615,11 @@ elif selected == "Payment Collection Tracker":
                     g_payment_pct=existing_payment_goal_pct.iloc[0]; desc_payment_pct=g_payment_pct.get("GoalDescription",""); tgt_payment_val_pct=g_payment_pct.get("TargetAmount",0.0)
                     ach_payment_val_pct=g_payment_pct.get("AchievedAmount",0.0); stat_payment_pct=g_payment_pct.get("Status",status_options_payment_pct[0])
                     st.info(f"Editing payment goal for {selected_emp_payment_pct} - {selected_period_payment_pct}")
-                with st.form(f"form_payment_{selected_emp_payment_pct}_{selected_period_payment_pct}_admin_pct_final_v5"):
-                    new_desc_payment_pct=st.text_input("Collection Goal Description",value=desc_payment_pct,key=f"desc_pay_pct_admin_final_v3")
-                    new_tgt_payment_pct=st.number_input("Target Collection (INR)",value=float(tgt_payment_val_pct),min_value=0.0,step=1000.0,key=f"target_pay_pct_admin_final_v3")
-                    new_ach_payment_pct=st.number_input("Collected Amount (INR)",value=float(ach_payment_val_pct),min_value=0.0,step=500.0,key=f"achieved_pay_pct_admin_final_v3")
-                    new_status_payment_pct=st.selectbox("Status",status_options_payment_pct,index=status_options_payment_pct.index(stat_payment_pct),key=f"status_pay_pct_admin_final_v3")
+                with st.form(f"form_payment_{selected_emp_payment_pct}_{selected_period_payment_pct}_admin_pct_final_v6"): # Key update
+                    new_desc_payment_pct=st.text_input("Collection Goal Description",value=desc_payment_pct,key=f"desc_pay_pct_admin_final_v4") # Key update
+                    new_tgt_payment_pct=st.number_input("Target Collection (INR)",value=float(tgt_payment_val_pct),min_value=0.0,step=1000.0,key=f"target_pay_pct_admin_final_v4") # Key update
+                    new_ach_payment_pct=st.number_input("Collected Amount (INR)",value=float(ach_payment_val_pct),min_value=0.0,step=500.0,key=f"achieved_pay_pct_admin_final_v4") # Key update
+                    new_status_payment_pct=st.selectbox("Status",status_options_payment_pct,index=status_options_payment_pct.index(stat_payment_pct),key=f"status_pay_pct_admin_final_v4") # Key update
                     submitted_payment_pct=st.form_submit_button("Save Goal")
                 if submitted_payment_pct:
                     if not new_desc_payment_pct.strip(): st.warning("Description required.")
@@ -657,7 +660,7 @@ elif selected == "Payment Collection Tracker":
                 st.markdown(f"<h6 style='text-align:center;margin-bottom:0px;margin-top:-15px;'>Collection Progress</h6>",unsafe_allow_html=True)
                 donut_fig_payment_e_pct=create_donut_chart(progress_percent_pay_e_pct,"Collection Progress",achieved_color='#2070c0'); st.pyplot(donut_fig_payment_e_pct,use_container_width=True)
             st.markdown("---")
-            with st.form(key=f"update_collection_{current_user['username']}_{current_quarter_display_payment_pct}_final_pct_form_v5"):
+            with st.form(key=f"update_collection_{current_user['username']}_{current_quarter_display_payment_pct}_final_pct_form_v6"): # Key update
                 new_ach_val_payment_e_pct=st.number_input("Update Collected Amount (INR):",value=ach_pay_e_pct,min_value=0.0,step=500.0)
                 submit_collection_update_e_pct=st.form_submit_button("Update Collection")
             if submit_collection_update_e_pct:
@@ -685,8 +688,7 @@ elif selected == "View Logs":
     # --- Start of View Logs Page Logic ---
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>📊 View Logs</h3>", unsafe_allow_html=True)
-    # Define helper functions locally or ensure they are globally accessible
-    def display_activity_logs_with_photos_vl(df_logs_display, user_name_for_header_display): # Added _vl suffix
+    def display_activity_logs_with_photos_vl(df_logs_display, user_name_for_header_display):
         if df_logs_display.empty: st.info(f"No activity logs for {user_name_for_header_display}."); return
         df_logs_sorted_display = df_logs_display.sort_values(by="Timestamp", ascending=False).copy()
         st.markdown(f"<h5>Field Activity Logs for: {user_name_for_header_display}</h5>", unsafe_allow_html=True)
@@ -703,7 +705,7 @@ elif selected == "View Logs":
                         try: st.image(image_path_to_display_log, width=150)
                         except Exception as img_e_display: st.warning(f"Img err: {img_e_display}")
                     else: st.caption(f"Img missing")
-    def display_attendance_logs_view_vl(df_logs_att_view, user_name_for_header_att_view): # Added _vl suffix
+    def display_attendance_logs_view_vl(df_logs_att_view, user_name_for_header_att_view):
         if df_logs_att_view.empty: st.warning(f"No general attendance records for {user_name_for_header_att_view}."); return
         df_logs_sorted_att_view = df_logs_att_view.sort_values(by="Timestamp", ascending=False).copy()
         st.markdown(f"<h5>General Attendance Records for: {user_name_for_header_att_view}</h5>", unsafe_allow_html=True)
@@ -720,7 +722,7 @@ elif selected == "View Logs":
         employee_name_list_logs_vl = [uname for uname, udata in USERS.items() if udata["role"] == "employee"]
         if not employee_name_list_logs_vl: st.info("No employees to display logs for.")
         else:
-            selected_employee_log_admin_vl = st.selectbox("Select Employee:", employee_name_list_logs_vl, key="log_employee_select_admin_viewlogs_final_v3")
+            selected_employee_log_admin_vl = st.selectbox("Select Employee:", employee_name_list_logs_vl, key="log_employee_select_admin_viewlogs_final_v4") # Key update
             if selected_employee_log_admin_vl:
                 emp_activity_log_view_vl = activity_log_df[activity_log_df["Username"] == selected_employee_log_admin_vl]
                 display_activity_logs_with_photos_vl(emp_activity_log_view_vl, selected_employee_log_admin_vl)
@@ -765,49 +767,48 @@ elif selected == "Create Order":
     # --- Start of Create Order Page Logic ---
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🛒 Create New Order</h3>", unsafe_allow_html=True)
-    if stores_df.empty or products_df.empty: # Check global dataframes
+    if stores_df.empty or products_df.empty:
         st.error("Store or Product data is missing. Cannot create order.")
         st.markdown('</div>', unsafe_allow_html=True); st.stop()
 
-    store_name_co_page = st.selectbox("Select Store", [""] + sorted(stores_df["StoreName"].dropna().astype(str).unique()), key="co_store_final_v4_page", format_func=lambda x: "Select Store..." if x == "" else x)
-    product_name_co_page = st.selectbox("Select Product", [""] + sorted(products_df["ProductName"].dropna().astype(str).unique()), key="co_product_final_v4_page", format_func=lambda x: "Select Product..." if x == "" else x)
-    product_sizes_df_co_page = pd.DataFrame()
-    size_options_co_page = [""]
-    if product_name_co_page != "":
-        product_sizes_df_co_page = products_df[products_df["ProductName"] == product_name_co_page]
-        if not product_sizes_df_co_page.empty:
-            size_options_co_page = [""] + sorted(product_sizes_df_co_page["Size"].dropna().astype(str).unique())
-        else: st.info(f"No sizes found for {product_name_co_page}.")
-    size_co_page = st.selectbox("Select Size", size_options_co_page, key="co_size_final_v4_page", format_func=lambda x: "Select Size..." if x == "" else x, disabled=(product_name_co_page == "" or not size_options_co_page or len(size_options_co_page) <= 1))
-    quantity_co_page = st.number_input("Enter Quantity", min_value=1, value=1, key="co_quantity_final_v4_page", disabled=(product_name_co_page == "" or size_co_page == ""))
+    store_name_co = st.selectbox("Select Store", [""] + sorted(stores_df["StoreName"].dropna().astype(str).unique()), key="co_store_final_v5", format_func=lambda x: "Select Store..." if x == "" else x) # Key update
+    product_name_co = st.selectbox("Select Product", [""] + sorted(products_df["ProductName"].dropna().astype(str).unique()), key="co_product_final_v5", format_func=lambda x: "Select Product..." if x == "" else x) # Key update
+    product_sizes_df_co = pd.DataFrame()
+    size_options_co = [""]
+    if product_name_co != "":
+        product_sizes_df_co = products_df[products_df["ProductName"] == product_name_co]
+        if not product_sizes_df_co.empty:
+            size_options_co = [""] + sorted(product_sizes_df_co["Size"].dropna().astype(str).unique())
+        else: st.info(f"No sizes found for {product_name_co}.")
+    size_co = st.selectbox("Select Size", size_options_co, key="co_size_final_v5", format_func=lambda x: "Select Size..." if x == "" else x, disabled=(product_name_co == "" or not size_options_co or len(size_options_co) <= 1)) # Key update
+    quantity_co = st.number_input("Enter Quantity", min_value=1, value=1, key="co_quantity_final_v5", disabled=(product_name_co == "" or size_co == "")) # Key update
 
-    if size_co_page != "" and st.button("Add to Order", key="co_add_btn_final_v4_page", type="primary", disabled=(product_name_co_page == "" or size_co_page == ""), use_container_width=True):
-        selected_product_row_co_page = product_sizes_df_co_page[product_sizes_df_co_page["Size"] == size_co_page]
-        if not selected_product_row_co_page.empty:
-            selected_product_co_page = selected_product_row_co_page.iloc[0]
-            unit_price_co_page = pd.to_numeric(selected_product_co_page.get("Price"), errors='coerce')
-            product_variant_id_co_page = selected_product_co_page.get("ProductVariantID", selected_product_co_page.get("SKU", "UnknownID"))
-            if pd.notna(unit_price_co_page):
-                item_co_page = {
-                    "Store": store_name_co_page, "Product": product_name_co_page, "Size": size_co_page,
-                    "Quantity": quantity_co_page, "Unit Price": unit_price_co_page, "Total": unit_price_co_page * quantity_co_page,
-                    "ProductVariantID": product_variant_id_co_page, "SKU": selected_product_co_page.get("SKU", pd.NA),
+    if size_co != "" and st.button("Add to Order", key="co_add_btn_final_v5", type="primary", disabled=(product_name_co == "" or size_co == ""), use_container_width=True): # Key update
+        selected_product_row_co = product_sizes_df_co[product_sizes_df_co["Size"] == size_co]
+        if not selected_product_row_co.empty:
+            selected_product_co = selected_product_row_co.iloc[0]
+            unit_price_co = pd.to_numeric(selected_product_co.get("Price"), errors='coerce')
+            product_variant_id_co = selected_product_co.get("ProductVariantID", selected_product_co.get("SKU", "UnknownID"))
+            if pd.notna(unit_price_co):
+                item_co = {
+                    "Store": store_name_co, "Product": product_name_co, "Size": size_co,
+                    "Quantity": quantity_co, "Unit Price": unit_price_co, "Total": unit_price_co * quantity_co,
+                    "ProductVariantID": product_variant_id_co, "SKU": selected_product_co.get("SKU", pd.NA),
                     "UnitOfMeasure": selected_product_co_page.get("UnitOfMeasure", pd.NA), "ImageURL": selected_product_co_page.get("ImageURL", pd.NA)
                 }
-                # Update quantity if item already exists
-                item_exists_idx_co_page = -1
+                item_exists_at_index = -1
                 for i_co_page, existing_item_co_page in enumerate(st.session_state.co_order_line_items):
-                    if existing_item_co_page["ProductVariantID"] == product_variant_id_co_page and existing_item_co_page["Size"] == size_co_page:
-                        item_exists_idx_co_page = i_co_page; break
-                if item_exists_idx_co_page != -1:
-                    st.session_state.co_order_line_items[item_exists_idx_co_page]["Quantity"] += quantity_co_page
-                    st.session_state.co_order_line_items[item_exists_idx_co_page]["Total"] = st.session_state.co_order_line_items[item_exists_idx_co_page]["Quantity"] * st.session_state.co_order_line_items[item_exists_idx_co_page]["Unit Price"]
-                    st.success(f"Updated quantity for {product_name_co_page} ({size_co_page}).")
+                    if existing_item_co_page["ProductVariantID"] == product_variant_id_co and existing_item_co_page["Size"] == size_co : 
+                        item_exists_at_index = i_co_page; break
+                if item_exists_at_index != -1:
+                    st.session_state.co_order_line_items[item_exists_at_index]["Quantity"] += quantity_co
+                    st.session_state.co_order_line_items[item_exists_at_index]["Total"] = st.session_state.co_order_line_items[item_exists_at_index]["Quantity"] * st.session_state.co_order_line_items[item_exists_at_index]["Unit Price"]
+                    st.success(f"Updated quantity for {product_name_co} ({size_co}).")
                 else:
-                    st.session_state.co_order_line_items.append(item_co_page)
-                    st.success(f"Added to order: {quantity_co_page} x {product_name_co_page} ({size_co_page})")
+                    st.session_state.co_order_line_items.append(item_co)
+                    st.success(f"Added to order: {quantity_co} x {product_name_co} ({size_co})")
                 st.rerun()
-            else: st.warning(f"Price not available for {product_name_co_page} ({size_co_page}).")
+            else: st.warning(f"Price not available for {product_name_co} ({size_co}).")
         else: st.warning("Selected product size details not found.")
 
     if st.session_state.co_order_line_items:
@@ -820,10 +821,10 @@ elif selected == "Create Order":
         st.dataframe(display_df_co_page_final[["Store", "Product", "Size", "Quantity", "Unit Price", "Total"]], use_container_width=True, hide_index=True)
         grand_total_co_page_final = order_summary_df_co_display_page['Total'].sum()
         st.markdown(f"<h4 style='text-align: right; margin-top: 1rem;'>Grand Total: ₹{grand_total_co_page_final:,.2f}</h4>", unsafe_allow_html=True)
-        if st.button("Clear Order", key="co_clear_btn_final_v4"):
+        if st.button("Clear Order", key="co_clear_btn_final_v4"): # Key update
             st.session_state.co_order_line_items = []
             st.info("Order cleared."); st.rerun()
-        if st.button("✅ Submit Final Order", key="co_submit_final_order_btn_v3", type="primary", use_container_width=True):
+        if st.button("✅ Submit Final Order", key="co_submit_final_order_btn_v3", type="primary", use_container_width=True): # Key update
             if not st.session_state.co_order_line_items: st.error("Cannot submit an empty order.")
             else:
                 temp_orders_df_submit_page = orders_df.copy()
@@ -866,6 +867,7 @@ elif selected == "Create Order":
     st.markdown('</div>', unsafe_allow_html=True)
     # --- End of Create Order Page Logic ---
 
+# Fallback for Home or undefined selected page
 elif selected == "Home" or selected is None:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.header(f"🏠 Welcome Home, {current_user['username']}!")
