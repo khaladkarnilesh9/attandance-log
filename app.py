@@ -291,31 +291,43 @@ with st.sidebar:
 
 # --- MAIN CONTENT PAGE ROUTING (restored full logic) ---
 # Page: Attendance
+# Page: Attendance
 if selected == "Attendance":
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("<h3>🕒 Digital Attendance</h3>", unsafe_allow_html=True)
     st.info("📍 Location services are currently disabled. Photos for specific activities can be uploaded from 'Upload Activity Photo'.", icon="ℹ️")
     st.markdown("---")
+    
     common_data_att = {"Username": current_user["username"], "Latitude": pd.NA, "Longitude": pd.NA}
-    col1_att, col2_att = st.columns(2)
+    
     def process_general_attendance(attendance_type):
-        # No 'global attendance_df' needed if reassigning
         temp_attendance_df = attendance_df.copy()
         now_str_display = get_current_time_in_tz().strftime("%Y-%m-%d %H:%M:%S")
         new_entry_data = {"Type": attendance_type, "Timestamp": now_str_display, **common_data_att}
         for col_name in ATTENDANCE_COLUMNS:
-            if col_name not in new_entry_data: new_entry_data[col_name] = pd.NA
+            if col_name not in new_entry_data: 
+                new_entry_data[col_name] = pd.NA
         new_entry = pd.DataFrame([new_entry_data], columns=ATTENDANCE_COLUMNS)
         temp_attendance_df = pd.concat([temp_attendance_df, new_entry], ignore_index=True)
         try:
             temp_attendance_df.to_csv(ATTENDANCE_FILE, index=False)
-            globals()['attendance_df'] = temp_attendance_df # Update global df
-            st.session_state.user_message = f"{attendance_type} recorded at {now_str_display}."; st.session_state.message_type = "success"; st.rerun()
-        except Exception as e: st.session_state.user_message = f"Error saving attendance: {e}"; st.session_state.message_type = "error"; st.rerun()
+            globals()['attendance_df'] = temp_attendance_df
+            st.session_state.user_message = f"{attendance_type} recorded at {now_str_display}."
+            st.session_state.message_type = "success"
+            st.rerun()
+        except Exception as e:
+            st.session_state.user_message = f"Error saving attendance: {e}"
+            st.session_state.message_type = "error"
+            st.rerun()
+    
+    col1_att, col2_att = st.columns(2)
     with col1_att:
-        if st.button("✅ Check In", key="check_in_btn_att_page_final_v4", use_container_width=True, type="primary"): process_general_attendance("Check-In")
+        if st.button("✅ Check In", key="check_in_btn_att_page_final_v4", use_container_width=True, type="primary"): 
+            process_general_attendance("Check-In")
     with col2_att:
-        if st.button("🚪 Check Out", key="check_out_btn_att_page_final_v4", use_container_width=True, type="primary"): process_general_attendance("Check-Out")
+        if st.button("🚪 Check Out", key="check_out_btn_att_page_final_v4", use_container_width=True, type="primary"): 
+            process_general_attendance("Check-Out")
+    
     st.markdown('</div>', unsafe_allow_html=True)
 
 # Page: Upload Activity Photo
