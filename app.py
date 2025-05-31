@@ -13,7 +13,7 @@ USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 ATTENDANCE_FILE = os.path.join(DATA_DIR, 'attendance.json')
 TASKS_FILE = os.path.join(DATA_DIR, 'tasks.json')
 SALES_FILE = os.path.join(DATA_DIR, 'sales.json')
-EXPENSES_FILE = os.path.join(DATA_DIR, 'expenses.json') # Correctly defined as plural
+EXPENSES_FILE = os.path.join(DATA_DIR, 'expenses.json')
 GOALS_FILE = os.path.join(DATA_DIR, 'goals.json')
 ORDERS_FILE = os.path.join(DATA_DIR, 'orders.json')
 CUSTOMERS_FILE = os.path.join(DATA_DIR, 'customers.json')
@@ -22,10 +22,8 @@ LEADS_FILE = os.path.join(DATA_DIR, 'leads.json')
 # Ensure data directory exists
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# --- Global variable for USERS_DATA (Explicitly initialized here) ---
-# This helps prevent SyntaxError if USERS_DATA is referenced before being assigned
-# in a function where 'global' is also used.
-USERS_DATA = {} 
+# --- Global variable for USERS_DATA ---
+USERS_DATA = {}
 
 # --- Utility Functions for JSON Data Persistence ---
 
@@ -54,8 +52,8 @@ def save_json_data(filepath, data):
 # --- Dummy Data Initialization ---
 def initialize_dummy_data():
     """Initializes dummy data if data files are empty."""
-    global USERS_DATA # Moved to the very beginning of the function
-
+    global USERS_DATA
+    
     # Initialize Users
     default_users = {
         "Geetali": {"password": "password", "role": "employee", "position": "Software Engineer", "profile_photo": "https://placehold.co/150x150/2c2e30/8ab4f8?text=GE", "email": "geetali@example.com"},
@@ -68,12 +66,12 @@ def initialize_dummy_data():
     }
     
     USERS_DATA = load_json_data(USERS_FILE, default_value={})
-    if not USERS_DATA: # If users.json is empty or doesn't exist
+    if not USERS_DATA:
         USERS_DATA = default_users
         save_json_data(USERS_FILE, USERS_DATA)
         print("Initialized default user data.")
 
-    # Initialize other data types if their files are empty
+    # Initialize other data types
     if not load_json_data(ATTENDANCE_FILE): save_json_data(ATTENDANCE_FILE, [])
     if not load_json_data(TASKS_FILE): save_json_data(TASKS_FILE, [])
     if not load_json_data(SALES_FILE): save_json_data(SALES_FILE, [])
@@ -96,9 +94,8 @@ def initialize_dummy_data():
 # Call initialization on app startup
 with app.app_context():
     initialize_dummy_data()
-    USERS_DATA = load_json_data(USERS_FILE, default_value={}) # Reload users after init
 
-# --- Authentication & Authorization Decorators ---
+# --- Authentication Decorator ---
 def login_required(f):
     """Decorator to protect routes that require user to be logged in."""
     @wraps(f)
@@ -107,17 +104,6 @@ def login_required(f):
             return jsonify({"message": "Unauthorized. Please log in."}), 401
         return f(*args, **kwargs)
     return decorated_function
-
-def role_required(allowed_roles):
-    """Decorator to protect routes based on user role."""
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            if 'role' not in session or session['role'] not in allowed_roles:
-                return jsonify({"message": "Forbidden. Insufficient permissions."}), 403
-            return f(*args, **kwargs)
-        return decorated_function
-    return decorator
 
 # --- Routes ---
 
@@ -152,22 +138,22 @@ def login():
 @app.route('/api/register', methods=['POST'])
 def register():
     """Handles new user registration."""
+    global USERS_DATA
+    
     data = request.get_json()
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
-    role = data.get('role', 'employee') # Default role is employee
+    role = data.get('role', 'employee')
 
     if not username or not email or not password:
         return jsonify({"message": "All fields are required."}), 400
 
-    # Check if username or email already exists (case-insensitive for username)
     if any(u.lower() == username.lower() for u in USERS_DATA):
         return jsonify({"message": "Username already exists. Please choose a different one."}), 409
     if any(user_data.get('email') == email for user_data in USERS_DATA.values()):
         return jsonify({"message": "Email already registered. Please use a different one."}), 409
 
-    # Add new user
     USERS_DATA[username] = {
         "password": password,
         "role": role,
@@ -199,23 +185,22 @@ def get_current_user():
                 "position": user_info['position'],
                 "profile_photo": user_info['profile_photo']
             }), 200
-    return jsonify({"username": None, "role": None}), 200 # Not logged in
+    return jsonify({"username": None, "role": None}), 200
 
 @app.route('/api/data/<key>', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def handle_data(key):
     """
     Generic API endpoint for managing different data types.
-    GET: Retrieve data
-    POST: Save/Update data (expects full list or object)
-    DELETE: Delete an item by ID (expects {'id': 'item_id'})
     """
+    global USERS_DATA
+    
     filepath_map = {
         'users': USERS_FILE,
         'attendance': ATTENDANCE_FILE,
         'tasks': TASKS_FILE,
         'salesData': SALES_FILE,
-        'expenses': EXPENSES_FILE, # Corrected: now uses EXPENSES_FILE (plural)
+        'expenses': EXPENSES_FILE,
         'goals': GOALS_FILE,
         'orders': ORDERS_FILE,
         'customers': CUSTOMERS_FILE,
@@ -228,25 +213,21 @@ def handle_data(key):
 
     if request.method == 'GET':
         data = load_json_data(filepath)
-        # Special handling for users: return as list of user objects, not dict
         if key == 'users':
             return jsonify([{'username': u, **v} for u, v in data.items()]), 200
         return jsonify(data), 200
 
     elif request.method == 'POST':
-        # Apply role check for sensitive data like 'users' management
         if key == 'users':
             if 'role' not in session or session['role'] != 'admin':
                 return jsonify({"message": "Forbidden. Only administrators can modify user data."}), 403
 
         try:
             new_data = request.get_json()
-            # Special handling for users: expect a dict, not a list
             if key == 'users':
                 if not isinstance(new_data, dict):
                     return jsonify({"message": "Expected a dictionary for users data."}), 400
                 save_json_data(filepath, new_data)
-                global USERS_DATA # Update in-memory USERS_DATA
                 USERS_DATA = new_data
             else:
                 if not isinstance(new_data, list):
@@ -257,7 +238,6 @@ def handle_data(key):
             return jsonify({"message": f"Error updating {key} data: {str(e)}"}), 400
     
     elif request.method == 'DELETE':
-        # Apply role check for sensitive data like 'users' management
         if key == 'users':
             if 'role' not in session or session['role'] != 'admin':
                 return jsonify({"message": "Forbidden. Only administrators can delete user data."}), 403
@@ -273,10 +253,9 @@ def handle_data(key):
                 data = [item for item in data if item.get('id') != item_id]
                 if len(data) == original_len:
                     return jsonify({"message": f"Item with ID {item_id} not found."}), 404
-            elif isinstance(data, dict) and key == 'users': # Special case for users (dict)
+            elif isinstance(data, dict) and key == 'users':
                 if item_id in data:
                     del data[item_id]
-                    global USERS_DATA
                     USERS_DATA = data
                 else:
                     return jsonify({"message": f"User with username {item_id} not found."}), 404
@@ -288,10 +267,6 @@ def handle_data(key):
         except Exception as e:
             return jsonify({"message": f"Error deleting item from {key} data: {str(e)}"}), 400
 
-
 # --- Run the Flask app ---
 if __name__ == '__main__':
-    # For deployment, use a production-ready WSGI server like Gunicorn or uWSGI
-    # For local development, you can run: python app.py
     app.run(debug=True, port=5000)
-
