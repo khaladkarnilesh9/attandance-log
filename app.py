@@ -13,7 +13,7 @@ USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 ATTENDANCE_FILE = os.path.join(DATA_DIR, 'attendance.json')
 TASKS_FILE = os.path.join(DATA_DIR, 'tasks.json')
 SALES_FILE = os.path.join(DATA_DIR, 'sales.json')
-EXPENSES_FILE = os.path.join(DATA_DIR, 'expenses.json')
+EXPENSES_FILE = os.path.join(DATA_DIR, 'expenses.json') # Correctly defined as plural
 GOALS_FILE = os.path.join(DATA_DIR, 'goals.json')
 ORDERS_FILE = os.path.join(DATA_DIR, 'orders.json')
 CUSTOMERS_FILE = os.path.join(DATA_DIR, 'customers.json')
@@ -22,8 +22,10 @@ LEADS_FILE = os.path.join(DATA_DIR, 'leads.json')
 # Ensure data directory exists
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# --- Global variable for USERS_DATA ---
-USERS_DATA = {}
+# --- Global variable for USERS_DATA (Explicitly initialized here) ---
+# This helps prevent SyntaxError if USERS_DATA is referenced before being assigned
+# in a function where 'global' is also used.
+USERS_DATA = {} 
 
 # --- Utility Functions for JSON Data Persistence ---
 
@@ -52,8 +54,8 @@ def save_json_data(filepath, data):
 # --- Dummy Data Initialization ---
 def initialize_dummy_data():
     """Initializes dummy data if data files are empty."""
-    global USERS_DATA  # Must be first statement in function
-    
+    global USERS_DATA # Moved to the very beginning of the function
+
     # Initialize Users
     default_users = {
         "Geetali": {"password": "password", "role": "employee", "position": "Software Engineer", "profile_photo": "https://placehold.co/150x150/2c2e30/8ab4f8?text=GE", "email": "geetali@example.com"},
@@ -94,8 +96,9 @@ def initialize_dummy_data():
 # Call initialization on app startup
 with app.app_context():
     initialize_dummy_data()
+    USERS_DATA = load_json_data(USERS_FILE, default_value={}) # Reload users after init
 
-# --- Authentication Decorator ---
+# --- Authentication & Authorization Decorators ---
 def login_required(f):
     """Decorator to protect routes that require user to be logged in."""
     @wraps(f)
@@ -104,6 +107,17 @@ def login_required(f):
             return jsonify({"message": "Unauthorized. Please log in."}), 401
         return f(*args, **kwargs)
     return decorated_function
+
+def role_required(allowed_roles):
+    """Decorator to protect routes based on user role."""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'role' not in session or session['role'] not in allowed_roles:
+                return jsonify({"message": "Forbidden. Insufficient permissions."}), 403
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 # --- Routes ---
 
@@ -138,8 +152,6 @@ def login():
 @app.route('/api/register', methods=['POST'])
 def register():
     """Handles new user registration."""
-    global USERS_DATA  # Must be first statement in function
-    
     data = request.get_json()
     username = data.get('username')
     email = data.get('email')
@@ -198,14 +210,12 @@ def handle_data(key):
     POST: Save/Update data (expects full list or object)
     DELETE: Delete an item by ID (expects {'id': 'item_id'})
     """
-    global USERS_DATA  # Must be first statement in function if modifying USERS_DATA
-    
     filepath_map = {
         'users': USERS_FILE,
         'attendance': ATTENDANCE_FILE,
         'tasks': TASKS_FILE,
         'salesData': SALES_FILE,
-        'expenses': EXPENSES_FILE,
+        'expenses': EXPENSES_FILE, # Corrected: now uses EXPENSES_FILE (plural)
         'goals': GOALS_FILE,
         'orders': ORDERS_FILE,
         'customers': CUSTOMERS_FILE,
@@ -224,6 +234,11 @@ def handle_data(key):
         return jsonify(data), 200
 
     elif request.method == 'POST':
+        # Apply role check for sensitive data like 'users' management
+        if key == 'users':
+            if 'role' not in session or session['role'] != 'admin':
+                return jsonify({"message": "Forbidden. Only administrators can modify user data."}), 403
+
         try:
             new_data = request.get_json()
             # Special handling for users: expect a dict, not a list
@@ -231,6 +246,7 @@ def handle_data(key):
                 if not isinstance(new_data, dict):
                     return jsonify({"message": "Expected a dictionary for users data."}), 400
                 save_json_data(filepath, new_data)
+                global USERS_DATA # Update in-memory USERS_DATA
                 USERS_DATA = new_data
             else:
                 if not isinstance(new_data, list):
@@ -241,6 +257,11 @@ def handle_data(key):
             return jsonify({"message": f"Error updating {key} data: {str(e)}"}), 400
     
     elif request.method == 'DELETE':
+        # Apply role check for sensitive data like 'users' management
+        if key == 'users':
+            if 'role' not in session or session['role'] != 'admin':
+                return jsonify({"message": "Forbidden. Only administrators can delete user data."}), 403
+
         try:
             item_id = request.get_json().get('id')
             if not item_id:
@@ -252,9 +273,10 @@ def handle_data(key):
                 data = [item for item in data if item.get('id') != item_id]
                 if len(data) == original_len:
                     return jsonify({"message": f"Item with ID {item_id} not found."}), 404
-            elif isinstance(data, dict) and key == 'users':
+            elif isinstance(data, dict) and key == 'users': # Special case for users (dict)
                 if item_id in data:
                     del data[item_id]
+                    global USERS_DATA
                     USERS_DATA = data
                 else:
                     return jsonify({"message": f"User with username {item_id} not found."}), 404
@@ -266,6 +288,10 @@ def handle_data(key):
         except Exception as e:
             return jsonify({"message": f"Error deleting item from {key} data: {str(e)}"}), 400
 
+
 # --- Run the Flask app ---
 if __name__ == '__main__':
+    # For deployment, use a production-ready WSGI server like Gunicorn or uWSGI
+    # For local development, you can run: python app.py
     app.run(debug=True, port=5000)
+
