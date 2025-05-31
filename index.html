@@ -1,0 +1,2983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Portal - AI Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* Define Google AI Dashboard inspired color palette using CSS variables */
+        :root {
+            /* Dark Theme */
+            --primary-bg: #202124; /* Dark background */
+            --secondary-bg: #2c2e30; /* Slightly lighter dark for cards/sidebar */
+            --text-color: #e8eaed; /* Light text */
+            --accent-blue: #8ab4f8; /* Google blue accent */
+            --border-color: #3c4043; /* Subtle border for cards/inputs */
+            --shadow-color: rgba(0, 0, 0, 0.4); /* Dark shadow */
+            --success-color: #2ecc71; /* Green for success */
+            --error-color: #e74c3c; /* Red for error */
+            --warning-color: #f39c12; /* Orange for warning */
+            --info-color: #3498db; /* Blue for info */
+            --toggle-bg: #4b5563; /* Toggle background for dark theme */
+            --toggle-handle: #d1d5db; /* Toggle handle for dark theme */
+        }
+
+        /* Light Theme */
+        body.light-theme {
+            --primary-bg: #f5f5f5; /* Light background */
+            --secondary-bg: #ffffff; /* Lighter background for cards/sidebar */
+            --text-color: #343a40; /* Dark text */
+            --accent-blue: #1a73e8; /* Google blue accent */
+            --border-color: #e0e0e0; /* Subtle border for cards/inputs */
+            --shadow-color: rgba(0, 0, 0, 0.1); /* Light shadow */
+            --success-color: #28a745; /* Green for success */
+            --error-color: #dc3545; /* Red for error */
+            --warning-color: #ffc107; /* Orange for warning */
+            --info-color: #007bff; /* Blue for info */
+            --toggle-bg: #adb5bd; /* Toggle background for light theme */
+            --toggle-handle: #ffffff; /* Toggle handle for light theme */
+        }
+
+        /* Global Styles & Resets */
+        body {
+            font-family: 'Inter', sans-serif; /* Apply Inter font globally */
+            background-color: var(--primary-bg); /* Main app background */
+            color: var(--text-color); /* Default text color */
+            margin: 0;
+            padding: 0;
+            height: 100vh; /* Full viewport height */
+            display: flex;
+            flex-direction: column; /* Stack app vertically within body */
+            overflow: hidden; /* Prevent body scroll, let inner divs scroll */
+            transition: background-color 0.3s, color 0.3s; /* Smooth theme transition */
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column; /* Default: stack mobile header, then main content. Sidebar is fixed. */
+            flex-grow: 1; /* Allow app to fill remaining space */
+            overflow: hidden; /* Hide overflow from children */
+            position: relative; /* For fixed sidebar's z-index context */
+        }
+
+        /* Mobile Header (visible on small screens, hidden on md and up) */
+        #mobile-header {
+            display: flex; /* Always flex on mobile */
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background-color: var(--secondary-bg);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 20; /* Ensure it's above main content */
+            position: fixed; /* Keep it at the top */
+            top: 0; left: 0; right: 0;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        @media (min-width: 768px) { /* On medium screens and up */
+            #mobile-header {
+                display: none; /* Hide mobile header on desktop */
+            }
+        }
+
+        /* Sidebar Styling */
+        #sidebar {
+            background-color: var(--secondary-bg);
+            width: 280px;
+            flex-shrink: 0; /* Prevent sidebar from shrinking */
+            padding-top: 1rem;
+            box-shadow: 2px 0 10px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; /* Allow sidebar content to scroll */
+            transition: transform 0.3s ease-out, background-color 0.3s, border-color 0.3s; /* Added transform transition */
+            
+            /* Mobile-specific sidebar positioning (fixed and off-screen by default) */
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            z-index: 30; /* Above mobile header and overlay */
+            transform: translateX(-100%); /* Hidden by default on mobile */
+        }
+        #sidebar.sidebar-open {
+            transform: translateX(0); /* Visible when open */
+        }
+        @media (min-width: 768px) { /* On medium screens and up */
+            #sidebar {
+                position: static; /* Back to static flow on desktop */
+                transform: translateX(0); /* Always visible */
+                width: 280px; /* Explicit width */
+                height: auto; /* Allow height to adjust to content on desktop */
+                border-right: 1px solid var(--border-color); /* Separator */
+            }
+            /* Reset box-shadow on desktop if it was for fixed sidebar */
+            #sidebar:not(.sidebar-open) { /* Ensure shadow applies when not just explicitly open */
+                box-shadow: 2px 0 10px var(--shadow-color);
+            }
+        }
+
+        /* Overlay for mobile sidebar */
+        #sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 25; /* Between mobile header and sidebar */
+            display: none; /* Hidden by default */
+        }
+        #sidebar.sidebar-open ~ #sidebar-overlay { /* Selector for sibling of sidebar-open */
+            display: block; /* Visible when sidebar is open */
+        }
+        @media (min-width: 768px) {
+            #sidebar-overlay {
+                display: none !important; /* Always hidden on desktop */
+            }
+        }
+
+        /* Dashboard Section (Wraps main content on mobile, is sibling to sidebar on desktop) */
+        #dashboard-section {
+            display: flex; /* This handles main-content placement */
+            flex-grow: 1; /* Fills remaining space */
+            overflow: hidden; /* Prevent internal scroll issues */
+            /* On mobile, this will implicitly be below #mobile-header in flex-col of #app */
+        }
+        @media (min-width: 768px) {
+            /* On desktop, #app is flex-row, so #sidebar and #dashboard-section become direct siblings */
+            /* #dashboard-section will contain only #main-content and flex-grow in the row */
+        }
+
+
+        /* Main Content Area Styling */
+        #main-content {
+            flex-grow: 1;
+            padding: 1.5rem 2rem;
+            overflow-y: auto; /* Allow main content to scroll */
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 5rem; /* Space for fixed mobile header */
+        }
+        /* Remove mobile header margin on desktop */
+        @media (min-width: 768px) {
+            #main-content {
+                margin-top: 0;
+            }
+        }
+        /* Adjust padding for smaller mobile screens */
+        @media (max-width: 767px) {
+            #main-content {
+                padding: 1rem; /* Reduced padding on mobile */
+            }
+        }
+
+        /* Custom Scrollbar for Webkit Browsers */
+        #sidebar::-webkit-scrollbar,
+        #main-content::-webkit-scrollbar,
+        .table-container::-webkit-scrollbar {
+            width: 8px; /* Slimmer scrollbar */
+            height: 8px; /* For horizontal scrollbars */
+        }
+
+        #sidebar::-webkit-scrollbar-track,
+        #main-content::-webkit-scrollbar-track,
+        .table-container::-webkit-scrollbar-track {
+            background: var(--primary-bg); /* Track matches primary background */
+            border-radius: 10px;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb,
+        #main-content::-webkit-scrollbar-thumb,
+        .table-container::-webkit-scrollbar-thumb {
+            background-color: var(--border-color); /* Thumb color */
+            border-radius: 10px;
+            border: 2px solid var(--primary-bg); /* Border around thumb */
+        }
+
+        body.light-theme #sidebar::-webkit-scrollbar-thumb,
+        body.light-theme #main-content::-webkit-scrollbar-thumb,
+        body.light-theme .table-container::-webkit-scrollbar-thumb {
+            background-color: #a0a0a0; /* Darker thumb for light theme */
+            border: 2px solid var(--primary-bg);
+        }
+
+        /* Combined Login/Profile Area */
+        .auth-area-container {
+            background-color: var(--primary-bg);
+            padding: 1.5rem 1rem;
+            border-radius: 10px;
+            margin: 1rem;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            text-align: center;
+            transition: background-color 0.3s, box-shadow 0.3s, border-color 0.3s;
+        }
+        /* On small screens, make login/profile section more compact horizontally */
+        @media (max-width: 640px) {
+            .auth-area-container.profile {
+                flex-direction: column; /* Stack photo and text */
+                align-items: center;
+            }
+            .auth-area-container.login {
+                padding: 1rem 0.75rem;
+                margin: 0.5rem;
+            }
+        }
+
+        .user-profile-img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 0.75rem;
+            border: 3px solid var(--accent-blue);
+            box-shadow: 0 4px 8px var(--shadow-color);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .welcome-text {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 0.25rem;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+        .user-position {
+            font-size: 0.9rem;
+            color: #bdc3c7; /* Keeping this slightly gray in dark theme */
+            transition: color 0.3s;
+        }
+        body.light-theme .user-position {
+            color: #6c757d; /* Darker gray in light theme */
+        }
+
+        .divider {
+            border-top: 1px solid var(--border-color);
+            margin: 0.5rem 0 1.5rem 0;
+            transition: border-color 0.3s;
+        }
+
+        /* Sidebar Navigation Items */
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.85rem 1.2rem;
+            margin: 0.25rem 0.75rem;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s, transform 0.1s;
+            cursor: pointer;
+            color: var(--text-color); /* Default text color */
+            background-color: transparent;
+        }
+        .sidebar-nav-item:hover {
+            background-color: var(--primary-bg);
+            color: var(--accent-blue);
+            transform: translateX(5px);
+        }
+        .sidebar-nav-item.active {
+            background-color: var(--primary-bg);
+            color: var(--accent-blue);
+            box-shadow: 0 4px 12px rgba(138, 180, 248, 0.1);
+            transform: translateX(0);
+        }
+        .sidebar-nav-item .material-symbols-outlined {
+            margin-right: 0.8rem;
+            font-size: 1.6rem;
+            width: 28px; height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: inherit;
+        }
+
+        /* Logout button specific styling (within auth area) */
+        .auth-area-container button {
+            background-color: var(--error-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
+            width: 100%; /* Make logout button full width in its container */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem; /* Space below profile info */
+        }
+        .auth-area-container button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+        .auth-area-container button .material-symbols-outlined {
+            margin-right: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .card {
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 6px 20px var(--shadow-color);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s, box-shadow 0.3s, border-color 0.3s;
+        }
+        /* Adjust card padding for small screens */
+        @media (max-width: 767px) {
+            .card {
+                padding: 1.5rem;
+            }
+        }
+        .card h3, .card h4, .card h5 {
+            color: var(--accent-blue);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            transition: color 0.3s;
+        }
+
+        /* Form Elements */
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        input[type="email"], /* Added for CRM forms */
+        input[type="date"], /* Added for CRM forms */
+        textarea,
+        select {
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 1rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-color 0.3s, color 0.3s;
+            box-shadow: none;
+            width: 100%;
+            box-sizing: border-box; /* Include padding in width */
+        }
+        input::placeholder, textarea::placeholder {
+            color: #888;
+            opacity: 1;
+            transition: color 0.3s;
+        }
+        body.light-theme input::placeholder,
+        body.light-theme textarea::placeholder {
+            color: #a0a0a0;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 0.2rem rgba(138, 180, 248, 0.25);
+            outline: none;
+        }
+
+        /* Buttons */
+        button {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        button:hover {
+            background-color: #6a9df8;
+            transform: translateY(-2px);
+        }
+        button:active {
+            background-color: #538ef0;
+            transform: translateY(0);
+        }
+        button.secondary {
+            background-color: var(--secondary-bg); /* Reverted to secondary-bg for better visibility */
+            color: var(--text-color); /* Ensure text color is readable */
+            border: 1px solid var(--border-color);
+        }
+        button.secondary:hover {
+            background-color: var(--primary-bg); /* Hover state can be primary-bg */
+            transform: translateY(-2px);
+        }
+
+        /* Custom Notifications */
+        .notification {
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid transparent;
+            font-size: 1rem;
+            font-weight: 500;
+            display: none; /* Hidden by default */
+            transition: all 0.3s;
+        }
+        .notification.show {
+            display: block;
+        }
+        .notification.success {
+            color: #b8e0d4; background-color: #1a4f32; border-color: #2e6b4e;
+        }
+        .notification.error {
+            color: #f5c2c7; background-color: #6b1d24; border-color: #842029;
+        }
+        .notification.warning {
+            color: #ffeeba; background-color: #664d03; border-color: #997300;
+        }
+        .notification.info {
+            color: #b6effb; background-color: #055160; border-color: #076d7e;
+        }
+        body.light-theme .notification.success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+        body.light-theme .notification.error { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+        body.light-theme .notification.warning { color: #856404; background-color: #fff3cd; border-color: #ffeeba; }
+        body.light-theme .notification.info { color: #004085; background-color: #cce5ff; border-color: #b8daff; }
+
+        /* Responsive Table Wrapper */
+        .table-container {
+            overflow-x: auto; /* Allows horizontal scrolling for tables */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            border: 1px solid var(--border-color); /* Add border to table container */
+            border-radius: 8px; /* Match card styling */
+        }
+        .table-container table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px; /* Ensure table doesn't shrink too much on small screens */
+            margin-top: 0; /* Remove default margin from table if inside container */
+        }
+        .table-container table th, 
+        .table-container table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            transition: border-color 0.3s;
+            white-space: nowrap; /* Prevent text wrapping in table cells */
+        }
+        .table-container table th {
+            background-color: var(--primary-bg);
+            font-weight: 600;
+            color: var(--accent-blue);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .table-container table tr:hover {
+            background-color: rgba(138, 180, 248, 0.05);
+        }
+        body.light-theme .table-container table tr:hover {
+            background-color: rgba(26, 115, 232, 0.05); /* Light blue hover for light theme */
+        }
+
+        /* Image preview for camera input */
+        #camera-preview {
+            width: 100%;
+            max-width: 320px; /* Standard webcam width */
+            height: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-top: 1rem;
+            background-color: #000;
+            display: block;
+        }
+        #camera-feed {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+        }
+        #camera-canvas {
+            display: none; /* Hidden, used for capturing image */
+        }
+
+        /* Theme Toggle Switch */
+        .toggle-checkbox {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-label {
+            display: block;
+            width: 40px;
+            height: 20px;
+            background-color: var(--toggle-bg);
+            border-radius: 9999px;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+        .toggle-label:after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background-color: var(--toggle-handle);
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: var(--accent-blue);
+        }
+        .toggle-checkbox:checked + .toggle-label:after {
+            transform: translateX(20px);
+        }
+
+        /* Responsive adjustments for overall layout */
+        @media (min-width: 768px) { /* Desktop layout */
+            #app {
+                flex-direction: row; /* Sidebar and Main content side-by-side */
+            }
+        }
+
+        /* Chart container styling for responsiveness */
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 300px; /* Fixed height for charts */
+            width: 100%; /* Full width */
+            max-width: 500px; /* Max width for pie charts */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 250px;
+            }
+        }
+        /* Status Badges for CRM */
+        .status-badge {
+            display: inline-block;
+            padding: 0.3em 0.6em;
+            border-radius: 0.75rem;
+            font-size: 0.8em;
+            font-weight: 600;
+            color: white;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .status-badge.new { background-color: #6c757d; } /* Grey */
+        .status-badge.contacted { background-color: #007bff; } /* Blue */
+        .status-badge.qualified { background-color: #28a745; } /* Green */
+        .status-badge.converted { background-color: #ffc107; color: #333; } /* Yellow (for conversion state) */
+        .status-badge.lost { background-color: #dc3545; } /* Red */
+        .status-badge.pending { background-color: #17a2b8; } /* Teal */
+        .status-badge.in-progress { background-color: #ffc107; color: #333; }
+        .status-badge.completed { background-color: #28a745; }
+        .status-badge.approved { background-color: #28a745; }
+        .status-badge.rejected { background-color: #dc3545; }
+        .status-badge.submitted { background-color: #007bff; }
+
+        /* Action buttons in tables */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .action-buttons button {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            background-color: var(--accent-blue);
+            color: white;
+        }
+        .action-buttons button.edit {
+            background-color: var(--info-color);
+        }
+        .action-buttons button.delete {
+            background-color: var(--error-color);
+        }
+        .action-buttons button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        .action-buttons select {
+            width: auto;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            min-width: 120px; /* Ensure dropdown is wide enough */
+        }
+        .w-full{
+            margin: 10px;
+            padding: 10px;
+        }
+
+    </style>
+</head>
+<body class="antialiased">
+    <div id="app" class="flex-grow">
+        <header id="mobile-header">
+            <h1 class="text-xl font-bold text-accent-blue">Employee Portal</h1>
+            <button id="mobile-menu-btn" class="text-text-color">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+        </header>
+
+        <aside id="sidebar">
+            <div id="auth-area" class="auth-area-container">
+                </div>
+            
+            <label for="theme-toggle" class="flex items-center justify-between p-3 mx-3 mt-4 mb-2 bg-primary-bg rounded-lg border border-border-color cursor-pointer transition duration-200">
+                <span class="text-text-color font-medium">Dark Mode</span>
+                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                    <input type="checkbox" name="theme-toggle" id="theme-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                    <label for="theme-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
+                </div>
+            </label>
+
+            <div class="divider"></div>
+            <nav id="sidebar-nav" class="flex-grow">
+                </nav>
+        </aside>
+
+        <div id="sidebar-overlay"></div> 
+
+        <main id="main-content">
+            <div id="main-notification" class="notification"></div>
+            <div class="card" id="initial-dashboard-message">
+                <h3 class="text-accent-blue text-xl font-bold">Welcome!</h3>
+                <p>Please log in using the form in the sidebar to access the employee portal features.</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- Constants and Global Variables ---
+        const USERS = {
+            "Geetali": { "password": "password", "role": "employee", "position": "Software Engineer", "profile_photo": "https://placehold.co/150x150/2c2e30/8ab4f8?text=GE" },
+            "Nilesh": { "password": "password", "role": "employee", "position": "Sales Executive", "profile_photo": "https://placehold.co/150x150/2c2e30/8ab4f8?text=NI" },
+            "Vishal": { "password": "password", "role": "employee", "position": "Sales Executive", "profile_photo": "https://placehold.co/150x150/2c2e30/8ab4f8?text=VI" },
+            "Santosh": { "password": "password", "role": "employee", "position": "Sales Executive", "profile_photo": "https://placehold.co/150x150/2c2e30/8ab4f8?text=SA" },
+            "Deepak": { "password": "password", "role": "employee", "position": "Sales Executive", "profile_photo": "https://placehold.co/150x150/2c2e30/8ab4f8?text=DE" },
+            "Rahul": { "password": "password", "role": "employee", "position": "Sales Executive", "profile_photo": "https://placehold.co/150x150/2c2e30/8ab4f8?text=RA" },
+            "admin": { "password": "password", "role": "admin", "position": "System Administrator", "profile_photo": "https://placehold.co/150x150/2c2e30/8ab4f8?text=AD" }
+        };
+
+        const LOCAL_STORAGE_PREFIX = "employee_portal_";
+        const TARGET_TIMEZONE = "Asia/Kolkata"; // Used for display, actual JS dates are UTC-based
+
+        // Order specific data - NOW WITH PRICES!
+        const STORES = [
+            "Andhra Agri Emporium",
+            "Karnataka Farm Supplies",
+            "Maharashtra Agro Mart",
+            "Tamil Nadu Seeds & Fertilizers"
+        ];
+
+        const PRODUCTS = {
+            "Andhra Agri Emporium": [
+                { name: "Amino Acid", sizes: [{ size: "100ml", price: 150.00 }, { size: "500ml", price: 600.00 }, { size: "1L", price: 1100.00 }] },
+                { name: "Organic Fertilizer", sizes: [{ size: "1kg", price: 250.00 }, { size: "5kg", price: 1100.00 }, { size: "10kg", price: 2000.00 }] },
+                { name: "Pesticide X", sizes: [{ size: "250ml", price: 300.00 }, { size: "1L", price: 1000.00 }] }
+            ],
+            "Karnataka Farm Supplies": [
+                { name: "Growth Promoter", sizes: [{ size: "50ml", price: 120.00 }, { size: "250ml", price: 500.00 }, { size: "500ml", price: 900.00 }] },
+                { name: "Soil Conditioner", sizes: [{ size: "2kg", price: 400.00 }, { size: "10kg", price: 1800.00 }] }
+            ],
+            "Maharashtra Agro Mart": [
+                { name: "Fungicide Y", sizes: [{ size: "100ml", price: 200.00 }, { size: "500ml", price: 850.00 }] },
+                { name: "Liquid NPK", sizes: [{ size: "1L", price: 350.00 }, { size: "5L", price: 1600.00 }] }
+            ],
+            "Tamil Nadu Seeds & Fertilizers": [
+                { name: "Hybrid Seeds (Corn)", sizes: [{ size: "500g", price: 500.00 }, { size: "1kg", price: 950.00 }] },
+                { name: "Weedicide Z", sizes: [{ size: "1L", price: 450.00 }, { size: "5L", price: 2100.00 }] }
+            ]
+        };
+
+        // DOM Elements
+        const authArea = document.getElementById('auth-area'); // New combined auth/profile div
+        const sidebarNav = document.getElementById('sidebar-nav');
+        const mainContent = document.getElementById('main-content');
+        const mainNotification = document.getElementById('main-notification');
+        const initialDashboardMessage = document.getElementById('initial-dashboard-message');
+        const themeToggle = document.getElementById('theme-toggle');
+
+        // New DOM Elements for Mobile Menu
+        const mobileHeader = document.getElementById('mobile-header');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        let currentUser = null;
+        let currentRole = null;
+        let activePage = 'Dashboard'; // Default page after login
+        let currentTheme = 'dark'; // Default theme
+
+        // Temporary storage for current order items before submission
+        let currentOrderItems = [];
+
+        // Store Chart.js instances to destroy them later
+        const activeCharts = {};
+
+        // --- Utility Functions ---
+
+        function getLocalStorageKey(key) {
+            return `${LOCAL_STORAGE_PREFIX}${key}`;
+        }
+
+        function saveData(key, data) {
+            try {
+                localStorage.setItem(getLocalStorageKey(key), JSON.stringify(data));
+                console.log(`Data saved for key: ${key}`, data);
+            } catch (e) {
+                console.error("Error saving data to localStorage:", e);
+                displayMessage("Error saving data. Storage might be full.", "error");
+            }
+        }
+
+        function loadData(key, defaultValue = []) {
+            try {
+                const data = localStorage.getItem(getLocalStorageKey(key));
+                const parsedData = data ? JSON.parse(data) : defaultValue;
+                console.log(`Data loaded for key: ${key}`, parsedData);
+                return parsedData;
+            } catch (e) {
+                console.error("Error loading data from localStorage:", e);
+                displayMessage("Error loading data. Data might be corrupted.", "error");
+                return defaultValue;
+            }
+        }
+
+        function getTimestamp(date = new Date()) {
+            const options = {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: false, timeZone: TARGET_TIMEZONE
+            };
+            return new Intl.DateTimeFormat('en-CA', options).format(date).replace(/,/, ''); // FormatYYYY-MM-DD HH:MM:SS
+        }
+
+        function getQuarter(year, month) {
+            if (month >= 1 && month <= 3) return `${year}-Q1`;
+            if (month >= 4 && month <= 6) return `${year}-Q2`;
+            if (month >= 7 && month <= 9) return `${year}-Q3`;
+            if (month >= 10 && month <= 12) return `${year}-Q4`;
+            return null;
+        }
+
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function displayMessage(message, type = "info", targetElement = mainNotification) {
+            targetElement.textContent = message;
+            targetElement.className = `notification show ${type}`;
+            setTimeout(() => {
+                targetElement.classList.remove('show');
+            }, 5000); // Hide after 5 seconds
+        }
+
+        // --- Theme Management ---
+        function applyTheme(themeName) {
+            currentTheme = themeName;
+            document.body.classList.toggle('light-theme', themeName === 'light');
+            themeToggle.checked = (themeName === 'light'); // Update toggle switch state
+            // Update toggle label text
+            const themeLabel = document.querySelector('label[for="theme-toggle"] span');
+            if (themeLabel) {
+                themeLabel.textContent = themeName === 'dark' ? 'Dark Mode' : 'Light Mode';
+            }
+            saveData("themePreference", themeName);
+        }
+
+        // --- Authentication ---
+
+        /**
+         * Renders the authentication area in the sidebar.
+         * Displays either the user's profile and a logout button (if logged in)
+         * or a login form (if not logged in).
+         * This function directly addresses the user's request for the login/logout display
+         * to match the provided screenshot.
+         */
+        function renderAuthArea(isLoggedIn = false) {
+            authArea.innerHTML = ''; // Clear existing content
+            authArea.classList.remove('login', 'profile'); // Reset classes
+
+            // Add a check to ensure currentUser is a valid key in USERS
+            if (isLoggedIn && currentUser && USERS[currentUser]) { 
+                authArea.classList.add('profile');
+                authArea.innerHTML = `
+                    <img src="${USERS[currentUser].profile_photo}" alt="Profile" class="user-profile-img">
+                    <div class="welcome-text">Welcome, ${currentUser}!</div>
+                    <div class="user-position">${USERS[currentUser].position}</div>
+                    <button id="logout-btn" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition duration-200">
+                        <span class="material-symbols-outlined">logout</span> Logout
+                    </button>
+                `;
+                document.getElementById('logout-btn').addEventListener('click', logout);
+            } else {
+                // If currentUser is invalid or not logged in, show login form
+                authArea.classList.add('login');
+                authArea.innerHTML = `
+                    <h2 class="text-center text-accent-blue text-xl font-bold mb-4">Employee Portal Login</h2>
+                    <p class="text-center text-text-color mb-6 text-sm">Enter your credentials to access the dashboard.</p>
+                    <form id="login-form" class="space-y-4">
+                        <div>
+                            <label for="username" class="block text-sm font-medium text-text-color mb-1">Username:</label>
+                            <input type="text" id="username" name="username" required
+                                class="w-full p-2 rounded-lg bg-primary-bg border border-border-color text-text-color focus:ring-accent-blue focus:border-accent-blue">
+                        </div>
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-text-color mb-1">Password:</label>
+                            <input type="password" id="password" name="password" required
+                                class="w-full p-2 rounded-lg bg-primary-bg border border-border-color text-text-color focus:ring-accent-blue focus:border-accent-blue">
+                        </div>
+                        <button type="submit" class="w-full bg-accent-blue text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200">Login</button>
+                        <div id="login-message" class="notification text-center"></div>
+                    </form>
+                `;
+                document.getElementById('login-form').addEventListener('submit', handleLogin);
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
+            const loginMessage = document.getElementById('login-message');
+            console.log("Attempting login for:", usernameInput);
+
+            // Find user by case-insensitive username
+            const foundUsername = Object.keys(USERS).find(key => key.toLowerCase() === usernameInput.toLowerCase());
+
+            if (foundUsername && USERS[foundUsername].password === passwordInput) {
+                currentUser = foundUsername; // Use the actual username from USERS object
+                currentRole = USERS[currentUser].role;
+                saveData("currentUser", currentUser);
+                saveData("currentRole", currentRole);
+                displayMessage("Login successful!", "success", loginMessage);
+                console.log("Login successful for:", currentUser, "Role:", currentRole);
+                setTimeout(() => {
+                    switchPage('Dashboard'); // Redirect to dashboard on successful login
+                    closeSidebar(); // Close sidebar on mobile after login
+                }, 500);
+            } else {
+                displayMessage("Invalid username or password.", "error", loginMessage);
+                console.log("Login failed for:", usernameInput);
+            }
+        }
+
+        function logout() {
+            console.log("Logging out user:", currentUser);
+            currentUser = null;
+            currentRole = null;
+            localStorage.removeItem(getLocalStorageKey("currentUser"));
+            localStorage.removeItem(getLocalStorageKey("currentRole"));
+            displayMessage("Logged out successfully!", "info");
+            renderAuthArea(false); // Show login form
+            switchPage('Initial'); // Go to initial message page
+            closeSidebar(); // Close sidebar on mobile after logout
+        }
+
+        // --- Navigation ---
+
+        const navItems = [
+            { id: 'Dashboard', icon: 'dashboard', roles: ['employee', 'admin'] },
+            { id: 'Attendance', icon: 'event_available', roles: ['employee'] },
+            { id: 'Task Management', icon: 'task', roles: ['employee', 'admin'] },
+            { id: 'Sales Tracking', icon: 'trending_up', roles: ['employee', 'admin'] },
+            { id: 'Expense Tracking', icon: 'payments', roles: ['employee', 'admin'] },
+            { id: 'Goal Setting', icon: 'track_changes', roles: ['employee', 'admin'] },
+            { id: 'Order Management', icon: 'receipt_long', roles: ['employee', 'admin'] },
+            { id: 'Customer Management', icon: 'group', roles: ['employee', 'admin'] }, // NEW
+            { id: 'Lead Management', icon: 'person_add', roles: ['employee', 'admin'] }, // NEW
+            { id: 'AI Insights', icon: 'lightbulb', roles: ['admin'] },
+            { id: 'Settings', icon: 'settings', roles: ['admin'] }
+        ];
+
+        function renderSidebarNav() {
+            sidebarNav.innerHTML = ''; // Clear existing nav items
+            navItems.forEach(item => {
+                if (currentUser && item.roles.includes(currentRole)) {
+                    const div = document.createElement('div');
+                    div.id = `nav-${item.id.toLowerCase().replace(/\s/g, '-')}`;
+                    div.className = `sidebar-nav-item ${activePage === item.id ? 'active' : ''}`;
+                    div.innerHTML = `<span class="material-symbols-outlined">${item.icon}</span> ${item.id}`;
+                    div.addEventListener('click', () => {
+                        switchPage(item.id);
+                        closeSidebar(); // Close sidebar on mobile after navigation
+                    });
+                    sidebarNav.appendChild(div);
+                }
+            });
+        }
+
+        function switchPage(pageId) {
+            console.log("Switching to page:", pageId);
+            activePage = pageId;
+            renderMainContent();
+            renderSidebarNav(); // Re-render sidebar to update active state
+        }
+
+        function renderMainContent() {
+            // Destroy existing charts before rendering new content
+            for (const chartId in activeCharts) {
+                if (activeCharts[chartId]) {
+                    activeCharts[chartId].destroy();
+                    delete activeCharts[chartId];
+                }
+            }
+
+            mainContent.innerHTML = ''; // Clear main content area
+            mainContent.appendChild(mainNotification); // Keep notification div at the top
+            initialDashboardMessage.style.display = 'none'; // Hide initial message
+
+            if (!currentUser) {
+                initialDashboardMessage.style.display = 'block'; // Show initial message if not logged in
+                return;
+            }
+
+            switch (activePage) {
+                case 'Dashboard':
+                    renderDashboardPage();
+                    break;
+                case 'Attendance':
+                    renderAttendancePage();
+                    break;
+                case 'Task Management':
+                    renderTaskManagementPage();
+                    break;
+                case 'Sales Tracking':
+                    renderSalesTrackingPage();
+                    break;
+                case 'Expense Tracking':
+                    renderExpenseTrackingPage();
+                    break;
+                case 'Goal Setting':
+                    renderGoalSettingPage();
+                    break;
+                case 'Order Management':
+                    renderOrderManagementPage();
+                    break;
+                case 'Customer Management': // NEW
+                    renderCustomerManagementPage();
+                    break;
+                case 'Lead Management': // NEW
+                    renderLeadManagementPage();
+                    break;
+                case 'AI Insights':
+                    renderAIInsightsPage();
+                    break;
+                case 'Settings':
+                    renderSettingsPage();
+                    break;
+                case 'Initial': // Used when logged out
+                    initialDashboardMessage.style.display = 'block';
+                    break;
+                default:
+                    renderDashboardPage(); // Default to dashboard
+                    break;
+            }
+        }
+
+        // --- Page Rendering Functions ---
+
+        function renderDashboardPage() {
+            mainContent.innerHTML = `
+                <h2 class="text-2xl font-bold text-text-color mb-4">Dashboard</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">    
+                    <div class="card">
+                        <h3 class="text-lg font-semibold mb-2">Total Employees</h3>
+                        <p class="text-4xl font-bold text-accent-blue">${Object.keys(USERS).length - 1}</p>
+                    </div>
+                    <div class="card">
+                        <h3 class="text-lg font-semibold mb-2">Total Tasks</h3>
+                        <p class="text-4xl font-bold text-accent-blue">${loadData('tasks').length}</p>
+                    </div>
+                    <div class="card">
+                        <h3 class="text-lg font-semibold mb-2">Total Sales Orders</h3>
+                        <p class="text-4xl font-bold text-accent-blue">${loadData('orders').length}</p>
+                    </div>
+                    <div class="card">
+                        <h3 class="text-lg font-semibold mb-2">Total Customers</h3>
+                        <p class="text-4xl font-bold text-accent-blue">${loadData('customers').length}</p>
+                    </div>
+                    <div class="card">
+                        <h3 class="text-lg font-semibold mb-2">Total Leads</h3>
+                        <p class="text-4xl font-bold text-accent-blue">${loadData('leads').length}</p>
+                    </div>
+                    <div class="card">
+                        <h3 class="text-lg font-semibold mb-2">Pending Goals</h3>
+                        <p class="text-4xl font-bold text-accent-blue">${loadData('goals').filter(g => g.status !== 'Completed').length}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    <div class="card">
+                        <h3 class="text-xl font-bold mb-4">Sales Performance (Last 30 Days)</h3>
+                        <div class="chart-container">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 class="text-xl font-bold mb-4">Task Status Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="taskStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Render Charts
+            renderSalesChart();
+            renderTaskStatusChart();
+        }
+
+        function renderSalesChart() {
+            const salesData = loadData('salesData');
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const recentSales = salesData.filter(sale => new Date(sale.date) >= thirtyDaysAgo);
+
+            const dailySales = recentSales.reduce((acc, sale) => {
+                const date = new Date(sale.date).toISOString().split('T')[0];
+                acc[date] = (acc[date] || 0) + parseFloat(sale.amount);
+                return acc;
+            }, {});
+
+            const labels = Object.keys(dailySales).sort();
+            const data = labels.map(date => dailySales[date]);
+
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            activeCharts.salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Sales Amount (INR)',
+                        data: data,
+                        borderColor: 'var(--accent-blue)',
+                        backgroundColor: 'rgba(138, 180, 248, 0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            // Changed type from 'time' to 'category'
+                            type: 'category', 
+                            title: {
+                                display: true,
+                                text: 'Date',
+                                color: 'var(--text-color)'
+                            },
+                            ticks: {
+                                color: 'var(--text-color)'
+                            },
+                            grid: {
+                                color: 'var(--border-color)'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount (INR)',
+                                color: 'var(--text-color)'
+                            },
+                            ticks: {
+                                color: 'var(--text-color)'
+                            },
+                            grid: {
+                                color: 'var(--border-color)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'var(--text-color)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTaskStatusChart() {
+            const tasks = loadData('tasks');
+            const statusCounts = tasks.reduce((acc, task) => {
+                acc[task.status] = (acc[task.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const labels = Object.keys(statusCounts);
+            const data = labels.map(status => statusCounts[status]);
+            const backgroundColors = labels.map(status => {
+                switch (status) {
+                    case 'Pending': return 'var(--info-color)';
+                    case 'In Progress': return 'var(--warning-color)';
+                    case 'Completed': return 'var(--success-color)';
+                    default: return 'var(--border-color)';
+                }
+            });
+
+            const ctx = document.getElementById('taskStatusChart').getContext('2d');
+            activeCharts.taskStatusChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: 'var(--text-color)'
+                            }
+                        },
+                        title: {
+                            display: false,
+                            text: 'Task Status Distribution'
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderAttendancePage() {
+            mainContent.innerHTML = `
+                <h2 class="text-2xl font-bold text-text-color mb-4">Attendance Tracking</h2>
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Mark Your Attendance</h3>
+                    <div class="flex flex-col md:flex-row items-center gap-4">
+                        <button id="mark-in-btn" class="w-full md:w-auto flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+                            <span class="material-symbols-outlined mr-2">login</span> Mark In
+                        </button>
+                        <button id="mark-out-btn" class="w-full md:w-auto flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+                            <span class="material-symbols-outlined mr-2">logout</span> Mark Out
+                        </button>
+                    </div>
+                    <div id="attendance-message" class="notification mt-4"></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Your Attendance History</h3>
+                    <div class="table-container">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th class="py-2 px-4 border-b border-border-color">Date</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Time In</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Time Out</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-history-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            const attendanceMessage = document.getElementById('attendance-message');
+            const attendanceHistoryBody = document.getElementById('attendance-history-body');
+
+            document.getElementById('mark-in-btn').addEventListener('click', () => markAttendance('in', attendanceMessage));
+            document.getElementById('mark-out-btn').addEventListener('click', () => markAttendance('out', attendanceMessage));
+
+            displayAttendanceHistory(attendanceHistoryBody);
+        }
+
+        function markAttendance(type, messageElement) {
+            let attendanceRecords = loadData('attendance');
+            const today = new Date().toISOString().split('T')[0]; //YYYY-MM-DD
+            const now = getTimestamp(); //YYYY-MM-DD HH:MM:SS
+
+            let record = attendanceRecords.find(rec => rec.date === today && rec.employee === currentUser);
+
+            if (type === 'in') {
+                if (record && record.timeIn) {
+                    displayMessage("You have already marked in today.", "warning", messageElement);
+                } else {
+                    if (!record) {
+                        record = { id: generateUUID(), employee: currentUser, date: today, timeIn: null, timeOut: null, duration: null };
+                        attendanceRecords.push(record);
+                    }
+                    record.timeIn = now;
+                    displayMessage("Successfully marked in!", "success", messageElement);
+                }
+            } else if (type === 'out') {
+                if (!record || !record.timeIn) {
+                    displayMessage("Please mark in first before marking out.", "error", messageElement);
+                } else if (record.timeOut) {
+                    displayMessage("You have already marked out today.", "warning", messageElement);
+                } else {
+                    record.timeOut = now;
+                    const timeIn = new Date(record.timeIn);
+                    const timeOut = new Date(record.timeOut);
+                    const durationMs = timeOut - timeIn;
+                    const hours = Math.floor(durationMs / (1000 * 60 * 60));
+                    const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+                    record.duration = `${hours}h ${minutes}m`;
+                    displayMessage("Successfully marked out!", "success", messageElement);
+                }
+            }
+            saveData('attendance', attendanceRecords);
+            displayAttendanceHistory(document.getElementById('attendance-history-body'));
+        }
+
+        function displayAttendanceHistory(tbodyElement) {
+            const attendanceRecords = loadData('attendance').filter(rec => rec.employee === currentUser);
+            tbodyElement.innerHTML = '';
+            attendanceRecords.sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date descending
+
+            attendanceRecords.forEach(record => {
+                const row = tbodyElement.insertRow();
+                row.insertCell().textContent = record.date;
+                row.insertCell().textContent = record.timeIn ? record.timeIn.split(' ')[1] : 'N/A';
+                row.insertCell().textContent = record.timeOut ? record.timeOut.split(' ')[1] : 'N/A';
+                row.insertCell().textContent = record.duration || 'N/A';
+            });
+        }
+
+        function renderTaskManagementPage() {
+            mainContent.innerHTML = `
+                <h2 class="text-2xl font-bold text-text-color mb-4">Task Management</h2>
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Create New Task</h3>
+                    <form id="create-task-form" class="space-y-4">
+                        <div>
+                            <label for="task-title" class="block text-sm font-medium text-text-color mb-1">Task Title:</label>
+                            <input type="text" id="task-title" required class="w-full">
+                        </div>
+                        <div>
+                            <label for="task-description" class="block text-sm font-medium text-text-color mb-1">Description:</label>
+                            <textarea id="task-description" rows="3" class="w-full"></textarea>
+                        </div>
+                        <div>
+                            <label for="task-due-date" class="block text-sm font-medium text-text-color mb-1">Due Date:</label>
+                            <input type="date" id="task-due-date" class="w-full">
+                        </div>
+                        ${currentRole === 'admin' ? `
+                        <div>
+                            <label for="task-assigned-to" class="block text-sm font-medium text-text-color mb-1">Assign To:</label>
+                            <select id="task-assigned-to" class="w-full">
+                                <option value="">Select Employee</option>
+                                ${Object.keys(USERS).filter(u => USERS[u].role === 'employee').map(emp => `<option value="${emp}">${emp}</option>`).join('')}
+                            </select>
+                        </div>
+                        ` : ''}
+                        <button type="submit" class="w-full">Create Task</button>
+                        <div id="create-task-message" class="notification"></div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Your Tasks</h3>
+                    <div class="filter-controls flex flex-wrap gap-4 mb-4">
+                        <div>
+                            <label for="filter-task-status" class="block text-sm font-medium text-text-color mb-1">Filter by Status:</label>
+                            <select id="filter-task-status" class="w-full">
+                                <option value="all">All</option>
+                                <option value="Pending">Pending</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                        ${currentRole === 'admin' ? `
+                        <div>
+                            <label for="filter-task-employee" class="block text-sm font-medium text-text-color mb-1">Filter by Employee:</label>
+                            <select id="filter-task-employee" class="w-full">
+                                <option value="all">All</option>
+                                ${Object.keys(USERS).filter(u => USERS[u].role === 'employee').map(emp => `<option value="${emp}">${emp}</option>`).join('')}
+                            </select>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="table-container">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th class="py-2 px-4 border-b border-border-color">Title</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Description</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Due Date</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Assigned To</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Status</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tasks-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            const createTaskForm = document.getElementById('create-task-form');
+            const tasksTableBody = document.getElementById('tasks-table-body');
+            const filterTaskStatus = document.getElementById('filter-task-status');
+            const filterTaskEmployee = document.getElementById('filter-task-employee');
+
+            createTaskForm.addEventListener('submit', handleCreateTask);
+            filterTaskStatus.addEventListener('change', displayTasks);
+            if (filterTaskEmployee) filterTaskEmployee.addEventListener('change', displayTasks);
+
+            displayTasks(); // Initial display
+        }
+
+        function handleCreateTask(event) {
+            event.preventDefault();
+            let tasks = loadData('tasks');
+            const title = document.getElementById('task-title').value;
+            const description = document.getElementById('task-description').value;
+            const dueDate = document.getElementById('task-due-date').value;
+            const assignedTo = currentRole === 'admin' ? document.getElementById('task-assigned-to').value : currentUser;
+            const createTaskMessage = document.getElementById('create-task-message');
+
+            if (!assignedTo) {
+                displayMessage("Please assign the task to an employee.", "error", createTaskMessage);
+                return;
+            }
+
+            const newTask = {
+                id: generateUUID(),
+                title,
+                description,
+                dueDate,
+                assignedTo,
+                status: 'Pending',
+                createdAt: getTimestamp()
+            };
+
+            tasks.push(newTask);
+            saveData('tasks', tasks);
+            displayMessage("Task created successfully!", "success", createTaskMessage);
+            createTaskForm.reset();
+            displayTasks();
+        }
+
+        function displayTasks() {
+            const tasksTableBody = document.getElementById('tasks-table-body');
+            tasksTableBody.innerHTML = '';
+            let tasks = loadData('tasks');
+
+            const filterStatus = document.getElementById('filter-task-status').value;
+            const filterEmployee = currentRole === 'admin' && document.getElementById('filter-task-employee') ? document.getElementById('filter-task-employee').value : currentUser;
+
+            const filteredTasks = tasks.filter(task => {
+                const statusMatch = filterStatus === 'all' || task.status === filterStatus;
+                const employeeMatch = currentRole === 'admin' ? (filterEmployee === 'all' || task.assignedTo === filterEmployee) : (task.assignedTo === currentUser);
+                return statusMatch && employeeMatch;
+            });
+
+            filteredTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Sort by due date
+
+            if (filteredTasks.length === 0) {
+                tasksTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-text-color">No tasks found.</td></tr>`;
+                return;
+            }
+
+            filteredTasks.forEach(task => {
+                const row = tasksTableBody.insertRow();
+                row.insertCell().textContent = task.title;
+                row.insertCell().textContent = task.description;
+                row.insertCell().textContent = task.dueDate;
+                row.insertCell().textContent = task.assignedTo;
+                row.insertCell().innerHTML = `<span class="status-badge ${task.status.toLowerCase().replace(/\s/g, '-')}">${task.status}</span>`;
+
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'action-buttons';
+
+                // Status dropdown
+                const statusSelect = document.createElement('select');
+                ['Pending', 'In Progress', 'Completed'].forEach(status => {
+                    const option = document.createElement('option');
+                    option.value = status;
+                    option.textContent = status;
+                    if (task.status === status) option.selected = true;
+                    statusSelect.appendChild(option);
+                });
+                statusSelect.addEventListener('change', (e) => updateTaskStatus(task.id, e.target.value));
+                actionsCell.appendChild(statusSelect);
+
+                // Edit button
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.className = 'edit';
+                editButton.addEventListener('click', () => editTask(task.id));
+                actionsCell.appendChild(editButton);
+
+                // Delete button
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'delete';
+                deleteButton.addEventListener('click', () => deleteTask(task.id));
+                actionsCell.appendChild(deleteButton);
+            });
+        }
+
+        function updateTaskStatus(taskId, newStatus) {
+            let tasks = loadData('tasks');
+            const taskIndex = tasks.findIndex(task => task.id === taskId);
+            if (taskIndex > -1) {
+                tasks[taskIndex].status = newStatus;
+                saveData('tasks', tasks);
+                displayMessage(`Task "${tasks[taskIndex].title}" status updated to "${newStatus}".`, "success");
+                displayTasks(); // Re-render table
+            }
+        }
+
+        function editTask(taskId) {
+            let tasks = loadData('tasks');
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const newTitle = prompt("Edit Task Title:", task.title);
+            if (newTitle !== null && newTitle.trim() !== '') {
+                task.title = newTitle.trim();
+            }
+
+            const newDescription = prompt("Edit Task Description:", task.description);
+            if (newDescription !== null) {
+                task.description = newDescription.trim();
+            }
+
+            const newDueDate = prompt("Edit Due Date (YYYY-MM-DD):", task.dueDate);
+            if (newDueDate !== null && newDueDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                task.dueDate = newDueDate;
+            } else if (newDueDate !== null) {
+                displayMessage("Invalid date format. Please useYYYY-MM-DD.", "error");
+            }
+
+            saveData('tasks', tasks);
+            displayMessage(`Task "${task.title}" updated successfully.`, "success");
+            displayTasks();
+        }
+
+        function deleteTask(taskId) {
+            if (confirm("Are you sure you want to delete this task?")) {
+                let tasks = loadData('tasks');
+                tasks = tasks.filter(task => task.id !== taskId);
+                saveData('tasks', tasks);
+                displayMessage("Task deleted successfully.", "success");
+                displayTasks();
+            }
+        }
+
+        function renderSalesTrackingPage() {
+            mainContent.innerHTML = `
+                <h2 class="text-2xl font-bold text-text-color mb-4">Sales Tracking</h2>
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Record New Sale</h3>
+                    <form id="record-sale-form" class="space-y-4">
+                        <div>
+                            <label for="sale-customer" class="block text-sm font-medium text-text-color mb-1">Customer Name:</label>
+                            <input type="text" id="sale-customer" required class="w-full">
+                        </div>
+                        <div>
+                            <label for="sale-product" class="block text-sm font-medium text-text-color mb-1">Product/Service:</label>
+                            <input type="text" id="sale-product" required class="w-full">
+                        </div>
+                        <div>
+                            <label for="sale-amount" class="block text-sm font-medium text-text-color mb-1">Amount (INR):</label>
+                            <input type="number" id="sale-amount" step="0.01" min="0" required class="w-full">
+                        </div>
+                        <div>
+                            <label for="sale-date" class="block text-sm font-medium text-text-color mb-1">Date:</label>
+                            <input type="date" id="sale-date" value="${new Date().toISOString().split('T')[0]}" required class="w-full">
+                        </div>
+                        <button type="submit" class="w-full">Record Sale</button>
+                        <div id="record-sale-message" class="notification"></div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Sales History</h3>
+                    <div class="filter-controls flex flex-wrap gap-4 mb-4">
+                        <div>
+                            <label for="filter-sales-employee" class="block text-sm font-medium text-text-color mb-1">Filter by Employee:</label>
+                            <select id="filter-sales-employee" class="w-full">
+                                <option value="all">All</option>
+                                ${Object.keys(USERS).filter(u => USERS[u].role === 'employee').map(emp => `<option value="${emp}">${emp}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filter-sales-start-date" class="block text-sm font-medium text-text-color mb-1">From Date:</label>
+                            <input type="date" id="filter-sales-start-date" class="w-full">
+                        </div>
+                        <div>
+                            <label for="filter-sales-end-date" class="block text-sm font-medium text-text-color mb-1">To Date:</label>
+                            <input type="date" id="filter-sales-end-date" class="w-full">
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th class="py-2 px-4 border-b border-border-color">Date</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Employee</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Customer</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Product/Service</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Amount (INR)</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-history-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            const recordSaleForm = document.getElementById('record-sale-form');
+            const salesHistoryBody = document.getElementById('sales-history-body');
+            const filterSalesEmployee = document.getElementById('filter-sales-employee');
+            const filterSalesStartDate = document.getElementById('filter-sales-start-date');
+            const filterSalesEndDate = document.getElementById('filter-sales-end-date');
+
+            recordSaleForm.addEventListener('submit', handleRecordSale);
+            filterSalesEmployee.addEventListener('change', displaySalesHistory);
+            filterSalesStartDate.addEventListener('change', displaySalesHistory);
+            filterSalesEndDate.addEventListener('change', displaySalesHistory);
+
+            displaySalesHistory();
+        }
+
+        function handleRecordSale(event) {
+            event.preventDefault();
+            let salesData = loadData('salesData');
+            const customer = document.getElementById('sale-customer').value;
+            const product = document.getElementById('sale-product').value;
+            const amount = parseFloat(document.getElementById('sale-amount').value);
+            const date = document.getElementById('sale-date').value;
+            const recordSaleMessage = document.getElementById('record-sale-message');
+
+            if (isNaN(amount) || amount <= 0) {
+                displayMessage("Please enter a valid amount.", "error", recordSaleMessage);
+                return;
+            }
+
+            const newSale = {
+                id: generateUUID(),
+                employee: currentUser,
+                customer,
+                product,
+                amount,
+                date,
+                recordedAt: getTimestamp()
+            };
+
+            salesData.push(newSale);
+            saveData('salesData', salesData);
+            displayMessage("Sale recorded successfully!", "success", recordSaleMessage);
+            recordSaleForm.reset();
+            displaySalesHistory();
+        }
+
+        function displaySalesHistory() {
+            const salesHistoryBody = document.getElementById('sales-history-body');
+            salesHistoryBody.innerHTML = '';
+            let salesData = loadData('salesData');
+
+            const filterEmployee = document.getElementById('filter-sales-employee').value;
+            const filterStartDate = document.getElementById('filter-sales-start-date').value;
+            const filterEndDate = document.getElementById('filter-sales-end-date').value;
+
+            const filteredSales = salesData.filter(sale => {
+                const employeeMatch = filterEmployee === 'all' || sale.employee === filterEmployee;
+                const dateMatch = (!filterStartDate || sale.date >= filterStartDate) && (!filterEndDate || sale.date <= filterEndDate);
+                return employeeMatch && dateMatch;
+            });
+
+            filteredSales.sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date descending
+
+            if (filteredSales.length === 0) {
+                salesHistoryBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-text-color">No sales records found.</td></tr>`;
+                return;
+            }
+
+            filteredSales.forEach(sale => {
+                const row = salesHistoryBody.insertRow();
+                row.insertCell().textContent = sale.date;
+                row.insertCell().textContent = sale.employee;
+                row.insertCell().textContent = sale.customer;
+                row.insertCell().textContent = sale.product;
+                row.insertCell().textContent = sale.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+                
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'action-buttons';
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'delete';
+                deleteButton.addEventListener('click', () => deleteSale(sale.id));
+                actionsCell.appendChild(deleteButton);
+            });
+        }
+
+        function deleteSale(saleId) {
+            if (confirm("Are you sure you want to delete this sale record?")) {
+                let salesData = loadData('salesData');
+                salesData = salesData.filter(sale => sale.id !== saleId);
+                saveData('salesData', salesData);
+                displayMessage("Sale record deleted successfully.", "success");
+                displaySalesHistory();
+            }
+        }
+
+        function renderExpenseTrackingPage() {
+            mainContent.innerHTML = `
+                <h2 class="text-2xl font-bold text-text-color mb-4">Expense Tracking</h2>
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Record New Expense</h3>
+                    <form id="record-expense-form" class="space-y-4">
+                        <div>
+                            <label for="expense-category" class="block text-sm font-medium text-text-color mb-1">Category:</label>
+                            <input type="text" id="expense-category" required placeholder="e.g., Travel, Food, Supplies" class="w-full">
+                        </div>
+                        <div>
+                            <label for="expense-amount" class="block text-sm font-medium text-text-color mb-1">Amount (INR):</label>
+                            <input type="number" id="expense-amount" step="0.01" min="0" required class="w-full">
+                        </div>
+                        <div>
+                            <label for="expense-date" class="block text-sm font-medium text-text-color mb-1">Date:</label>
+                            <input type="date" id="expense-date" value="${new Date().toISOString().split('T')[0]}" required class="w-full">
+                        </div>
+                        <div>
+                            <label for="expense-notes" class="block text-sm font-medium text-text-color mb-1">Notes:</label>
+                            <textarea id="expense-notes" rows="2" class="w-full"></textarea>
+                        </div>
+                        <button type="submit" class="w-full">Record Expense</button>
+                        <div id="record-expense-message" class="notification"></div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Expense History</h3>
+                    <div class="filter-controls flex flex-wrap gap-4 mb-4">
+                        <div>
+                            <label for="filter-expense-category" class="block text-sm font-medium text-text-color mb-1">Filter by Category:</label>
+                            <input type="text" id="filter-expense-category" placeholder="Category name" class="w-full">
+                        </div>
+                        <div>
+                            <label for="filter-expense-start-date" class="block text-sm font-medium text-text-color mb-1">From Date:</label>
+                            <input type="date" id="filter-expense-start-date" class="w-full">
+                        </div>
+                        <div>
+                            <label for="filter-expense-end-date" class="block text-sm font-medium text-text-color mb-1">To Date:</label>
+                            <input type="date" id="filter-expense-end-date" class="w-full">
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th class="py-2 px-4 border-b border-border-color">Date</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Employee</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Category</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Amount (INR)</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Notes</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenses-history-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            const recordExpenseForm = document.getElementById('record-expense-form');
+            const expensesHistoryBody = document.getElementById('expenses-history-body');
+            const filterExpenseCategory = document.getElementById('filter-expense-category');
+            const filterExpenseStartDate = document.getElementById('filter-expense-start-date');
+            const filterExpenseEndDate = document.getElementById('filter-expense-end-date');
+
+            recordExpenseForm.addEventListener('submit', handleRecordExpense);
+            filterExpenseCategory.addEventListener('input', displayExpensesHistory);
+            filterExpenseStartDate.addEventListener('change', displayExpensesHistory);
+            filterExpenseEndDate.addEventListener('change', displayExpensesHistory);
+
+            displayExpensesHistory();
+        }
+
+        function handleRecordExpense(event) {
+            event.preventDefault();
+            let expenses = loadData('expenses');
+            const category = document.getElementById('expense-category').value;
+            const amount = parseFloat(document.getElementById('expense-amount').value);
+            const date = document.getElementById('expense-date').value;
+            const notes = document.getElementById('expense-notes').value;
+            const recordExpenseMessage = document.getElementById('record-expense-message');
+
+            if (isNaN(amount) || amount <= 0) {
+                displayMessage("Please enter a valid amount.", "error", recordExpenseMessage);
+                return;
+            }
+
+            const newExpense = {
+                id: generateUUID(),
+                employee: currentUser,
+                category,
+                amount,
+                date,
+                notes,
+                recordedAt: getTimestamp()
+            };
+
+            expenses.push(newExpense);
+            saveData('expenses', expenses);
+            displayMessage("Expense recorded successfully!", "success", recordExpenseMessage);
+            recordExpenseForm.reset();
+            displayExpensesHistory();
+        }
+
+        function displayExpensesHistory() {
+            const expensesHistoryBody = document.getElementById('expenses-history-body');
+            expensesHistoryBody.innerHTML = '';
+            let expenses = loadData('expenses');
+
+            const filterCategory = document.getElementById('filter-expense-category').value.toLowerCase();
+            const filterStartDate = document.getElementById('filter-expense-start-date').value;
+            const filterEndDate = document.getElementById('filter-expense-end-date').value;
+
+            const filteredExpenses = expenses.filter(expense => {
+                const categoryMatch = expense.category.toLowerCase().includes(filterCategory);
+                const dateMatch = (!filterStartDate || expense.date >= filterStartDate) && (!filterEndDate || expense.date <= filterEndDate);
+                return categoryMatch && dateMatch;
+            });
+
+            filteredExpenses.sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date descending
+
+            if (filteredExpenses.length === 0) {
+                expensesHistoryBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-text-color">No expense records found.</td></tr>`;
+                return;
+            }
+
+            filteredExpenses.forEach(expense => {
+                const row = expensesHistoryBody.insertRow();
+                row.insertCell().textContent = expense.date;
+                row.insertCell().textContent = expense.employee;
+                row.insertCell().textContent = expense.category;
+                row.insertCell().textContent = expense.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+                row.insertCell().textContent = expense.notes;
+                
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'action-buttons';
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'delete';
+                deleteButton.addEventListener('click', () => deleteExpense(expense.id));
+                actionsCell.appendChild(deleteButton);
+            });
+        }
+
+        function deleteExpense(expenseId) {
+            if (confirm("Are you sure you want to delete this expense record?")) {
+                let expenses = loadData('expenses');
+                expenses = expenses.filter(expense => expense.id !== expenseId);
+                saveData('expenses', expenses);
+                displayMessage("Expense record deleted successfully.", "success");
+                displayExpensesHistory();
+            }
+        }
+
+        function renderGoalSettingPage() {
+            mainContent.innerHTML = `
+                <h2 class="text-2xl font-bold text-text-color mb-4">Goal Setting & Tracking</h2>
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Set New Goal</h3>
+                    <form id="set-goal-form" class="space-y-4">
+                        <div>
+                            <label for="goal-name" class="block text-sm font-medium text-text-color mb-1">Goal Name:</label>
+                            <input type="text" id="goal-name" required class="w-full">
+                        </div>
+                        <div>
+                            <label for="goal-type" class="block text-sm font-medium text-text-color mb-1">Type:</label>
+                            <select id="goal-type" class="w-full">
+                                <option value="Sales">Sales Target</option>
+                                <option value="Revenue">Revenue Target</option>
+                                <option value="Tasks Completed">Tasks Completed</option>
+                                <option value="Customer Acquisition">Customer Acquisition</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="goal-target" class="block text-sm font-medium text-text-color mb-1">Target Value:</label>
+                            <input type="number" id="goal-target" min="0" required class="w-full">
+                        </div>
+                        <div>
+                            <label for="goal-current" class="block text-sm font-medium text-text-color mb-1">Current Value:</label>
+                            <input type="number" id="goal-current" min="0" value="0" class="w-full">
+                        </div>
+                        <div>
+                            <label for="goal-due-date" class="block text-sm font-medium text-text-color mb-1">Due Date:</label>
+                            <input type="date" id="goal-due-date" required class="w-full">
+                        </div>
+                        ${currentRole === 'admin' ? `
+                        <div>
+                            <label for="goal-assigned-to" class="block text-sm font-medium text-text-color mb-1">Assign To:</label>
+                            <select id="goal-assigned-to" class="w-full">
+                                <option value="all">All Employees</option>
+                                ${Object.keys(USERS).filter(u => USERS[u].role === 'employee').map(emp => `<option value="${emp}">${emp}</option>`).join('')}
+                            </select>
+                        </div>
+                        ` : ''}
+                        <button type="submit" class="w-full">Set Goal</button>
+                        <div id="set-goal-message" class="notification"></div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">All Goals</h3>
+                    <div class="filter-controls flex flex-wrap gap-4 mb-4">
+                        <div>
+                            <label for="filter-goal-status" class="block text-sm font-medium text-text-color mb-1">Filter by Status:</label>
+                            <select id="filter-goal-status" class="w-full">
+                                <option value="all">All</option>
+                                <option value="Pending">Pending</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                        ${currentRole === 'admin' ? `
+                        <div>
+                            <label for="filter-goal-employee" class="block text-sm font-medium text-text-color mb-1">Filter by Employee:</label>
+                            <select id="filter-goal-employee" class="w-full">
+                                <option value="all">All</option>
+                                ${Object.keys(USERS).filter(u => USERS[u].role === 'employee').map(emp => `<option value="${emp}">${emp}</option>`).join('')}
+                            </select>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="table-container">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th class="py-2 px-4 border-b border-border-color">Goal Name</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Type</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Target</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Current</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Due Date</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Assigned To</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Status</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="goals-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            const setGoalForm = document.getElementById('set-goal-form');
+            const goalsTableBody = document.getElementById('goals-table-body');
+            const filterGoalStatus = document.getElementById('filter-goal-status');
+            const filterGoalEmployee = document.getElementById('filter-goal-employee');
+
+            setGoalForm.addEventListener('submit', handleSetGoal);
+            filterGoalStatus.addEventListener('change', displayGoals);
+            if (filterGoalEmployee) filterGoalEmployee.addEventListener('change', displayGoals);
+
+            displayGoals();
+        }
+
+        function handleSetGoal(event) {
+            event.preventDefault();
+            let goals = loadData('goals');
+            const name = document.getElementById('goal-name').value;
+            const type = document.getElementById('goal-type').value;
+            const target = parseFloat(document.getElementById('goal-target').value);
+            const current = parseFloat(document.getElementById('goal-current').value);
+            const dueDate = document.getElementById('goal-due-date').value;
+            const assignedTo = currentRole === 'admin' ? document.getElementById('goal-assigned-to').value : currentUser;
+            const setGoalMessage = document.getElementById('set-goal-message');
+
+            if (isNaN(target) || target <= 0) {
+                displayMessage("Please enter a valid target value.", "error", setGoalMessage);
+                return;
+            }
+            if (isNaN(current) || current < 0) {
+                displayMessage("Please enter a valid current value.", "error", setGoalMessage);
+                return;
+            }
+            if (!assignedTo || (assignedTo === 'all' && currentRole !== 'admin')) {
+                displayMessage("Please assign the goal to an employee.", "error", setGoalMessage);
+                return;
+            }
+
+            const newGoal = {
+                id: generateUUID(),
+                name,
+                type,
+                target,
+                current,
+                dueDate,
+                assignedTo,
+                status: current >= target ? 'Completed' : 'Pending',
+                createdAt: getTimestamp()
+            };
+
+            goals.push(newGoal);
+            saveData('goals', goals);
+            displayMessage("Goal set successfully!", "success", setGoalMessage);
+            setGoalForm.reset();
+            displayGoals();
+        }
+
+        function displayGoals() {
+            const goalsTableBody = document.getElementById('goals-table-body');
+            goalsTableBody.innerHTML = '';
+            let goals = loadData('goals');
+
+            const filterStatus = document.getElementById('filter-goal-status').value;
+            const filterEmployee = currentRole === 'admin' && document.getElementById('filter-goal-employee') ? document.getElementById('filter-goal-employee').value : currentUser;
+
+            const filteredGoals = goals.filter(goal => {
+                const statusMatch = filterStatus === 'all' || goal.status === filterStatus;
+                const employeeMatch = currentRole === 'admin' ? (filterEmployee === 'all' || goal.assignedTo === filterEmployee) : (goal.assignedTo === currentUser);
+                return statusMatch && employeeMatch;
+            });
+
+            filteredGoals.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Sort by due date
+
+            if (filteredGoals.length === 0) {
+                goalsTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-text-color">No goals found.</td></tr>`;
+                return;
+            }
+
+            filteredGoals.forEach(goal => {
+                const row = goalsTableBody.insertRow();
+                row.insertCell().textContent = goal.name;
+                row.insertCell().textContent = goal.type;
+                row.insertCell().textContent = goal.target.toLocaleString();
+                row.insertCell().textContent = goal.current.toLocaleString();
+                row.insertCell().textContent = goal.dueDate;
+                row.insertCell().textContent = goal.assignedTo;
+                row.insertCell().innerHTML = `<span class="status-badge ${goal.status.toLowerCase().replace(/\s/g, '-')}">${goal.status}</span>`;
+
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'action-buttons';
+
+                // Update Current Value input
+                const updateInput = document.createElement('input');
+                updateInput.type = 'number';
+                updateInput.value = goal.current;
+                updateInput.min = "0";
+                updateInput.step = "any";
+                updateInput.className = 'w-24 p-1 rounded-md bg-primary-bg border border-border-color text-text-color text-sm';
+                updateInput.addEventListener('change', (e) => updateGoalCurrent(goal.id, parseFloat(e.target.value)));
+                actionsCell.appendChild(updateInput);
+
+                // Status dropdown
+                const statusSelect = document.createElement('select');
+                ['Pending', 'In Progress', 'Completed'].forEach(status => {
+                    const option = document.createElement('option');
+                    option.value = status;
+                    option.textContent = status;
+                    if (goal.status === status) option.selected = true;
+                    statusSelect.appendChild(option);
+                });
+                statusSelect.addEventListener('change', (e) => updateGoalStatus(goal.id, e.target.value));
+                actionsCell.appendChild(statusSelect);
+
+                // Delete button
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'delete';
+                deleteButton.addEventListener('click', () => deleteGoal(goal.id));
+                actionsCell.appendChild(deleteButton);
+            });
+        }
+
+        function updateGoalCurrent(goalId, newCurrent) {
+            let goals = loadData('goals');
+            const goalIndex = goals.findIndex(goal => goal.id === goalId);
+            if (goalIndex > -1) {
+                if (newCurrent < 0) {
+                    displayMessage("Current value cannot be negative.", "error");
+                    displayGoals(); // Revert display
+                    return;
+                }
+                goals[goalIndex].current = newCurrent; // Update the current value
+                // Check if goal is completed or if status needs to change back to in progress
+                if (goals[goalIndex].current >= goals[goalIndex].target && goals[goalIndex].status !== 'Completed') {
+                    goals[goalIndex].status = 'Completed';
+                    displayMessage(`Goal "${goals[goalIndex].name}" completed!`, "success");
+                } else if (goals[goalIndex].current < goals[goalIndex].target && goals[goalIndex].status === 'Completed') {
+                     goals[goalIndex].status = 'In Progress'; // If value drops below target after being completed
+                     displayMessage(`Goal "${goals[goalIndex].name}" is now In Progress.`, "warning");
+                }
+                saveData('goals', goals);
+                displayMessage(`Goal "${goals[goalIndex].name}" current value updated.`, "success");
+                displayGoals(); // Re-render table
+            }
+        }
+
+        function updateGoalStatus(goalId, newStatus) {
+            let goals = loadData('goals');
+            const goalIndex = goals.findIndex(goal => goal.id === goalId);
+            if (goalIndex > -1) {
+                goals[goalIndex].status = newStatus;
+                saveData('goals', goals);
+                displayMessage(`Goal "${goals[goalIndex].name}" status updated to "${newStatus}".`, "success");
+                displayGoals(); // Re-render table
+            }
+        }
+
+        function deleteGoal(goalId) {
+            if (confirm("Are you sure you want to delete this goal?")) {
+                let goals = loadData('goals');
+                goals = goals.filter(goal => goal.id !== goalId);
+                saveData('goals', goals);
+                displayMessage("Goal deleted successfully.", "success");
+                displayGoals();
+            }
+        }
+
+        function renderOrderManagementPage() {
+            mainContent.innerHTML = `
+                <h2 class="text-2xl font-bold text-text-color mb-4">Order Management</h2>
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Create New Order</h3>
+                    <form id="create-order-form" class="space-y-4">
+                        <div>
+                            <label for="order-store" class="block text-sm font-medium text-text-color mb-1">Store:</label>
+                            <select id="order-store" required class="w-full">
+                                <option value="">Select Store</option>
+                                ${STORES.map(store => `<option value="${store}">${store}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="order-customer-name" class="block text-sm font-medium text-text-color mb-1">Customer Name:</label>
+                            <input type="text" id="order-customer-name" required class="w-full">
+                        </div>
+                        <div id="order-items-container" class="space-y-2 border border-border-color rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-text-color">Order Items</h4>
+                            </div>
+                        <button type="button" id="add-item-btn" class="secondary w-full">Add Item</button>
+                        <div class="flex justify-end items-center mt-4">
+                            <span class="text-lg font-semibold text-text-color mr-4">Total Amount:</span>
+                            <span id="order-total-amount" class="text-xl font-bold text-accent-blue">₹0.00</span>
+                        </div>
+                        <button type="submit" class="w-full mt-4">Submit Order</button>
+                        <div id="create-order-message" class="notification"></div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">All Orders</h3>
+                    <div class="filter-controls flex flex-wrap gap-4 mb-4">
+                        <div>
+                            <label for="filter-order-status" class="block text-sm font-medium text-text-color mb-1">Filter by Status:</label>
+                            <select id="filter-order-status" class="w-full">
+                                <option value="all">All</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                        ${currentRole === 'admin' ? `
+                        <div>
+                            <label for="filter-order-employee" class="block text-sm font-medium text-text-color mb-1">Filter by Employee:</label>
+                            <select id="filter-order-employee" class="w-full">
+                                <option value="all">All</option>
+                                ${Object.keys(USERS).filter(u => USERS[u].role === 'employee').map(emp => `<option value="${emp}">${emp}</option>`).join('')}
+                            </select>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="table-container">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th class="py-2 px-4 border-b border-border-color">Order ID</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Date</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Employee</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Customer</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Store</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Items</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Total Amount</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Status</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            const createOrderForm = document.getElementById('create-order-form');
+            const orderStoreSelect = document.getElementById('order-store');
+            const orderItemsContainer = document.getElementById('order-items-container');
+            const addItemBtn = document.getElementById('add-item-btn');
+            const orderTotalAmountSpan = document.getElementById('order-total-amount');
+            const ordersTableBody = document.getElementById('orders-table-body');
+            const filterOrderStatus = document.getElementById('filter-order-status');
+            const filterOrderEmployee = document.getElementById('filter-order-employee');
+
+            currentOrderItems = []; // Reset items for new order form
+            updateOrderTotal();
+
+            orderStoreSelect.addEventListener('change', () => {
+                currentOrderItems = []; // Clear items if store changes
+                renderOrderItems();
+                updateOrderTotal();
+            });
+            addItemBtn.addEventListener('click', () => addOrderItem());
+            createOrderForm.addEventListener('submit', handleCreateOrder);
+            filterOrderStatus.addEventListener('change', displayOrders);
+            if (filterOrderEmployee) filterOrderEmployee.addEventListener('change', displayOrders);
+
+            // Initial render of order items (empty)
+            renderOrderItems();
+            displayOrders();
+
+            function addOrderItem(item = null) {
+                const store = orderStoreSelect.value;
+                if (!store) {
+                    displayMessage("Please select a store first.", "warning", document.getElementById('create-order-message'));
+                    return;
+                }
+
+                const productsInStore = PRODUCTS[store] || [];
+                const productOptions = productsInStore.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+
+                const newItem = item || {
+                    id: generateUUID(),
+                    productName: '',
+                    size: '',
+                    quantity: 1,
+                    price: 0,
+                    total: 0
+                };
+
+                currentOrderItems.push(newItem);
+                renderOrderItems();
+            }
+
+            function renderOrderItems() {
+                orderItemsContainer.innerHTML = `
+                    <h4 class="text-lg font-semibold text-text-color mb-2">Order Items</h4>
+                    ${currentOrderItems.length === 0 ? '<p class="text-sm text-gray-500">No items added yet.</p>' : ''}
+                `;
+                currentOrderItems.forEach((item, index) => {
+                    const store = orderStoreSelect.value;
+                    const productsInStore = PRODUCTS[store] || [];
+                    const selectedProduct = productsInStore.find(p => p.name === item.productName);
+                    const sizeOptions = selectedProduct ? selectedProduct.sizes.map(s => `<option value="${s.size}" data-price="${s.price}" ${item.size === s.size ? 'selected' : ''}>${s.size} (₹${s.price.toFixed(2)})</option>`).join('') : '';
+
+                    const itemHtml = `
+                        <div class="flex flex-wrap items-end gap-2 p-2 border border-border-color rounded-md bg-primary-bg">
+                            <div class="flex-1 min-w-[120px]">
+                                <label class="block text-xs text-text-color mb-1">Product</label>
+                                <select data-index="${index}" data-field="productName" class="order-item-input w-full">
+                                    <option value="">Select Product</option>
+                                    ${productsInStore.map(p => `<option value="${p.name}" ${item.productName === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="flex-1 min-w-[100px]">
+                                <label class="block text-xs text-text-color mb-1">Size</label>
+                                <select data-index="${index}" data-field="size" class="order-item-input w-full" ${!selectedProduct ? 'disabled' : ''}>
+                                    <option value="">Select Size</option>
+                                    ${sizeOptions}
+                                </select>
+                            </div>
+                            <div class="flex-1 min-w-[80px]">
+                                <label class="block text-xs text-text-color mb-1">Qty</label>
+                                <input type="number" data-index="${index}" data-field="quantity" value="${item.quantity}" min="1" class="order-item-input w-full">
+                            </div>
+                            <div class="flex-1 min-w-[80px]">
+                                <label class="block text-xs text-text-color mb-1">Price</label>
+                                <input type="text" value="₹${item.price.toFixed(2)}" readonly class="w-full bg-gray-700 cursor-not-allowed">
+                            </div>
+                            <div class="flex-1 min-w-[80px]">
+                                <label class="block text-xs text-text-color mb-1">Total</label>
+                                <input type="text" value="₹${item.total.toFixed(2)}" readonly class="w-full bg-gray-700 cursor-not-allowed">
+                            </div>
+                            <button type="button" data-index="${index}" class="remove-item-btn bg-red-500 hover:bg-red-600 text-white p-2 rounded-md transition duration-200">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    `;
+                    orderItemsContainer.insertAdjacentHTML('beforeend', itemHtml);
+                });
+
+                document.querySelectorAll('.order-item-input').forEach(input => {
+                    input.addEventListener('change', handleOrderItemChange);
+                });
+                document.querySelectorAll('.remove-item-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const indexToRemove = parseInt(e.currentTarget.dataset.index);
+                        currentOrderItems.splice(indexToRemove, 1);
+                        renderOrderItems();
+                        updateOrderTotal();
+                    });
+                });
+            }
+
+            function handleOrderItemChange(event) {
+                const index = parseInt(event.target.dataset.index);
+                const field = event.target.dataset.field;
+                const value = event.target.value;
+
+                currentOrderItems[index][field] = value;
+
+                const store = orderStoreSelect.value;
+                const productsInStore = PRODUCTS[store] || [];
+
+                if (field === 'productName') {
+                    const selectedProduct = productsInStore.find(p => p.name === value);
+                    // Reset size and price when product changes
+                    currentOrderItems[index].size = '';
+                    currentOrderItems[index].price = 0;
+                    currentOrderItems[index].total = 0;
+                    renderOrderItems(); // Re-render to update size options
+                } else if (field === 'size') {
+                    const selectedProduct = productsInStore.find(p => p.name === currentOrderItems[index].productName);
+                    if (selectedProduct) {
+                        const selectedSize = selectedProduct.sizes.find(s => s.size === value);
+                        if (selectedSize) {
+                            currentOrderItems[index].price = selectedSize.price;
+                        }
+                    }
+                }
+
+                // Recalculate total for the item
+                currentOrderItems[index].total = currentOrderItems[index].price * currentOrderItems[index].quantity;
+                renderOrderItems(); // Re-render to update calculated fields
+                updateOrderTotal();
+            }
+
+            function updateOrderTotal() {
+                const total = currentOrderItems.reduce((sum, item) => sum + item.total, 0);
+                orderTotalAmountSpan.textContent = `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+
+            function handleCreateOrder(event) {
+                event.preventDefault();
+                const orderMessage = document.getElementById('create-order-message');
+                const store = document.getElementById('order-store').value;
+                const customerName = document.getElementById('order-customer-name').value;
+
+                if (!store || !customerName || currentOrderItems.length === 0) {
+                    displayMessage("Please fill all order details and add at least one item.", "error", orderMessage);
+                    return;
+                }
+
+                const totalAmount = currentOrderItems.reduce((sum, item) => sum + item.total, 0);
+                if (totalAmount <= 0) {
+                    displayMessage("Order total must be greater than zero.", "error", orderMessage);
+                    return;
+                }
+
+                const newOrder = {
+                    id: generateUUID(),
+                    employee: currentUser,
+                    customerName,
+                    store,
+                    items: currentOrderItems,
+                    totalAmount,
+                    status: 'Pending', // Initial status
+                    orderDate: new Date().toISOString().split('T')[0],
+                    createdAt: getTimestamp()
+                };
+
+                let orders = loadData('orders');
+                orders.push(newOrder);
+                saveData('orders', orders);
+                displayMessage("Order submitted successfully!", "success", orderMessage);
+                
+                // Reset form
+                createOrderForm.reset();
+                currentOrderItems = [];
+                renderOrderItems();
+                updateOrderTotal();
+                displayOrders(); // Refresh the orders table
+            }
+
+            function displayOrders() {
+                const ordersTableBody = document.getElementById('orders-table-body');
+                ordersTableBody.innerHTML = '';
+                let orders = loadData('orders');
+
+                const filterStatus = document.getElementById('filter-order-status').value;
+                const filterEmployee = currentRole === 'admin' && document.getElementById('filter-order-employee') ? document.getElementById('filter-order-employee').value : currentUser;
+
+                const filteredOrders = orders.filter(order => {
+                    const statusMatch = filterStatus === 'all' || order.status === filterStatus;
+                    const employeeMatch = currentRole === 'admin' ? (filterEmployee === 'all' || order.employee === filterEmployee) : (order.employee === currentUser);
+                    return statusMatch && employeeMatch;
+                });
+
+                filteredOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort by creation date descending
+
+                if (filteredOrders.length === 0) {
+                    ordersTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-text-color">No orders found.</td></tr>`;
+                    return;
+                }
+
+                filteredOrders.forEach(order => {
+                    const row = ordersTableBody.insertRow();
+                    row.insertCell().textContent = order.id.substring(0, 8); // Display short ID
+                    row.insertCell().textContent = order.orderDate;
+                    row.insertCell().textContent = order.employee;
+                    row.insertCell().textContent = order.customerName;
+                    row.insertCell().textContent = order.store;
+                    row.insertCell().textContent = order.items.map(item => `${item.productName} (${item.quantity}x)`).join(', ');
+                    row.insertCell().textContent = order.totalAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+                    row.insertCell().innerHTML = `<span class="status-badge ${order.status.toLowerCase().replace(/\s/g, '-')}">${order.status}</span>`;
+
+                    const actionsCell = row.insertCell();
+                    actionsCell.className = 'action-buttons';
+
+                    // Status dropdown
+                    const statusSelect = document.createElement('select');
+                    ['Pending', 'Approved', 'Rejected', 'Completed'].forEach(status => {
+                        const option = document.createElement('option');
+                        option.value = status;
+                        option.textContent = status;
+                        if (order.status === status) option.selected = true;
+                        statusSelect.appendChild(option);
+                    });
+                    statusSelect.addEventListener('change', (e) => updateOrderStatus(order.id, e.target.value));
+                    actionsCell.appendChild(statusSelect);
+
+                    // Delete button
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.className = 'delete';
+                    deleteButton.addEventListener('click', () => deleteOrder(order.id));
+                    actionsCell.appendChild(deleteButton);
+                });
+            }
+
+            function updateOrderStatus(orderId, newStatus) {
+                let orders = loadData('orders');
+                const orderIndex = orders.findIndex(order => order.id === orderId);
+                if (orderIndex > -1) {
+                    orders[orderIndex].status = newStatus;
+                    saveData('orders', orders);
+                    displayMessage(`Order ${orderId.substring(0, 8)} status updated to "${newStatus}".`, "success");
+                    displayOrders(); // Re-render table
+                }
+            }
+
+            function deleteOrder(orderId) {
+                if (confirm("Are you sure you want to delete this order?")) {
+                    let orders = loadData('orders');
+                    orders = orders.filter(order => order.id !== orderId);
+                    saveData('orders', orders);
+                    displayMessage("Order deleted successfully.", "success");
+                    displayOrders();
+                }
+            }
+        }
+
+        // --- NEW CRM FEATURES ---
+
+        function renderCustomerManagementPage() {
+            mainContent.innerHTML = `
+                <h2 class="text-2xl font-bold text-text-color mb-4">Customer Management</h2>
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Add New Customer</h3>
+                    <form id="add-customer-form" class="space-y-4">
+                        <div>
+                            <label for="customer-name" class="block text-sm font-medium text-text-color mb-1">Name:</label>
+                            <input type="text" id="customer-name" required class="w-full">
+                        </div>
+                        <div>
+                            <label for="customer-email" class="block text-sm font-medium text-text-color mb-1">Email:</label>
+                            <input type="email" id="customer-email" class="w-full">
+                        </div>
+                        <div>
+                            <label for="customer-phone" class="block text-sm font-medium text-text-color mb-1">Phone:</label>
+                            <input type="text" id="customer-phone" class="w-full">
+                        </div>
+                        <div>
+                            <label for="customer-address" class="block text-sm font-medium text-text-color mb-1">Address:</label>
+                            <textarea id="customer-address" rows="2" class="w-full"></textarea>
+                        </div>
+                        <div>
+                            <label for="customer-type" class="block text-sm font-medium text-text-color mb-1">Type:</label>
+                            <select id="customer-type" class="w-full">
+                                <option value="Individual">Individual</option>
+                                <option value="Company">Company</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="customer-notes" class="block text-sm font-medium text-text-color mb-1">Notes:</label>
+                            <textarea id="customer-notes" rows="3" class="w-full"></textarea>
+                        </div>
+                        <button type="submit" class="w-full">Add Customer</button>
+                        <div id="add-customer-message" class="notification"></div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Existing Customers</h3>
+                    <div class="filter-controls flex flex-wrap gap-4 mb-4">
+                        <div>
+                            <label for="filter-customer-search" class="block text-sm font-medium text-text-color mb-1">Search:</label>
+                            <input type="text" id="filter-customer-search" placeholder="Name or Email" class="w-full">
+                        </div>
+                        <div>
+                            <label for="filter-customer-type" class="block text-sm font-medium text-text-color mb-1">Filter by Type:</label>
+                            <select id="filter-customer-type" class="w-full">
+                                <option value="all">All</option>
+                                <option value="Individual">Individual</option>
+                                <option value="Company">Company</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th class="py-2 px-4 border-b border-border-color">Name</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Email</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Phone</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Type</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Added By</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Added Date</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customers-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            const addCustomerForm = document.getElementById('add-customer-form');
+            const customersTableBody = document.getElementById('customers-table-body');
+            const filterCustomerSearch = document.getElementById('filter-customer-search');
+            const filterCustomerType = document.getElementById('filter-customer-type');
+
+            addCustomerForm.addEventListener('submit', handleAddCustomer);
+            filterCustomerSearch.addEventListener('input', displayCustomers);
+            filterCustomerType.addEventListener('change', displayCustomers);
+
+            displayCustomers();
+        }
+
+        function handleAddCustomer(event) {
+            event.preventDefault();
+            let customers = loadData('customers');
+            const name = document.getElementById('customer-name').value;
+            const email = document.getElementById('customer-email').value;
+            const phone = document.getElementById('customer-phone').value;
+            const address = document.getElementById('customer-address').value;
+            const type = document.getElementById('customer-type').value;
+            const notes = document.getElementById('customer-notes').value;
+            const addCustomerMessage = document.getElementById('add-customer-message');
+
+            if (!name.trim()) {
+                displayMessage("Customer Name is required.", "error", addCustomerMessage);
+                return;
+            }
+            if (email.trim() && customers.some(c => c.email === email.trim())) {
+                displayMessage("Customer with this email already exists.", "error", addCustomerMessage);
+                return;
+            }
+
+            const newCustomer = {
+                id: generateUUID(),
+                name: name.trim(),
+                email: email.trim(),
+                phone: phone.trim(),
+                address: address.trim(),
+                type,
+                notes: notes.trim(),
+                addedBy: currentUser,
+                addedDate: new Date().toISOString().split('T')[0],
+                createdAt: getTimestamp()
+            };
+
+            customers.push(newCustomer);
+            saveData('customers', customers);
+            displayMessage("Customer added successfully!", "success", addCustomerMessage);
+            addCustomerForm.reset();
+            displayCustomers();
+        }
+
+        function displayCustomers() {
+            const customersTableBody = document.getElementById('customers-table-body');
+            customersTableBody.innerHTML = '';
+            let customers = loadData('customers');
+
+            const filterSearch = document.getElementById('filter-customer-search').value.toLowerCase();
+            const filterType = document.getElementById('filter-customer-type').value;
+
+            const filteredCustomers = customers.filter(customer => {
+                const searchMatch = customer.name.toLowerCase().includes(filterSearch) ||
+                                  (customer.email && customer.email.toLowerCase().includes(filterSearch));
+                const typeMatch = filterType === 'all' || customer.type === filterType;
+                return searchMatch && typeMatch;
+            });
+
+            filteredCustomers.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort by creation date descending
+
+            if (filteredCustomers.length === 0) {
+                customersTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-text-color">No customers found.</td></tr>`;
+                return;
+            }
+
+            filteredCustomers.forEach(customer => {
+                const row = customersTableBody.insertRow();
+                row.insertCell().textContent = customer.name;
+                row.insertCell().textContent = customer.email || 'N/A';
+                row.insertCell().textContent = customer.phone || 'N/A';
+                row.insertCell().textContent = customer.type;
+                row.insertCell().textContent = customer.addedBy;
+                row.insertCell().textContent = customer.addedDate;
+
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'action-buttons';
+
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.className = 'edit';
+                editButton.addEventListener('click', () => editCustomer(customer.id));
+                actionsCell.appendChild(editButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'delete';
+                deleteButton.addEventListener('click', () => deleteCustomer(customer.id));
+                actionsCell.appendChild(deleteButton);
+            });
+        }
+
+        function editCustomer(customerId) {
+            let customers = loadData('customers');
+            const customer = customers.find(c => c.id === customerId);
+            if (!customer) return;
+
+            // Using prompt for simplicity. In a real app, use a modal form.
+            const newName = prompt("Edit Customer Name:", customer.name);
+            if (newName !== null && newName.trim() !== '') customer.name = newName.trim();
+
+            const newEmail = prompt("Edit Customer Email:", customer.email);
+            if (newEmail !== null) customer.email = newEmail.trim();
+
+            const newPhone = prompt("Edit Customer Phone:", customer.phone);
+            if (newPhone !== null) customer.phone = newPhone.trim();
+
+            const newAddress = prompt("Edit Customer Address:", customer.address);
+            if (newAddress !== null) customer.address = newAddress.trim();
+
+            const newType = prompt("Edit Customer Type (Individual/Company):", customer.type);
+            if (newType !== null && (newType === 'Individual' || newType === 'Company')) customer.type = newType;
+
+            const newNotes = prompt("Edit Customer Notes:", customer.notes);
+            if (newNotes !== null) customer.notes = newNotes.trim();
+
+            saveData('customers', customers);
+            displayMessage(`Customer "${customer.name}" updated successfully!`, "success");
+            displayCustomers();
+        }
+
+        function deleteCustomer(customerId) {
+            if (confirm("Are you sure you want to delete this customer?")) {
+                let customers = loadData('customers');
+                customers = customers.filter(c => c.id !== customerId);
+                saveData('customers', customers);
+                displayMessage("Customer deleted successfully.", "success");
+                displayCustomers();
+            }
+        }
+
+        function renderLeadManagementPage() {
+            mainContent.innerHTML = `
+                <h2 class="text-2xl font-bold text-text-color mb-4">Lead Management</h2>
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Add New Lead</h3>
+                    <form id="add-lead-form" class="space-y-4">
+                        <div>
+                            <label for="lead-name" class="block text-sm font-medium text-text-color mb-1">Name:</label>
+                            <input type="text" id="lead-name" required class="w-full">
+                        </div>
+                        <div>
+                            <label for="lead-email" class="block text-sm font-medium text-text-color mb-1">Email:</label>
+                            <input type="email" id="lead-email" class="w-full">
+                        </div>
+                        <div>
+                            <label for="lead-phone" class="block text-sm font-medium text-text-color mb-1">Phone:</label>
+                            <input type="text" id="lead-phone" class="w-full">
+                        </div>
+                        <div>
+                            <label for="lead-source" class="block text-sm font-medium text-text-color mb-1">Source:</label>
+                            <input type="text" id="lead-source" placeholder="e.g., Website, Referral, Cold Call" class="w-full">
+                        </div>
+                        <div>
+                            <label for="lead-assigned-to" class="block text-sm font-medium text-text-color mb-1">Assign To:</label>
+                            <select id="lead-assigned-to" class="w-full">
+                                <option value="">Unassigned</option>
+                                ${Object.keys(USERS).filter(u => USERS[u].role === 'employee').map(emp => `<option value="${emp}">${emp}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="lead-notes" class="block text-sm font-medium text-text-color mb-1">Notes:</label>
+                            <textarea id="lead-notes" rows="3" class="w-full"></textarea>
+                        </div>
+                        <button type="submit" class="w-full">Add Lead</button>
+                        <div id="add-lead-message" class="notification"></div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Existing Leads</h3>
+                    <div class="filter-controls flex flex-wrap gap-4 mb-4">
+                        <div>
+                            <label for="filter-lead-search" class="block text-sm font-medium text-text-color mb-1">Search:</label>
+                            <input type="text" id="filter-lead-search" placeholder="Name or Email" class="w-full">
+                        </div>
+                        <div>
+                            <label for="filter-lead-status" class="block text-sm font-medium text-text-color mb-1">Filter by Status:</label>
+                            <select id="filter-lead-status" class="w-full">
+                                <option value="all">All</option>
+                                <option value="New">New</option>
+                                <option value="Contacted">Contacted</option>
+                                <option value="Qualified">Qualified</option>
+                                <option value="Converted">Converted</option>
+                                <option value="Lost">Lost</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filter-lead-employee" class="block text-sm font-medium text-text-color mb-1">Filter by Employee:</label>
+                            <select id="filter-lead-employee" class="w-full">
+                                <option value="all">All</option>
+                                ${Object.keys(USERS).filter(u => USERS[u].role === 'employee').map(emp => `<option value="${emp}">${emp}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th class="py-2 px-4 border-b border-border-color">Name</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Email</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Phone</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Source</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Status</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Assigned To</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Added Date</th>
+                                    <th class="py-2 px-4 border-b border-border-color">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leads-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            const addLeadForm = document.getElementById('add-lead-form');
+            const leadsTableBody = document.getElementById('leads-table-body');
+            const filterLeadSearch = document.getElementById('filter-lead-search');
+            const filterLeadStatus = document.getElementById('filter-lead-status');
+            const filterLeadEmployee = document.getElementById('filter-lead-employee');
+
+            addLeadForm.addEventListener('submit', handleAddLead);
+            filterLeadSearch.addEventListener('input', displayLeads);
+            filterLeadStatus.addEventListener('change', displayLeads);
+            filterLeadEmployee.addEventListener('change', displayLeads);
+
+            displayLeads();
+        }
+
+        function handleAddLead(event) {
+            event.preventDefault();
+            let leads = loadData('leads');
+            const name = document.getElementById('lead-name').value;
+            const email = document.getElementById('lead-email').value;
+            const phone = document.getElementById('lead-phone').value;
+            const source = document.getElementById('lead-source').value;
+            const assignedTo = document.getElementById('lead-assigned-to').value || null;
+            const notes = document.getElementById('lead-notes').value;
+            const addLeadMessage = document.getElementById('add-lead-message');
+
+            if (!name.trim()) {
+                displayMessage("Lead Name is required.", "error", addLeadMessage);
+                return;
+            }
+            if (email.trim() && leads.some(l => l.email === email.trim())) {
+                displayMessage("Lead with this email already exists.", "error", addLeadMessage);
+                return;
+            }
+
+            const newLead = {
+                id: generateUUID(),
+                name: name.trim(),
+                email: email.trim(),
+                phone: phone.trim(),
+                source: source.trim(),
+                status: 'New',
+                assignedTo,
+                notes: notes.trim(),
+                addedDate: new Date().toISOString().split('T')[0],
+                createdAt: getTimestamp()
+            };
+
+            leads.push(newLead);
+            saveData('leads', leads);
+            displayMessage("Lead added successfully!", "success", addLeadMessage);
+            addLeadForm.reset();
+            displayLeads();
+        }
+
+        function displayLeads() {
+            const leadsTableBody = document.getElementById('leads-table-body');
+            leadsTableBody.innerHTML = '';
+            let leads = loadData('leads');
+
+            const filterSearch = document.getElementById('filter-lead-search').value.toLowerCase();
+            const filterStatus = document.getElementById('filter-lead-status').value;
+            const filterEmployee = document.getElementById('filter-lead-employee').value;
+
+            const filteredLeads = leads.filter(lead => {
+                const searchMatch = lead.name.toLowerCase().includes(filterSearch) ||
+                                  (lead.email && lead.email.toLowerCase().includes(filterSearch));
+                const statusMatch = filterStatus === 'all' || lead.status === filterStatus;
+                const employeeMatch = filterEmployee === 'all' || lead.assignedTo === filterEmployee;
+                return searchMatch && statusMatch && employeeMatch;
+            });
+
+            filteredLeads.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort by creation date descending
+
+            if (filteredLeads.length === 0) {
+                leadsTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-text-color">No leads found.</td></tr>`;
+                return;
+            }
+
+            filteredLeads.forEach(lead => {
+                const row = leadsTableBody.insertRow();
+                row.insertCell().textContent = lead.name;
+                row.insertCell().textContent = lead.email || 'N/A';
+                row.insertCell().textContent = lead.phone || 'N/A';
+                row.insertCell().textContent = lead.source || 'N/A';
+                row.insertCell().innerHTML = `<span class="status-badge ${lead.status.toLowerCase().replace(/\s/g, '-')}">${lead.status}</span>`;
+                row.insertCell().textContent = lead.assignedTo || 'Unassigned';
+                row.insertCell().textContent = lead.addedDate;
+
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'action-buttons';
+
+                // Status dropdown
+                const statusSelect = document.createElement('select');
+                ['New', 'Contacted', 'Qualified', 'Converted', 'Lost'].forEach(status => {
+                    const option = document.createElement('option');
+                    option.value = status;
+                    option.textContent = status;
+                    if (lead.status === status) option.selected = true;
+                    statusSelect.appendChild(option);
+                });
+                statusSelect.addEventListener('change', (e) => updateLeadStatus(lead.id, e.target.value));
+                actionsCell.appendChild(statusSelect);
+
+                // Assign To dropdown
+                const assignToSelect = document.createElement('select');
+                assignToSelect.innerHTML = `<option value="">Unassigned</option>` +
+                                           Object.keys(USERS).filter(u => USERS[u].role === 'employee').map(emp => `<option value="${emp}" ${lead.assignedTo === emp ? 'selected' : ''}>${emp}</option>`).join('');
+                assignToSelect.addEventListener('change', (e) => assignLead(lead.id, e.target.value));
+                actionsCell.appendChild(assignToSelect);
+
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.className = 'edit';
+                editButton.addEventListener('click', () => editLead(lead.id));
+                actionsCell.appendChild(editButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'delete';
+                deleteButton.addEventListener('click', () => deleteLead(lead.id));
+                actionsCell.appendChild(deleteButton);
+            });
+        }
+
+        function updateLeadStatus(leadId, newStatus) {
+            let leads = loadData('leads');
+            const leadIndex = leads.findIndex(l => l.id === leadId);
+            if (leadIndex > -1) {
+                leads[leadIndex].status = newStatus;
+                saveData('leads', leads);
+                displayMessage(`Lead "${leads[leadIndex].name}" status updated to "${newStatus}".`, "success");
+                displayLeads();
+            }
+        }
+
+        function assignLead(leadId, newAssignedTo) {
+            let leads = loadData('leads');
+            const leadIndex = leads.findIndex(l => l.id === leadId);
+            if (leadIndex > -1) {
+                leads[leadIndex].assignedTo = newAssignedTo === '' ? null : newAssignedTo;
+                saveData('leads', leads);
+                displayMessage(`Lead "${leads[leadIndex].name}" assigned to "${newAssignedTo || 'Unassigned'}".`, "success");
+                displayLeads();
+            }
+        }
+
+        function editLead(leadId) {
+            let leads = loadData('leads');
+            const lead = leads.find(l => l.id === leadId);
+            if (!lead) return;
+
+            const newName = prompt("Edit Lead Name:", lead.name);
+            if (newName !== null && newName.trim() !== '') lead.name = newName.trim();
+
+            const newEmail = prompt("Edit Lead Email:", lead.email);
+            if (newEmail !== null) lead.email = newEmail.trim();
+
+            const newPhone = prompt("Edit Lead Phone:", lead.phone);
+            if (newPhone !== null) lead.phone = newPhone.trim();
+
+            const newSource = prompt("Edit Lead Source:", lead.source);
+            if (newSource !== null) lead.source = newSource.trim();
+
+            const newNotes = prompt("Edit Lead Notes:", lead.notes);
+            if (newNotes !== null) lead.notes = newNotes.trim();
+
+            saveData('leads', leads);
+            displayMessage(`Lead "${lead.name}" updated successfully!`, "success");
+            displayLeads();
+        }
+
+        function deleteLead(leadId) {
+            if (confirm("Are you sure you want to delete this lead?")) {
+                let leads = loadData('leads');
+                leads = leads.filter(l => l.id !== leadId);
+                saveData('leads', leads);
+                displayMessage("Lead deleted successfully.", "success");
+                displayLeads();
+            }
+        }
+
+        // --- AI Insights Page (Placeholder) ---
+        function renderAIInsightsPage() {
+            mainContent.innerHTML = `
+                <h2 class="text-2xl font-bold text-text-color mb-4">AI Insights & Analytics</h2>
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Coming Soon!</h3>
+                    <p class="text-text-color">This section will feature advanced AI-powered insights for sales forecasting, customer behavior analysis, and more.</p>
+                    <p class="text-text-color mt-2">Stay tuned for updates!</p>
+                </div>
+            `;
+        }
+
+        // --- Settings Page ---
+        function renderSettingsPage() {
+            mainContent.innerHTML = `
+                <h2 class="text-2xl font-bold text-text-color mb-4">Settings</h2>
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">Theme Settings</h3>
+                    <label for="settings-theme-toggle" class="flex items-center justify-between p-3 bg-primary-bg rounded-lg border border-border-color cursor-pointer transition duration-200">
+                        <span class="text-text-color font-medium">Dark Mode</span>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="settings-theme-toggle" id="settings-theme-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="settings-theme-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
+                        </div>
+                    </label>
+                    <p class="text-sm text-gray-500 mt-2">Toggle between dark and light themes.</p>
+                </div>
+            `;
+            const settingsThemeToggle = document.getElementById('settings-theme-toggle');
+            settingsThemeToggle.checked = (currentTheme === 'light'); // Set initial state
+            settingsThemeToggle.addEventListener('change', (e) => {
+                applyTheme(e.target.checked ? 'light' : 'dark');
+            });
+        }
+
+
+        // --- Mobile Menu Functionality ---
+        function openSidebar() {
+            sidebar.classList.add('sidebar-open');
+            sidebarOverlay.style.display = 'block';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('sidebar-open');
+            sidebarOverlay.style.display = 'none';
+        }
+
+        // --- Initial Data Initialization (if localStorage is empty) ---
+        function initializeDummyData() {
+            let customers = loadData('customers');
+            if (customers.length === 0) {
+                customers = [
+                    { id: generateUUID(), name: 'AgriCorp Solutions', email: 'contact@agricorp.com', phone: '9876543210', address: '123 Farm Rd, Rural City', type: 'Company', notes: 'Key client for fertilizers.', addedBy: 'admin', addedDate: '2024-01-15', createdAt: getTimestamp() },
+                    { id: generateUUID(), name: 'Priya Sharma', email: 'priya.s@example.com', phone: '9988776655', address: 'Flat 4B, Green Apartments', type: 'Individual', notes: 'Interested in organic pesticides.', addedBy: 'Nilesh', addedDate: '2024-02-01', createdAt: getTimestamp() },
+                    { id: generateUUID(), name: 'Harvest Innovations', email: 'info@harvestinnov.com', phone: '9123456789', address: '789 Tech Park, Metro City', type: 'Company', notes: 'New potential for irrigation systems.', addedBy: 'Vishal', addedDate: '2024-03-10', createdAt: getTimestamp() }
+                ];
+                saveData('customers', customers);
+                console.log("Initialized dummy customer data.");
+            }
+
+            let leads = loadData('leads');
+            if (leads.length === 0) {
+                leads = [
+                    { id: generateUUID(), name: 'Future Farms Ltd.', email: 'sales@futurefarms.in', phone: '8765432109', source: 'Website Inquiry', status: 'New', assignedTo: 'Nilesh', notes: 'Looking for bulk seeds.', addedDate: '2024-04-05', createdAt: getTimestamp() },
+                    { id: generateUUID(), name: 'Kisan Agro', email: 'kisan.agro@mail.com', phone: '7654321098', source: 'Referral', status: 'Contacted', assignedTo: 'Vishal', notes: 'Follow-up on NPK liquid fertilizer.', addedDate: '2024-04-12', createdAt: getTimestamp() },
+                    { id: generateUUID(), name: 'Green Earth Co.', email: 'green.earth@co.in', phone: '6543210987', source: 'Cold Call', status: 'Qualified', assignedTo: 'Nilesh', notes: 'Ready for product demo next week.', addedDate: '2024-04-20', createdAt: getTimestamp() }
+                ];
+                saveData('leads', leads);
+                console.log("Initialized dummy lead data.");
+            }
+        }
+
+
+        // --- Event Listeners and Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM Content Loaded. Initializing app.");
+            // Initialize dummy data if not present
+            initializeDummyData();
+
+            // Load theme preference
+            const savedTheme = loadData("themePreference", "dark");
+            applyTheme(savedTheme);
+
+            // Check login status and render UI
+            currentUser = loadData("currentUser");
+            currentRole = loadData("currentRole");
+            console.log("Loaded currentUser:", currentUser, "currentRole:", currentRole);
+
+            renderAuthArea(!!currentUser); // Pass true if currentUser is not null/undefined
+            renderSidebarNav();
+
+            if (currentUser) {
+                switchPage('Dashboard'); // Go to dashboard if logged in
+            } else {
+                switchPage('Initial'); // Show login form if not logged in
+            }
+
+            // Mobile menu event listeners
+            mobileMenuBtn.addEventListener('click', openSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+
+            // Theme toggle listener in sidebar
+            themeToggle.addEventListener('change', (e) => {
+                applyTheme(e.target.checked ? 'light' : 'dark');
+            });
+        });
+    </script>
+</body>
+</html>
